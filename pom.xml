@@ -4,13 +4,13 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>dk.magenta.eark.erms</groupId>
-	<artifactId>export-erms</artifactId>
+	<artifactId>alfresco-export-bridge</artifactId>
 	<packaging>war</packaging>
 	<version>1.0-SNAPSHOT</version>
-	<name>export-erms</name>
+	<name>alfresco-export-bridge</name>
 
 	<build>
-		<finalName>export-erms</finalName>
+		<finalName>alfresco-export-bridge</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
