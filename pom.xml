@@ -8,6 +8,17 @@
 	<packaging>war</packaging>
 	<version>1.0-SNAPSHOT</version>
 	<name>alfresco-export-bridge</name>
+    <description>
+        See https://redmine.magenta-aps.dk/issues/15940 for the parent task relating to this module
+    </description>
+    <developers>
+        <developer>
+            <id>https://github.com/DarkStar1</id>
+        </developer>
+        <developer>
+            <id>https://github.com/andreaskring</id>
+        </developer>
+    </developers>
 
 	<build>
 		<finalName>alfresco-export-bridge</finalName>
