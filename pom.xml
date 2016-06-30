@@ -26,11 +26,6 @@
 
         <!--<connection properties for the db-->
         <db.host>localhost</db.host>
-
-        <db.username>emt</db.username>
-        <db.password>password</db.password>
-        <db.name>exm</db.name>
-
         <db.port>3306</db.port>
 
         <!--driver details for db-->
@@ -38,6 +33,8 @@
         <jdbc.url.params> <![CDATA[?autoReconnect=true&useSSL=false]]></jdbc.url.params>
         <jdbc.url>jdbc:mysql://${db.host}:${db.port}/${db.name}${jdbc.url.params}</jdbc.url>
 
+        <!--db input schema for JOOQ-->
+        <db.inputSchema>exm</db.inputSchema>
 
         <jersey.version>2.22.1</jersey.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -45,11 +42,12 @@
 
 	<build>
 		<finalName>alfresco-export-bridge</finalName>
+
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>2.5.1</version>
+				<version>3.5.1</version>
 				<inherited>true</inherited>
 				<configuration>
 					<source>1.8</source>
@@ -145,14 +143,34 @@
                             <name>org.jooq.util.mysql.MySQLDatabase</name>
                             <includes>.*</includes>
                             <excludes></excludes>
-                            <inputSchema>public</inputSchema>
+                            <inputSchema>${db.inputSchema}</inputSchema>
                         </database>
                         <target>
                             <packageName>dk.magenta.eark.erms.db.connector</packageName>
-                            <directory>target/generated-sources/dk/magenta/eark/erms/db/jooq</directory>
+                            <directory>src/main/java/</directory>
                         </target>
                     </generator>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.10</version>
+                <executions>
+                    <execution>
+                        <id>add-source</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>src/main/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 		</plugins>
 
@@ -239,6 +257,7 @@
                 <db.username>emt</db.username>
                 <db.password>password</db.password>
                 <db.name>exm</db.name>
+                <db.inputSchema>exm</db.inputSchema>
             </properties>
         </profile>
     </profiles>

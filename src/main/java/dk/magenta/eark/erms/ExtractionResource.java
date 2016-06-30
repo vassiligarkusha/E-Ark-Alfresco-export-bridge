@@ -1,13 +1,5 @@
 package dk.magenta.eark.erms;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -16,6 +8,14 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Root resource (exposed at "myresource" path)
@@ -84,6 +84,13 @@ public class ExtractionResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Path("test")
     public JsonObject test() {
+		LoadProfile p = new LoadProfile();
+		try {
+			p.getInfo();
+		}
+		catch (SQLException sqe){
+			System.out.println("An error occurred reading the data from SQl: "+ sqe.getMessage());
+		}
     	JsonObject json = Json.createObjectBuilder()
     			.add("success", false)
     			.build();
