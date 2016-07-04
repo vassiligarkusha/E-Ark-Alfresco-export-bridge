@@ -2,11 +2,11 @@ package dk.magenta.eark.erms;
 
 public class JDBCTestDriver {
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
 
-    DatabaseConnectionStrategy databaseConnectionStrategy = new JDBCConnectionStrategy();
-    databaseConnectionStrategy.insertRepository(null, null, null, null);
+    DatabaseConnectionStrategy databaseConnectionStrategy = new JDBCConnectionStrategy(new PropertiesHandlerImpl(
+      Constants.SETTINGS));
+    databaseConnectionStrategy.insertRepository("test", "url", "user", "pwd");
 
   }
-
 }

@@ -19,7 +19,7 @@ public class Cmis1_1Connector implements CmisConnector {
 	public Cmis1_1Connector() {
 
 		// Get the CMIS properties, username, password,...
-		cmisProperties = new CmisPropertiesHandler(
+		cmisProperties = new PropertiesHandlerImpl(
 				Constants.CMIS_SETTINGS_PATH);
 
 		// TODO: refactor this into generic method

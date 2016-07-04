@@ -1,5 +1,7 @@
 package dk.magenta.eark.erms;
 
+import java.sql.SQLException;
+
 public interface DatabaseConnectionStrategy {
   /**
    * Insert new repository into DB
@@ -8,7 +10,6 @@ public interface DatabaseConnectionStrategy {
    * @param url
    * @param userName
    * @param password
-   * @return true is insert operation was successful and false otherwise
    */
-  public boolean insertRepository(String profileName, String url, String userName, String password);
+  public void insertRepository(String profileName, String url, String userName, String password) throws SQLException;
 }

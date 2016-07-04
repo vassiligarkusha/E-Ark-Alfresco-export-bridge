@@ -3,33 +3,33 @@ package dk.magenta.eark.erms;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
 
-  @Override
-  public boolean insertRepository(String profileName, String url, String userName, String password) {
+  private PropertiesHandler propertiesHandler;
 
-    // Will be removed - just doing a few tests
-
+  public JDBCConnectionStrategy(PropertiesHandler propertiesHandler) {
+    this.propertiesHandler = propertiesHandler;
     try {
       Class.forName("com.mysql.jdbc.Driver").newInstance();
-      Connection connection = DriverManager.getConnection("jdbc:mysql://localhost/world", "andreas", "hemmeligt");
-      PreparedStatement statement = connection.prepareStatement("SELECT * FROM City");
-      ResultSet r = statement.executeQuery();
-      while (r.next()) {
-        System.out.println(r.getString(2));
-      }
     } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-      // TODO Auto-generated catch block
-      e.printStackTrace();
-    } catch (SQLException e) {
-      // TODO Auto-generated catch block
       e.printStackTrace();
     }
-
-    return false;
   }
 
+  @Override
+  public void insertRepository(String profileName, String url, String userName, String password) throws SQLException {
+
+    Connection connection;
+    connection = DriverManager.getConnection(propertiesHandler.getProperty("host"),
+      propertiesHandler.getProperty("userName"), propertiesHandler.getProperty("password"));
+    String insertSql = "INSERT INTO Profiles VALUES (?, ?, ?, ?)";
+    PreparedStatement statement = connection.prepareStatement(insertSql);
+    statement.setString(1, profileName);
+    statement.setString(2, url);
+    statement.setString(3, userName);
+    statement.setString(4, password); // TODO: this should NOT be clear text
+    statement.executeUpdate();
+  }
 }
