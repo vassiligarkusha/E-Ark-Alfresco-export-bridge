@@ -9,3 +9,8 @@ CREATE TABLE Profiles(
 	userName VARCHAR(50),
 	password VARCHAR(50)
 );
+
+/* Insert dummy data */
+INSERT INTO Profiles VALUES ('name1', 'url1', 'user1', 'pwd1');
+INSERT INTO Profiles VALUES ('name2', 'url2', 'user2', 'pwd2');
+INSERT INTO Profiles VALUES ('name3', 'url3', 'user3', 'pwd3');

@@ -54,6 +54,22 @@ public class DatabaseResource {
   }
 
   @GET
+  @Path("getRepositories")
+  @Produces(MediaType.APPLICATION_JSON)
+  @Consumes(MediaType.APPLICATION_JSON)
+  public JsonObject getRepositories() {
+    try {
+      JsonObject json = databaseConnectionStrategy.selectRepositories();
+      return json;
+    } catch (SQLException e) {
+      JsonObjectBuilder builder = Json.createObjectBuilder();
+      builder.add(Constants.SUCCESS, false);
+      builder.add(Constants.ERRORMSG, e.getMessage());
+      return builder.build();
+    }
+  }
+
+  @GET
   @Path("test")
   public String test() {
     return "It's working!";
