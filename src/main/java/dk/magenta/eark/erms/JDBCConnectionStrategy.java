@@ -10,6 +10,10 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
 
   private PropertiesHandler propertiesHandler;
 
+  private Connection connection;
+  private PreparedStatement statement;
+  private ResultSet rs;
+
   public JDBCConnectionStrategy(PropertiesHandler propertiesHandler) {
     this.propertiesHandler = propertiesHandler;
     try {
@@ -22,15 +26,17 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
   @Override
   public void insertRepository(String profileName, String url, String userName, String password) throws SQLException {
 
-    Connection connection = DriverManager.getConnection(propertiesHandler.getProperty("host"),
+    connection = DriverManager.getConnection(propertiesHandler.getProperty("host"),
       propertiesHandler.getProperty("userName"), propertiesHandler.getProperty("password"));
     String insertSql = "INSERT INTO Profiles VALUES (?, ?, ?, ?)";
-    PreparedStatement statement = connection.prepareStatement(insertSql);
+    statement = connection.prepareStatement(insertSql);
     statement.setString(1, profileName);
     statement.setString(2, url);
     statement.setString(3, userName);
     statement.setString(4, password); // TODO: this should NOT be clear text
     statement.executeUpdate();
+
+    close();
   }
 
   @Override
@@ -39,11 +45,11 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
     JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder();
     JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
 
-    Connection connection = DriverManager.getConnection(propertiesHandler.getProperty("host"),
+    connection = DriverManager.getConnection(propertiesHandler.getProperty("host"),
       propertiesHandler.getProperty("userName"), propertiesHandler.getProperty("password"));
     String selectSql = "SELECT * from Profiles";
-    PreparedStatement statement = connection.prepareStatement(selectSql);
-    ResultSet rs = statement.executeQuery();
+    statement = connection.prepareStatement(selectSql);
+    rs = statement.executeQuery();
     while (rs.next()) {
       JsonObjectBuilder profile = Json.createObjectBuilder();
       profile.add(Profile.PROFILENAME, rs.getString(Profile.PROFILENAME));
@@ -56,6 +62,19 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
     jsonObjectBuilder.add("profiles", jsonArrayBuilder);
     jsonObjectBuilder.add(Constants.SUCCESS, true);
 
+    close();
     return jsonObjectBuilder.build();
+  }
+
+  private void close() throws SQLException {
+    if (rs != null) {
+      rs.close();
+    }
+    if (statement != null) {
+      statement.close();
+    }
+    if (connection != null) {
+      connection.close();
+    }
   }
 }
