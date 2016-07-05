@@ -1,9 +1,6 @@
 package dk.magenta.eark.erms;
 
-import dk.magenta.eark.erms.db.connector.tables.Profiles;
-import dk.magenta.eark.erms.db.connector.tables.Repositories;
 import org.jooq.DSLContext;
-import org.jooq.Result;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
@@ -23,10 +20,10 @@ public class LoadProfile {
 
     private void getProfiles (DSLContext db){
         final String ADMIN_USERNAME = "admin";
-        Result<?> dbResult = db.select(Profiles.PROFILES.NAME, Repositories.REPOSITORIES.URL).from(Profiles.PROFILES)
+   /*     Result<?> dbResult = db.select(PROFILES.NAME, REPOSITORIES.URL).from(Profiles.PROFILES)
                 .where(Profiles.PROFILES.USERNAME.eq(ADMIN_USERNAME)).fetch();
 
-        System.out.println("The resulting result from the db: "+ dbResult.format());
+        System.out.println("The resulting result from the db: "+ dbResult.format());*/
     }
 
     private Connection getConnection() throws SQLException {

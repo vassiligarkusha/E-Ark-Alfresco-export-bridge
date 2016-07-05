@@ -4,9 +4,7 @@
 package dk.magenta.eark.erms.db.connector;
 
 
-import dk.magenta.eark.erms.db.connector.tables.Person;
 import dk.magenta.eark.erms.db.connector.tables.Profiles;
-import dk.magenta.eark.erms.db.connector.tables.Repositories;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +30,7 @@ import org.jooq.impl.SchemaImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Exm extends SchemaImpl {
 
-    private static final long serialVersionUID = 276229940;
+    private static final long serialVersionUID = 140681626;
 
     /**
      * The reference instance of <code>exm</code>
@@ -40,19 +38,9 @@ public class Exm extends SchemaImpl {
     public static final Exm EXM = new Exm();
 
     /**
-     * The table <code>exm.person</code>.
-     */
-    public final Person PERSON = dk.magenta.eark.erms.db.connector.tables.Person.PERSON;
-
-    /**
-     * The table <code>exm.profiles</code>.
+     * The table <code>exm.Profiles</code>.
      */
     public final Profiles PROFILES = dk.magenta.eark.erms.db.connector.tables.Profiles.PROFILES;
-
-    /**
-     * The table <code>exm.repositories</code>.
-     */
-    public final Repositories REPOSITORIES = dk.magenta.eark.erms.db.connector.tables.Repositories.REPOSITORIES;
 
     /**
      * No further instances allowed
@@ -79,8 +67,6 @@ public class Exm extends SchemaImpl {
 
     private final List<Table<?>> getTables0() {
         return Arrays.<Table<?>>asList(
-            Person.PERSON,
-            Profiles.PROFILES,
-            Repositories.REPOSITORIES);
+            Profiles.PROFILES);
     }
 }

@@ -4,9 +4,7 @@
 package dk.magenta.eark.erms.db.connector;
 
 
-import dk.magenta.eark.erms.db.connector.tables.Person;
 import dk.magenta.eark.erms.db.connector.tables.Profiles;
-import dk.magenta.eark.erms.db.connector.tables.Repositories;
 
 import javax.annotation.Generated;
 
@@ -25,17 +23,7 @@ import javax.annotation.Generated;
 public class Tables {
 
     /**
-     * The table <code>exm.person</code>.
-     */
-    public static final Person PERSON = dk.magenta.eark.erms.db.connector.tables.Person.PERSON;
-
-    /**
-     * The table <code>exm.profiles</code>.
+     * The table <code>exm.Profiles</code>.
      */
     public static final Profiles PROFILES = dk.magenta.eark.erms.db.connector.tables.Profiles.PROFILES;
-
-    /**
-     * The table <code>exm.repositories</code>.
-     */
-    public static final Repositories REPOSITORIES = dk.magenta.eark.erms.db.connector.tables.Repositories.REPOSITORIES;
 }

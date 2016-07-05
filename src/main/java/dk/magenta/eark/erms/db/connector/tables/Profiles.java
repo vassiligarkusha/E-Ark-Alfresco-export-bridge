@@ -14,13 +14,11 @@ import java.util.List;
 import javax.annotation.Generated;
 
 import org.jooq.Field;
-import org.jooq.Identity;
 import org.jooq.Schema;
 import org.jooq.Table;
 import org.jooq.TableField;
 import org.jooq.UniqueKey;
 import org.jooq.impl.TableImpl;
-import org.jooq.types.UInteger;
 
 
 /**
@@ -36,10 +34,10 @@ import org.jooq.types.UInteger;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Profiles extends TableImpl<ProfilesRecord> {
 
-    private static final long serialVersionUID = 375849723;
+    private static final long serialVersionUID = 578407660;
 
     /**
-     * The reference instance of <code>exm.profiles</code>
+     * The reference instance of <code>exm.Profiles</code>
      */
     public static final Profiles PROFILES = new Profiles();
 
@@ -52,29 +50,34 @@ public class Profiles extends TableImpl<ProfilesRecord> {
     }
 
     /**
-     * The column <code>exm.profiles.id</code>.
+     * The column <code>exm.Profiles.profileName</code>.
      */
-    public final TableField<ProfilesRecord, UInteger> ID = createField("id", org.jooq.impl.SQLDataType.INTEGERUNSIGNED.nullable(false), this, "");
+    public final TableField<ProfilesRecord, String> PROFILENAME = createField("profileName", org.jooq.impl.SQLDataType.VARCHAR.length(50).nullable(false), this, "");
 
     /**
-     * The column <code>exm.profiles.name</code>.
+     * The column <code>exm.Profiles.url</code>.
      */
-    public final TableField<ProfilesRecord, String> NAME = createField("name", org.jooq.impl.SQLDataType.VARCHAR.length(255).nullable(false).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<ProfilesRecord, String> URL = createField("url", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
 
     /**
-     * The column <code>exm.profiles.username</code>.
+     * The column <code>exm.Profiles.userName</code>.
      */
-    public final TableField<ProfilesRecord, String> USERNAME = createField("username", org.jooq.impl.SQLDataType.VARCHAR.length(32).defaultValue(org.jooq.impl.DSL.inline("", org.jooq.impl.SQLDataType.VARCHAR)), this, "");
+    public final TableField<ProfilesRecord, String> USERNAME = createField("userName", org.jooq.impl.SQLDataType.VARCHAR.length(50), this, "");
 
     /**
-     * Create a <code>exm.profiles</code> table reference
+     * The column <code>exm.Profiles.password</code>.
+     */
+    public final TableField<ProfilesRecord, String> PASSWORD = createField("password", org.jooq.impl.SQLDataType.VARCHAR.length(50), this, "");
+
+    /**
+     * Create a <code>exm.Profiles</code> table reference
      */
     public Profiles() {
-        this("profiles", null);
+        this("Profiles", null);
     }
 
     /**
-     * Create an aliased <code>exm.profiles</code> table reference
+     * Create an aliased <code>exm.Profiles</code> table reference
      */
     public Profiles(String alias) {
         this(alias, PROFILES);
@@ -100,14 +103,6 @@ public class Profiles extends TableImpl<ProfilesRecord> {
      * {@inheritDoc}
      */
     @Override
-    public Identity<ProfilesRecord, UInteger> getIdentity() {
-        return Keys.IDENTITY_PROFILES;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     public UniqueKey<ProfilesRecord> getPrimaryKey() {
         return Keys.KEY_PROFILES_PRIMARY;
     }
@@ -117,7 +112,7 @@ public class Profiles extends TableImpl<ProfilesRecord> {
      */
     @Override
     public List<UniqueKey<ProfilesRecord>> getKeys() {
-        return Arrays.<UniqueKey<ProfilesRecord>>asList(Keys.KEY_PROFILES_PRIMARY, Keys.KEY_PROFILES_UNIQUE_INDEX);
+        return Arrays.<UniqueKey<ProfilesRecord>>asList(Keys.KEY_PROFILES_PRIMARY);
     }
 
     /**
