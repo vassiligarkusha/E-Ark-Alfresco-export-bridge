@@ -14,5 +14,12 @@ public interface DatabaseConnectionStrategy {
    */
   public void insertRepository(String profileName, String url, String userName, String password) throws SQLException;
 
+  /**
+   * Updates a profile in the db
+   * @param profile
+   * @throws SQLException
+   */
+  public void updateProfile(Profile profile) throws SQLException;
+
   public JsonObject selectRepositories() throws SQLException;
 }
