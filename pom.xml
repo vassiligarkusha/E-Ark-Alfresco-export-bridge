@@ -41,6 +41,8 @@
 
         <jersey.version>2.22.1</jersey.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <cmis.lib.version>0.14.0</cmis.lib.version>
     </properties>
 
 	<build>
@@ -69,6 +71,7 @@
 						</goals>
 						<phase>pre-integration-test</phase>
 						<configuration>
+                            <port>9090</port>
 							<useSeparateTomcatClassLoader>true</useSeparateTomcatClassLoader>
 							<contextFile>${project.basedir}/tomcat/context.xml</contextFile>
 						</configuration>
@@ -247,7 +250,42 @@
             <version>3.8.2</version>
         </dependency>
 
-	</dependencies>
+        <!-- https://mvnrepository.com/artifact/jdom/jdom -->
+        <dependency>
+            <groupId>jdom</groupId>
+            <artifactId>jdom</artifactId>
+            <version>1.1</version>
+        </dependency>
+
+        <!--Some apache commons libraries-->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.0</version>
+        </dependency>
+
+        <!--Some openCMIS libs-->
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-client-impl</artifactId>
+            <version>${cmis.lib.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-client-api</artifactId>
+            <version>${cmis.lib.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.chemistry.opencmis</groupId>
+            <artifactId>chemistry-opencmis-client-bindings</artifactId>
+            <version>${cmis.lib.version}</version>
+        </dependency>
+    </dependencies>
 
     <profiles>
         <profile>
