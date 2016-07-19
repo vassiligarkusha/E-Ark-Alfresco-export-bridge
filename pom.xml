@@ -77,7 +77,8 @@
                             <port>${maven.tomcat.port}</port>
 							<useSeparateTomcatClassLoader>true</useSeparateTomcatClassLoader>
 							<contextFile>${project.basedir}/tomcat/context.xml</contextFile>
-                            <!--enable CORS for development purposes only-->
+                            <!--enable CORS for development purposes only. The web.xml file specified is a copy of
+                                the auto generated web.xml with the additional CORS filter added -->
                             <tomcatWebXml>${maven.tomcat.web-xml.file}</tomcatWebXml>
 
 						</configuration>
