@@ -1,8 +1,9 @@
 package dk.magenta.eark.erms;
 
 import dk.magenta.eark.erms.db.connector.tables.Profiles;
-import org.jooq.*;
-import org.jooq.exception.DataAccessException;
+import org.jooq.DSLContext;
+import org.jooq.Record;
+import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
 
 import javax.json.Json;
@@ -96,7 +97,8 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
                     .set(Profiles.PROFILES.PASSWORD, profile.getPassword())
                     .where(Profiles.PROFILES.PROFILENAME.equalIgnoreCase(profile.getName()))
                     .execute();
-        } catch (DataAccessException ge) {
+
+        } catch (Exception ge) {
             System.out.println("There was an error in attempting to update the profile:\n\t\t\t" + ge.getMessage());
         }
         finally {
