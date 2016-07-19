@@ -20,6 +20,9 @@ import org.jdom.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import java.io.File;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -281,6 +284,19 @@ public class Cmis1Connector {
             ge.printStackTrace();
         }
         return false;
+    }
+
+
+    public JsonObject getRepositoryInfo(Session session){
+        JsonObjectBuilder repoInfo = Json.createObjectBuilder();
+        RepositoryInfo repositoryInfo = session.getRepositoryInfo();
+        repoInfo.add("RepositoryId", repositoryInfo.getId());
+        repoInfo.add("Name", repositoryInfo.getName());
+        repoInfo.add("Description", repositoryInfo.getDescription());
+        repoInfo.add("RootFolderId", repositoryInfo.getRootFolderId());
+        repoInfo.add("CmisVersion", repositoryInfo.getCmisVersion().value());
+
+        return repoInfo.build();
     }
 
     /**
