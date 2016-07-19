@@ -33,6 +33,8 @@
 
         <maven.db.port>3306</maven.db.port>
         <maven.tomcat.port>9090</maven.tomcat.port>
+        <maven.tomcat.web-xml.file>${project.basedir}/conf/web.xml</maven.tomcat.web-xml.file>
+        <maven.springloaded.version>1.2.6.RELEASE</maven.springloaded.version>
 
         <!--driver details for db-->
         <jdbc.driver>com.mysql.jdbc.Driver</jdbc.driver>
@@ -75,6 +77,9 @@
                             <port>${maven.tomcat.port}</port>
 							<useSeparateTomcatClassLoader>true</useSeparateTomcatClassLoader>
 							<contextFile>${project.basedir}/tomcat/context.xml</contextFile>
+                            <!--enable CORS for development purposes only-->
+                            <tomcatWebXml>${maven.tomcat.web-xml.file}</tomcatWebXml>
+
 						</configuration>
 					</execution>
 				</executions>
@@ -223,6 +228,15 @@
 		</dependency>
 		<!-- uncomment this to get JSON support <dependency> <groupId>org.glassfish.jersey.media</groupId> 
 			<artifactId>jersey-media-moxy</artifactId> </dependency> -->
+
+        <!-- Springloaded https://mvnrepository.com/artifact/org.springframework/springloaded -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>springloaded</artifactId>
+            <version>${maven.springloaded.version}</version>
+        </dependency>
+
+
         <!--Bring in the mysql connector-->
         <dependency>
             <groupId>mysql</groupId>
