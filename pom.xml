@@ -28,7 +28,7 @@
         <db.host>localhost</db.host>
 
         <db.username>emt</db.username>
-        <db.password>password</db.password>
+        <db.password>eark</db.password>
         <db.name>exm</db.name>
 
         <maven.db.port>3306</maven.db.port>
@@ -291,7 +291,7 @@
             </activation>
             <properties>
                 <db.username>emt</db.username>
-                <db.password>password</db.password>
+                <db.password>eark</db.password>
                 <db.name>exm</db.name>
                 <db.inputSchema>exm</db.inputSchema>
             </properties>
