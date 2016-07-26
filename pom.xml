@@ -28,11 +28,14 @@
         <db.host>localhost</db.host>
 
         <db.username>emt</db.username>
-        <db.password>password</db.password>
+        <db.password>eark</db.password>
         <db.name>exm</db.name>
 
         <maven.db.port>3306</maven.db.port>
         <maven.tomcat.port>9090</maven.tomcat.port>
+        <maven.cmis.lib.version>0.14.0</maven.cmis.lib.version>
+        <maven.springloaded.version>1.2.6.RELEASE</maven.springloaded.version>
+        <maven.tomcat.web-xml.file>${project.basedir}/conf/web.xml</maven.tomcat.web-xml.file>
 
         <!--driver details for db-->
         <jdbc.driver>com.mysql.jdbc.Driver</jdbc.driver>
@@ -42,8 +45,6 @@
 
         <jersey.version>2.22.1</jersey.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
-        <cmis.lib.version>0.14.0</cmis.lib.version>
     </properties>
 
 	<build>
@@ -60,6 +61,7 @@
 				</configuration>
 			</plugin>
 
+            <!--tomcat plugin-->
 			<plugin>
 				<groupId>org.apache.tomcat.maven</groupId>
 				<artifactId>tomcat7-maven-plugin</artifactId>
@@ -75,6 +77,7 @@
                             <port>${maven.tomcat.port}</port>
 							<useSeparateTomcatClassLoader>true</useSeparateTomcatClassLoader>
 							<contextFile>${project.basedir}/tomcat/context.xml</contextFile>
+                            <tomcatWebXml>${maven.tomcat.web-xml.file}</tomcatWebXml>
 						</configuration>
 					</execution>
 				</executions>
@@ -211,7 +214,7 @@
 	</dependencyManagement>
 
 	<dependencies>
-		<dependency>
+        <dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-servlet-core</artifactId>
 			<!-- use the following artifactId if you don't need servlet 2.x compatibility -->
@@ -221,8 +224,19 @@
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-json-processing</artifactId>
 		</dependency>
-		<!-- uncomment this to get JSON support <dependency> <groupId>org.glassfish.jersey.media</groupId> 
-			<artifactId>jersey-media-moxy</artifactId> </dependency> -->
+		<!-- uncomment this to get JSON support
+		<dependency>
+		    <groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-moxy</artifactId>
+		</dependency> -->
+
+        <!-- Springloaded https://mvnrepository.com/artifact/org.springframework/springloaded -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>springloaded</artifactId>
+            <version>${maven.springloaded.version}</version>
+        </dependency>
+
         <!--Bring in the mysql connector-->
         <dependency>
             <groupId>mysql</groupId>
@@ -269,18 +283,19 @@
         <dependency>
             <groupId>org.apache.chemistry.opencmis</groupId>
             <artifactId>chemistry-opencmis-client-impl</artifactId>
-            <version>${cmis.lib.version}</version>
+            <version>${maven.cmis.lib.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.chemistry.opencmis</groupId>
             <artifactId>chemistry-opencmis-client-api</artifactId>
-            <version>${cmis.lib.version}</version>
+            <version>${maven.cmis.lib.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.chemistry.opencmis</groupId>
             <artifactId>chemistry-opencmis-client-bindings</artifactId>
-            <version>${cmis.lib.version}</version>
+            <version>${maven.cmis.lib.version}</version>
         </dependency>
+
     </dependencies>
 
     <profiles>
@@ -291,7 +306,7 @@
             </activation>
             <properties>
                 <db.username>emt</db.username>
-                <db.password>password</db.password>
+                <db.password>eark</db.password>
                 <db.name>exm</db.name>
                 <db.inputSchema>exm</db.inputSchema>
             </properties>
