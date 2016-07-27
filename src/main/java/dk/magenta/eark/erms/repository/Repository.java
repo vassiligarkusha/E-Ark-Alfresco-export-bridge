@@ -6,7 +6,10 @@ import org.apache.chemistry.opencmis.client.api.Session;
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import java.sql.SQLException;
 
@@ -22,14 +25,21 @@ public class Repository {
     DatabaseConnectionStrategy dbConnectionStrategy;
 
     public Repository() {
+
+/*        HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
+              public boolean verify(String hostname, SSLSession sslSession) {
+                  return hostname.equals("deltademo.wisercat.eu");
+              }
+        });
+        */
         try {
             this.cmis1Connector = new Cmis1Connector();
-            this. dbConnectionStrategy = new JDBCConnectionStrategy(new PropertiesHandlerImpl("settings.properties"));
-        }
-        catch(SQLException sqe){
+            this.dbConnectionStrategy = new JDBCConnectionStrategy(new PropertiesHandlerImpl("settings.properties"));
+        } catch (SQLException sqe) {
             System.out.println("====> Error <====\nUnable to acquire db resource due to: " + sqe.getMessage());
         }
     }
+
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)

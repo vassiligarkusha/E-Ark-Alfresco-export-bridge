@@ -15,6 +15,7 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundExcept
 import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jdom.Element;
@@ -30,10 +31,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -54,10 +52,13 @@ public class Cmis1Connector {
     public Session getSession(Profile connectionProfile) {
         Session session = connections.get(connectionProfile.getName());
         URL wsdlUrl;
+        Map<String, String> serviceEndpoints;
         if (session == null) {
             //Validate that the url contains the wsdl we require or else throw an exception
             try {
                 wsdlUrl = new URL(connectionProfile.getUrl());
+                serviceEndpoints = this.extractWebservicesUrls(wsdlUrl);
+                addWSDL(serviceEndpoints);
                 if (!isValidWebServicesUrls(wsdlUrl))
                     throw new ErmsURLException("No wsdl document or no service endpoints in " +
                             "document retrieved from: " + connectionProfile.getUrl());
@@ -72,25 +73,25 @@ public class Cmis1Connector {
             // No connection to Alfresco available, create a new one
             SessionFactory sessionFactory = SessionFactoryImpl.newInstance();
 
-            Map<String, String> parameters = new HashMap<String, String>();
+            Map<String, String> parameters = new HashMap<>();
             parameters.put(SessionParameter.USER, connectionProfile.getUserName());
             parameters.put(SessionParameter.PASSWORD, connectionProfile.getPassword());
             parameters.put(SessionParameter.BINDING_TYPE, BindingType.WEBSERVICES.value());
-            parameters.put(SessionParameter.WEBSERVICES_REPOSITORY_SERVICE, wsdlUrl.toString());
-            parameters.put(SessionParameter.WEBSERVICES_NAVIGATION_SERVICE, wsdlUrl.toString());
-            parameters.put(SessionParameter.WEBSERVICES_OBJECT_SERVICE, wsdlUrl.toString());
-            parameters.put(SessionParameter.WEBSERVICES_VERSIONING_SERVICE, wsdlUrl.toString());
-            parameters.put(SessionParameter.WEBSERVICES_DISCOVERY_SERVICE, wsdlUrl.toString());
-            parameters.put(SessionParameter.WEBSERVICES_RELATIONSHIP_SERVICE, wsdlUrl.toString());
-            parameters.put(SessionParameter.WEBSERVICES_MULTIFILING_SERVICE, wsdlUrl.toString());
-            parameters.put(SessionParameter.WEBSERVICES_POLICY_SERVICE, wsdlUrl.toString());
-            parameters.put(SessionParameter.WEBSERVICES_ACL_SERVICE, wsdlUrl.toString());
+            parameters.put(SessionParameter.WEBSERVICES_REPOSITORY_SERVICE, serviceEndpoints.get("RepositoryService"));
+            parameters.put(SessionParameter.WEBSERVICES_NAVIGATION_SERVICE, serviceEndpoints.get("NavigationService"));
+            parameters.put(SessionParameter.WEBSERVICES_OBJECT_SERVICE, serviceEndpoints.get("ObjectService"));
+            parameters.put(SessionParameter.WEBSERVICES_VERSIONING_SERVICE, serviceEndpoints.get("VersioningService"));
+            parameters.put(SessionParameter.WEBSERVICES_DISCOVERY_SERVICE, serviceEndpoints.get("DiscoveryService"));
+            parameters.put(SessionParameter.WEBSERVICES_RELATIONSHIP_SERVICE, serviceEndpoints.get("RelationshipService"));
+            parameters.put(SessionParameter.WEBSERVICES_MULTIFILING_SERVICE, serviceEndpoints.get("MultiFilingService"));
+            parameters.put(SessionParameter.WEBSERVICES_POLICY_SERVICE, serviceEndpoints.get("PolicyService"));
+            parameters.put(SessionParameter.WEBSERVICES_ACL_SERVICE, serviceEndpoints.get("ACLService"));
             parameters.put(SessionParameter.COMPRESSION, "true");
             parameters.put(SessionParameter.CACHE_TTL_OBJECTS, "0"); // Caching is turned off
 
             // If there is only one repository exposed (e.g. Alfresco), these
             // lines will help detect it and its ID
-            Repository alfrescoRepository = null;
+            Repository alfrescoRepository;
             try {
                 List<Repository> repositories = sessionFactory.getRepositories(parameters);
                 if (repositories != null && repositories.size() > 0) {
@@ -110,6 +111,8 @@ public class Cmis1Connector {
                 // Save connection for reuse
                 connections.put(connectionProfile.getName(), session);
             } catch (Exception ge) {
+                System.out.print("******** Error *********\n");
+                ge.printStackTrace();
                 throw new ErmsConnectionException("There is an issue connecting to the repository:\n\n"
                         + ge.getMessage());
             }
@@ -397,7 +400,7 @@ public class Cmis1Connector {
             case "cmis:document" :
                 Document doc = (Document) cmisObject ;
                 jsonBuilder.add(ErmsBaseTypes.BASETYPE_ID, "document");
-                jsonBuilder.add(ErmsBaseTypes.LAST_MOD_DATE, Utils.convertToISO8601Date(cmisObject.getLastModificationDate()));
+//                jsonBuilder.add(ErmsBaseTypes.LAST_MOD_DATE, Utils.convertToISO8601Date(cmisObject.getLastModificationDate()));
                 jsonBuilder.add(ErmsBaseTypes.CONTENT_STREAM_LENGTH, doc.getContentStreamLength());
                 jsonBuilder.add(ErmsBaseTypes.CONTENT_STREAM_MIMETYPE, doc.getContentStreamMimeType());
                 jsonBuilder.add(ErmsBaseTypes.CONTENT_STREAM_ID, doc.getContentStreamId());
@@ -405,10 +408,16 @@ public class Cmis1Connector {
                 break;
             case "cmis:folder":
                 jsonBuilder.add(ErmsBaseTypes.BASETYPE_ID, "folder");
+                Folder folderRep = (Folder) cmisObject;
+                if(!folderRep.isRootFolder()) {
+                    jsonBuilder.add(ErmsBaseTypes.PARENT_ID, folderRep.getParentId());
+                    jsonBuilder.add(ErmsBaseTypes.PATH, folderRep.getPath());
+                }
                 break;
             default: Utils.getPropertyPostFixValue(cmisObject.getBaseTypeId().value());
                 break;
         }
+        jsonBuilder.add(ErmsBaseTypes.LAST_MOD_DATE, Utils.convertToISO8601Date(cmisObject.getLastModificationDate()));
         jsonBuilder.add(ErmsBaseTypes.OBJECT_ID, cmisObject.getId() );
         jsonBuilder.add(ErmsBaseTypes.OBJECT_TYPE_ID, cmisObject.getBaseTypeId().value() );
         jsonBuilder.add(ErmsBaseTypes.NAME, cmisObject.getName() );
@@ -417,6 +426,31 @@ public class Cmis1Connector {
         jsonBuilder.add(ErmsBaseTypes.LAST_MODIFIED, cmisObject.getLastModifiedBy() );
 
         return jsonBuilder.build();
+    }
+
+
+    /**
+     * Extracts the various CMIS 1.0 webservices endpoints from the wsdl file at the repository url.
+     * @param url for the wsdl file
+     * @return
+     */
+    private Map<String, String> extractWebservicesUrls(URL url){
+        try {
+            File wsdlTemp = File.createTempFile("repoWSDL", ".xml"); //create temp file
+            FileUtils.copyURLToFile(url, wsdlTemp);// copy the wsdl document so we can extract service endpoints
+            SAXBuilder builder = new SAXBuilder();
+            org.jdom.Document wsdlDoc = builder.build(wsdlTemp);
+            Element rootNode = wsdlDoc.getRootElement();//extract root xml document
+            Namespace defaultNamespace= rootNode.getNamespace();
+            //never use the other method as it returns nothing. http://stackoverflow.com/a/12582380/107301
+            List<Element> servicesList = rootNode.getChildren("service", defaultNamespace);
+            return servicesList.stream().map(this::extractEndpoints).collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+        }
+        catch (Exception ge){
+            System.out.println("************ Error ***********\n\t\t\t"+ ge.getMessage() +"\n\n=== Full stack trace ===\n");
+            ge.printStackTrace();
+        }
+        return Collections.<String, String>emptyMap();
     }
 
     /**
@@ -433,6 +467,19 @@ public class Cmis1Connector {
                 .getChild("address", soapNamespace)
                 .getAttributeValue("location")
         );
+    }
+
+    /**
+     * Adds a wsdl to the soap address location of each web point if they're not present
+     * @param servicesMap
+     */
+    private void addWSDL(Map<String,String> servicesMap){
+        String urlValue;
+        for(String key : servicesMap.keySet()){
+            urlValue = servicesMap.get(key);
+            if(!StringUtils.endsWith(urlValue, "?wsdl"))
+                servicesMap.put(key,urlValue+"?wsdl");
+        }
     }
 
     /**

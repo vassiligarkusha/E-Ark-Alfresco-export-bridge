@@ -3,6 +3,7 @@ package dk.magenta.eark.erms.repository;
 import dk.magenta.eark.erms.ErmsBaseTypes;
 import dk.magenta.eark.erms.Utils;
 import org.apache.chemistry.opencmis.client.api.*;
+import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderData;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
 import org.apache.chemistry.opencmis.commons.spi.*;
@@ -135,6 +136,18 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
         List<ObjectInFolderData> children = getNavigationService().getChildren(session.getRepositoryInfo().getId(), folderObjectId,
                 null, null, false, IncludeRelationships.BOTH, null, false, null, null, null).getObjects();
         return children.stream().map(t -> objectFactory.convertObject(t.getObject(), this.operationContext)).collect(Collectors.toList());
+    }
+
+    /**
+     * Returns the parent folder of a folder object
+     *
+     * @param folderObjectId the id of the folder
+     * @return
+     */
+    @Override
+    public CmisObject getFolderParent(String folderObjectId) {
+        ObjectData parent_ = getNavigationService().getFolderParent(session.getRepositoryInfo().getId(),folderObjectId, null, null);
+        return objectFactory.convertObject(parent_, this.operationContext);
     }
 
     /**

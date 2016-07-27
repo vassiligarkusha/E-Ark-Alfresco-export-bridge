@@ -71,4 +71,11 @@ public interface CmisSessionWorker {
      * @return
      */
     List<CmisObject> getFolderChildren(String folderObjectId);
+
+    /**
+     * Returns the parent folder of a folder object
+     * @param folderObjectId
+     * @return
+     */
+    CmisObject getFolderParent(String folderObjectId);
 }
