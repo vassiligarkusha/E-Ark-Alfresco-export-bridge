@@ -3,6 +3,7 @@ package dk.magenta.eark.erms.repository;
 import org.apache.chemistry.opencmis.client.api.CmisObject;
 import org.apache.chemistry.opencmis.commons.spi.*;
 
+import javax.json.JsonObject;
 import java.util.List;
 
 /**
@@ -67,10 +68,13 @@ public interface CmisSessionWorker {
     //</editor-fold>
 
     /**
-     * Returns a list of CmisObject representing the children of a folder given it's id
+     * Returns the properties and, optionally, the content stream of a document
+     *
+     * @param documentObjectId     the document objectId
+     * @param includeContentStream boolean value which specifies whether to return the content stream of the document
      * @return
      */
-    List<CmisObject> getFolderChildren(String folderObjectId);
+    JsonObject getDocument(String documentObjectId, boolean includeContentStream);
 
     /**
      * Returns the parent folder of a folder object
@@ -78,4 +82,31 @@ public interface CmisSessionWorker {
      * @return
      */
     CmisObject getFolderParent(String folderObjectId);
+
+    /**
+     * Returns a list of CmisObject representing the children of a folder given it's id
+     * @return
+     */
+    List<CmisObject> getFolderChildren(String folderObjectId);
+
+    /**
+     * returns the properties of a folder and its children
+     *
+     * @return Json object that represents the folder
+     */
+    public JsonObject getFolder(String folderObjectId);
+
+    /**
+     * returns the root folder
+     *
+     * @return
+     */
+    public JsonObject getRootFolder();
+
+    /**
+     * Self explanatory
+     *
+     * @return
+     */
+    public JsonObject getRepositoryInfo();
 }

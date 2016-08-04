@@ -18,6 +18,7 @@ public interface ErmsBaseTypes {
     String LAST_MOD_DATE = "lastModificationDate";
 
     //Some props that are for documents
+    String CONTENT_SIZE = "size";
     String CONTENT_STREAM_LENGTH = "contentStreamLength";
     String CONTENT_STREAM_FILENAME ="contentStreamFileName"; //Actual filename
     String CONTENT_STREAM_ID = "contentStreamId";

@@ -1,15 +1,15 @@
 package dk.magenta.eark.erms.repository;
 
 import dk.magenta.eark.erms.*;
+import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
 import org.apache.chemistry.opencmis.client.api.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.sql.SQLException;
 
@@ -21,17 +21,13 @@ import java.sql.SQLException;
 @Path("repository")
 public class Repository {
 
+    private final Logger logger = LoggerFactory.getLogger(Repository.class);
+
     private Cmis1Connector cmis1Connector;
     DatabaseConnectionStrategy dbConnectionStrategy;
 
     public Repository() {
 
-/*        HttpsURLConnection.setDefaultHostnameVerifier(new HostnameVerifier() {
-              public boolean verify(String hostname, SSLSession sslSession) {
-                  return hostname.equals("deltademo.wisercat.eu");
-              }
-        });
-        */
         try {
             this.cmis1Connector = new Cmis1Connector();
             this.dbConnectionStrategy = new JDBCConnectionStrategy(new PropertiesHandlerImpl("settings.properties"));
@@ -48,21 +44,18 @@ public class Repository {
         JsonObjectBuilder builder = Json.createObjectBuilder();
         JsonObject response;
         if (json.containsKey(Profile.PROFILENAME)) {
-
-
             String profileName = json.getString(Profile.PROFILENAME);
 
             try {
-                Profile connProfile = this.dbConnectionStrategy.getProfile(profileName);
-                Session repoSession = this.cmis1Connector.getSession(connProfile);
+                //Get a session worker
+                CmisSessionWorker sessionWorker =this.getSessionWorker(profileName);
 
                 //Build the json for the repository info
-                response = this.cmis1Connector.getRepositoryInfo(repoSession);
-                this.cmis1Connector.getRootFolder(repoSession);
+                response = sessionWorker.getRepositoryInfo();
                 builder.add("repositoryInfo", response);
-                builder.add("rootFolder", this.cmis1Connector.getRootFolder(repoSession));
+                builder.add("rootFolder", sessionWorker.getRootFolder());
 
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 builder.add(Constants.SUCCESS, false);
                 builder.add(Constants.ERRORMSG, e.getMessage());
             }
@@ -84,18 +77,18 @@ public class Repository {
     public JsonObject Document(JsonObject json) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
         if (json.containsKey(Profile.DOCUMENT_OBJECT_ID) && json.containsKey(Profile.PROFILENAME)) {
-            boolean includeContentstream = json.getBoolean("includeContentStream", false);
             String profileName = json.getString(Profile.PROFILENAME);
-            String folderObjectId = json.getString(Profile.DOCUMENT_OBJECT_ID);
+            String documentObjectId = json.getString(Profile.DOCUMENT_OBJECT_ID);
+            boolean includeContentStream = json.getBoolean("includeContentStream", false);
 
             try {
-                Profile connProfile = this.dbConnectionStrategy.getProfile(profileName);
-                Session repoSession = this.cmis1Connector.getSession(connProfile);
+                //Get a session worker
+                CmisSessionWorker sessionWorker =this.getSessionWorker(profileName);
 
                 //Build the json for the repository info
-                builder.add("document", this.cmis1Connector.getDocument(repoSession, folderObjectId, includeContentstream));
+                builder.add("document", sessionWorker.getDocument(documentObjectId, includeContentStream));
 
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 builder.add(Constants.SUCCESS, false);
                 builder.add(Constants.ERRORMSG, e.getMessage());
             }
@@ -110,6 +103,11 @@ public class Repository {
         return builder.build();
     }
 
+    /**
+     * Just returns a folder object
+     * @param json
+     * @return
+     */
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
@@ -118,18 +116,16 @@ public class Repository {
         JsonObjectBuilder builder = Json.createObjectBuilder();
         if (json.containsKey(Profile.FOLDER_OBJECT_ID) && json.containsKey(Profile.PROFILENAME)) {
 
-
             String profileName = json.getString(Profile.PROFILENAME);
             String folderObjectId = json.getString(Profile.FOLDER_OBJECT_ID);
 
             try {
-                Profile connProfile = this.dbConnectionStrategy.getProfile(profileName);
-                Session repoSession = this.cmis1Connector.getSession(connProfile);
+                CmisSessionWorker cmisSessionWorker = this.getSessionWorker(profileName);
 
                 //Build the json for the repository info
-                builder.add("folder", this.cmis1Connector.getFolder(repoSession, folderObjectId));
+                builder.add("folder", cmisSessionWorker.getFolder(folderObjectId));
 
-            } catch (SQLException e) {
+            } catch (Exception e) {
                 builder.add(Constants.SUCCESS, false);
                 builder.add(Constants.ERRORMSG, e.getMessage());
             }
@@ -144,4 +140,23 @@ public class Repository {
         return builder.build();
     }
 
+    /**
+     * Returns a cmis session worker instance given a profile name
+     * @param profileName
+     * @return
+     */
+    private CmisSessionWorker getSessionWorker(String profileName){
+        try{
+            //Retrieve the connection profile
+            Profile connProfile = this.dbConnectionStrategy.getProfile(profileName);
+            //Get a CMIS session object
+            Session repoSession = this.cmis1Connector.getSession(connProfile);
+            //Instantiate a session worker
+            return new CmisSessionWorkerImpl(repoSession);
+        }
+        catch(Exception ge){
+            logger.error("Unable to create session worker due to: " + ge.getMessage());
+            throw new ErmsRuntimeException(ge.getMessage());
+        }
+    }
 }

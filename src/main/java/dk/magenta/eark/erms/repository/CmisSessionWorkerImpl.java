@@ -2,15 +2,23 @@ package dk.magenta.eark.erms.repository;
 
 import dk.magenta.eark.erms.ErmsBaseTypes;
 import dk.magenta.eark.erms.Utils;
+import dk.magenta.eark.erms.exceptions.ErmsIOException;
+import dk.magenta.eark.erms.exceptions.ErmsNotSupportedException;
+import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
 import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderData;
+import org.apache.chemistry.opencmis.commons.data.RepositoryCapabilities;
+import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
+import org.apache.chemistry.opencmis.commons.impl.IOUtils;
+import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.chemistry.opencmis.commons.spi.*;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
+import javax.json.*;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,7 +50,7 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
      */
     @Override
     public NavigationService getNavigationService() {
-        return session.getBinding().getNavigationService();
+        return this.session.getBinding().getNavigationService();
     }
 
     /**
@@ -52,7 +60,7 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
      */
     @Override
     public RepositoryService getRepositoryService() {
-        return session.getBinding().getRepositoryService();
+        return this.session.getBinding().getRepositoryService();
     }
 
     /**
@@ -62,7 +70,7 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
      */
     @Override
     public VersioningService getVersioningService() {
-        return session.getBinding().getVersioningService();
+        return this.session.getBinding().getVersioningService();
     }
 
     /**
@@ -72,7 +80,7 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
      */
     @Override
     public AclService getACLService() {
-        return session.getBinding().getAclService();
+        return this.session.getBinding().getAclService();
     }
 
     /**
@@ -82,7 +90,7 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
      */
     @Override
     public RelationshipService getRelationshipService() {
-        return session.getBinding().getRelationshipService();
+        return this.session.getBinding().getRelationshipService();
     }
 
     /**
@@ -92,7 +100,7 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
      */
     @Override
     public PolicyService getPolicyService() {
-        return session.getBinding().getPolicyService();
+        return this.session.getBinding().getPolicyService();
     }
 
     /**
@@ -102,7 +110,7 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
      */
     @Override
     public ObjectService getObjectService() {
-        return session.getBinding().getObjectService();
+        return this.session.getBinding().getObjectService();
     }
 
     /**
@@ -112,7 +120,7 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
      */
     @Override
     public DiscoveryService getDiscoveryService() {
-        return session.getBinding().getDiscoveryService();
+        return this.session.getBinding().getDiscoveryService();
     }
 
     /**
@@ -122,9 +130,36 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
      */
     @Override
     public MultiFilingService getMultiFilingService() {
-        return session.getBinding().getMultiFilingService();
+        return this.session.getBinding().getMultiFilingService();
     }
     //</editor-fold>
+
+    /**
+     * Returns the properties and, optionally, the content stream of a document
+     *
+     * @param documentObjectId     the document objectId
+     * @param includeContentStream boolean value which specifies whether to return the content stream of the document
+     * @return
+     */
+    @Override
+    public JsonObject getDocument(String documentObjectId, boolean includeContentStream) {
+        JsonObjectBuilder documentBuilder = Json.createObjectBuilder();
+        try {
+            Document document = (Document) this.session.getObject(documentObjectId);
+            JsonObject tmp = this.extractUsefulProperties(document);
+            documentBuilder.add("properties", tmp);
+            if (includeContentStream) {
+                documentBuilder.add("contentStream", IOUtils.readAllLines(document.getContentStream().getStream()));
+            }
+
+        } catch (Exception ge) {
+            System.out.println("********** Stacktrace **********\n");
+            ge.printStackTrace();
+            throw new ErmsIOException("\nUnable to read document:\n" + ge.getMessage());
+        }
+
+        return documentBuilder.build();
+    }
 
     /**
      * Returns a list of CmisObject representing the children of a folder given it's cmis object id
@@ -133,7 +168,7 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
      */
     @Override
     public List<CmisObject> getFolderChildren(String folderObjectId) {
-        List<ObjectInFolderData> children = getNavigationService().getChildren(session.getRepositoryInfo().getId(), folderObjectId,
+        List<ObjectInFolderData> children = getNavigationService().getChildren(this.session.getRepositoryInfo().getId(), folderObjectId,
                 null, null, false, IncludeRelationships.BOTH, null, false, null, null, null).getObjects();
         return children.stream().map(t -> objectFactory.convertObject(t.getObject(), this.operationContext)).collect(Collectors.toList());
     }
@@ -146,8 +181,84 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
      */
     @Override
     public CmisObject getFolderParent(String folderObjectId) {
-        ObjectData parent_ = getNavigationService().getFolderParent(session.getRepositoryInfo().getId(),folderObjectId, null, null);
-        return objectFactory.convertObject(parent_, this.operationContext);
+        ObjectData parent_ = getNavigationService().getFolderParent(this.session.getRepositoryInfo().getId(),folderObjectId, null, null);
+        return this.objectFactory.convertObject(parent_, this.operationContext);
+    }
+
+    /**
+     * returns the properties of a folder and its children
+     *
+     * @return Json object that represents the folder
+     */
+    @Override
+    public JsonObject getFolder(String folderObjectId) {
+        RepositoryCapabilities caps = this.session.getRepositoryInfo().getCapabilities();
+        JsonObjectBuilder folderBuilder = Json.createObjectBuilder();
+        if (!caps.isGetDescendantsSupported())
+            throw new ErmsNotSupportedException("The operation requested is not supported by the repository");
+
+        try {
+            Folder folder = (Folder) this.session.getObject(folderObjectId);
+            //Just to be sure
+            if (!folder.getId().equalsIgnoreCase(folderObjectId))
+                throw new ErmsRuntimeException("Folder Id mismatch. Please contact system administrator to resolve the");
+            List<CmisObject> children = this.getFolderChildren(folder.getId());
+            List<JsonObject> jsonRep = children.stream().map(this::extractUsefulProperties).collect(Collectors.toList());
+            JsonArrayBuilder cb = Json.createArrayBuilder();
+            JsonObject tmp = this.extractUsefulProperties(folder);
+            jsonRep.forEach(cb::add);
+            folderBuilder.add("properties", tmp);
+            folderBuilder.add("children", cb.build());
+
+        } catch (Exception ge) {
+            throw new ErmsIOException("Unable to read folder items for root folder:\n" + ge.getMessage());
+        }
+
+        return folderBuilder.build();
+    }
+
+    /**
+     * returns the root folder
+     *
+     * @return
+     */
+    @Override
+    public JsonObject getRootFolder() {
+        RepositoryCapabilities caps = this.session.getRepositoryInfo().getCapabilities();
+        JsonObjectBuilder rootFolder = Json.createObjectBuilder();
+        if (!caps.isGetDescendantsSupported())
+            throw new ErmsNotSupportedException("The operation requested is not supported by the repository");
+
+        try {
+            Folder root = this.session.getRootFolder();
+            List<CmisObject> children = this.getFolderChildren(root.getId());
+            List<JsonObject> jsonRep = children.stream().map(this::extractUsefulProperties).collect(Collectors.toList());
+            JsonArrayBuilder cb = Json.createArrayBuilder();
+            JsonObject tmp = this.extractUsefulProperties(root);
+            jsonRep.forEach(cb::add);
+            rootFolder.add("properties", tmp);
+            rootFolder.add("children", cb.build());
+
+        } catch (Exception ge) {
+            throw new ErmsIOException("Unable to read folder items for root folder:\n" + ge.getMessage());
+        }
+
+        return rootFolder.build();
+    }
+
+    /**
+     * Self explanatory
+     *
+     * @return
+     */
+    @Override
+    public JsonObject getRepositoryInfo() {
+        RepositoryInfo repositoryInfo = this.session.getRepositoryInfo();
+
+        InputStream tmp = new ByteArrayInputStream(JSONConverter.convert(repositoryInfo, null, null, true)
+                .toString().getBytes(StandardCharsets.UTF_8));
+        JsonReader rdr = Json.createReader(tmp);
+        return rdr.readObject();
     }
 
     /**
@@ -165,6 +276,7 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
                 Document doc = (Document) cmisObject ;
                 jsonBuilder.add(ErmsBaseTypes.BASETYPE_ID, "document");
                 jsonBuilder.add(ErmsBaseTypes.LAST_MOD_DATE, Utils.convertToISO8601Date(cmisObject.getLastModificationDate()));
+                jsonBuilder.add(ErmsBaseTypes.CONTENT_SIZE, doc.getContentStreamLength());
                 jsonBuilder.add(ErmsBaseTypes.CONTENT_STREAM_LENGTH, doc.getContentStreamLength());
                 jsonBuilder.add(ErmsBaseTypes.CONTENT_STREAM_MIMETYPE, doc.getContentStreamMimeType());
                 jsonBuilder.add(ErmsBaseTypes.CONTENT_STREAM_ID, doc.getContentStreamId());
@@ -185,5 +297,7 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
 
         return jsonBuilder.build();
     }
+
+
 
 }
