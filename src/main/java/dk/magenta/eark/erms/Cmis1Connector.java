@@ -72,6 +72,7 @@ public class Cmis1Connector {
             Map<String, String> parameters = new HashMap<>();
             parameters.put(SessionParameter.USER, connectionProfile.getUserName());
             parameters.put(SessionParameter.PASSWORD, connectionProfile.getPassword());
+            parameters.put(SessionParameter.FORCE_CMIS_VERSION, "1.0");
             parameters.put(SessionParameter.BINDING_TYPE, BindingType.WEBSERVICES.value());
             parameters.put(SessionParameter.WEBSERVICES_REPOSITORY_SERVICE, serviceEndpoints.get("RepositoryService"));
             parameters.put(SessionParameter.WEBSERVICES_NAVIGATION_SERVICE, serviceEndpoints.get("NavigationService"));
