@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mapping>
+
+	<!-- Corresponding to the CMIS property ID "cmis:objectTypeId" -->
+	<objectTypes>
+		<objectType id="site">F:st:site</objectType>
+		<objectType id="folder">cmis:folder</objectType>
+		<objectType id="document">cmis:document</objectType>
+	</objectTypes>
+
+	<classifications>
+		<classification id="site">
+			<children>
+				<objectType id="folder" />
+			</children>
+		</classification>
+		<classification id="folder">
+			<children>
+				<objectType id="folder" />
+				<objectType id="document" />
+			</children>
+		</classification>
+	</classifications>
+
+	<eadMapping>
+
+	</eadMapping>
+	
+</mapping>
+
+<mappings>
+	<mapping>
+		<cmisProperty id="cmis:objectTypeId">F:st:site</cmisProperty>
+		<eadTemplate>
+			<c01 level="series">
+				<did>
+					<unitdate datechar="created">
+						<cmisProperty id="cmis:creationDate" />
+					</unitdate>
+					<unittitle>
+						<cmisProperty id="cmis:name" />
+					</unittitle>
+					<unitid localtype="system_id">
+						<cmisProperty id="cmis:objectId" />
+					</unitid>
+				</did>
+			</c01>
+		</eadTemplate>
+		<allowedChildren>
+			<child>
+				<cmisProperty id="cmis:objectTypeId">cmis:folder</cmisProperty>
+				<eadTemplate>
+					<c02 level="subseries">
+						<did>
+							<unitdate datechar="created">
+								<cmisProperty id="cmis:creationDate" />
+							</unitdate>
+							<unittitle>
+								<cmisProperty id="cmis:name" />
+							</unittitle>
+							<unitid localtype="system_id">
+								<cmisProperty id="cmis:objectId" />
+							</unitid>
+						</did>
+					</c02>
+				</eadTemplate>
+				<children>
+					<cmisProperty id="cmis:objectTypeId">cmis:document</cmisProperty>
+					<eadTemplate>
+						<c03 level="item">
+							<did>
+								<unitdate datechar="created">
+									<cmisProperty id="cmis:creationDate" />
+								</unitdate>
+								<unittitle>
+									<cmisProperty id="cmis:name" />
+								</unittitle>
+								<unitid localtype="system_id">
+									<cmisProperty id="cmis:objectId" />
+								</unitid>
+								<daoset label="Digital Object" coverage="whole">
+									<!-- dao elements are placed here at a later stage -->
+								</daoset>
+							</did>
+						</c03>
+					</eadTemplate>
+				</children>
+		</allowedChildren>
+	</mapping>
+</mappings>
