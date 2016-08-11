@@ -3,35 +3,13 @@
 
 	<!-- Corresponding to the CMIS property ID "cmis:objectTypeId" -->
 	<objectTypes>
-		<objectType id="site">F:st:site</objectType>
-		<objectType id="folder">cmis:folder</objectType>
-		<objectType id="document">cmis:document</objectType>
+		<objectType id="series">delta:series</objectType>
+		<objectType id="subseries">delta:subseries</objectType>
+		<objectType id="record">delta:record</objectType>
 	</objectTypes>
 
-	<classifications>
-		<classification id="site">
-			<children>
-				<objectType id="folder" />
-			</children>
-		</classification>
-		<classification id="folder">
-			<children>
-				<objectType id="folder" />
-				<objectType id="document" />
-			</children>
-		</classification>
-	</classifications>
-
-	<eadMapping>
-
-	</eadMapping>
-	
-</mapping>
-
-<mappings>
-	<mapping>
-		<cmisProperty id="cmis:objectTypeId">F:st:site</cmisProperty>
-		<eadTemplate>
+	<eadTemplates>
+		<template id="series">
 			<c01 level="series">
 				<did>
 					<unitdate datechar="created">
@@ -45,46 +23,40 @@
 					</unitid>
 				</did>
 			</c01>
-		</eadTemplate>
-		<allowedChildren>
-			<child>
-				<cmisProperty id="cmis:objectTypeId">cmis:folder</cmisProperty>
-				<eadTemplate>
-					<c02 level="subseries">
-						<did>
-							<unitdate datechar="created">
-								<cmisProperty id="cmis:creationDate" />
-							</unitdate>
-							<unittitle>
-								<cmisProperty id="cmis:name" />
-							</unittitle>
-							<unitid localtype="system_id">
-								<cmisProperty id="cmis:objectId" />
-							</unitid>
-						</did>
-					</c02>
-				</eadTemplate>
-				<children>
-					<cmisProperty id="cmis:objectTypeId">cmis:document</cmisProperty>
-					<eadTemplate>
-						<c03 level="item">
-							<did>
-								<unitdate datechar="created">
-									<cmisProperty id="cmis:creationDate" />
-								</unitdate>
-								<unittitle>
-									<cmisProperty id="cmis:name" />
-								</unittitle>
-								<unitid localtype="system_id">
-									<cmisProperty id="cmis:objectId" />
-								</unitid>
-								<daoset label="Digital Object" coverage="whole">
-									<!-- dao elements are placed here at a later stage -->
-								</daoset>
-							</did>
-						</c03>
-					</eadTemplate>
-				</children>
-		</allowedChildren>
-	</mapping>
-</mappings>
+		</template>
+		<template id="subseries">
+			<c02 level="subseries">
+				<did>
+					<unitdate datechar="created">
+						<cmisProperty id="cmis:creationDate" />
+					</unitdate>
+					<unittitle>
+						<cmisProperty id="cmis:name" />
+					</unittitle>
+					<unitid localtype="system_id">
+						<cmisProperty id="cmis:objectId" />
+					</unitid>
+				</did>
+			</c02>
+		</template>
+		<template id="record">
+			<c03 level="file">
+				<did>
+					<unitdate datechar="created">
+						<cmisProperty id="cmis:creationDate" />
+					</unitdate>
+					<unittitle>
+						<cmisProperty id="cmis:name" />
+					</unittitle>
+					<unitid localtype="system_id">
+						<cmisProperty id="cmis:objectId" />
+					</unitid>
+					<daoset label="Digital Object" coverage="whole">
+						<!-- dao elements are placed here at a later stage -->
+					</daoset>
+				</did>
+			</c03>
+		</template>
+	</eadTemplates>
+
+</mapping>

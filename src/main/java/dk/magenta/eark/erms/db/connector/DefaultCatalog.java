@@ -27,7 +27,7 @@ import org.jooq.impl.CatalogImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class DefaultCatalog extends CatalogImpl {
 
-    private static final long serialVersionUID = 601157677;
+    private static final long serialVersionUID = 1108796098;
 
     /**
      * The reference instance of <code></code>
@@ -35,9 +35,9 @@ public class DefaultCatalog extends CatalogImpl {
     public static final DefaultCatalog DEFAULT_CATALOG = new DefaultCatalog();
 
     /**
-     * The schema <code>exm</code>.
+     * The schema <code>aem</code>.
      */
-    public final Exm EXM = dk.magenta.eark.erms.db.connector.Exm.EXM;
+    public final Aem AEM = dk.magenta.eark.erms.db.connector.Aem.AEM;
 
     /**
      * No further instances allowed
@@ -55,6 +55,6 @@ public class DefaultCatalog extends CatalogImpl {
 
     private final List<Schema> getSchemas0() {
         return Arrays.<Schema>asList(
-            Exm.EXM);
+            Aem.AEM);
     }
 }

@@ -28,59 +28,59 @@ import org.jooq.impl.UpdatableRecordImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class ProfilesRecord extends UpdatableRecordImpl<ProfilesRecord> implements Record4<String, String, String, String> {
 
-    private static final long serialVersionUID = -1472976015;
+    private static final long serialVersionUID = 1637968881;
 
     /**
-     * Setter for <code>exm.Profiles.profileName</code>.
+     * Setter for <code>aem.Profiles.profileName</code>.
      */
     public void setProfilename(String value) {
         set(0, value);
     }
 
     /**
-     * Getter for <code>exm.Profiles.profileName</code>.
+     * Getter for <code>aem.Profiles.profileName</code>.
      */
     public String getProfilename() {
         return (String) get(0);
     }
 
     /**
-     * Setter for <code>exm.Profiles.url</code>.
+     * Setter for <code>aem.Profiles.url</code>.
      */
     public void setUrl(String value) {
         set(1, value);
     }
 
     /**
-     * Getter for <code>exm.Profiles.url</code>.
+     * Getter for <code>aem.Profiles.url</code>.
      */
     public String getUrl() {
         return (String) get(1);
     }
 
     /**
-     * Setter for <code>exm.Profiles.userName</code>.
+     * Setter for <code>aem.Profiles.userName</code>.
      */
     public void setUsername(String value) {
         set(2, value);
     }
 
     /**
-     * Getter for <code>exm.Profiles.userName</code>.
+     * Getter for <code>aem.Profiles.userName</code>.
      */
     public String getUsername() {
         return (String) get(2);
     }
 
     /**
-     * Setter for <code>exm.Profiles.password</code>.
+     * Setter for <code>aem.Profiles.password</code>.
      */
     public void setPassword(String value) {
         set(3, value);
     }
 
     /**
-     * Getter for <code>exm.Profiles.password</code>.
+     * Getter for <code>aem.Profiles.password</code>.
      */
     public String getPassword() {
         return (String) get(3);

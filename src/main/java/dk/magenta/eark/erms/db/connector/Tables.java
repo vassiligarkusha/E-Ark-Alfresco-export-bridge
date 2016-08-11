@@ -10,7 +10,7 @@ import javax.annotation.Generated;
 
 
 /**
- * Convenience access to all tables in exm
+ * Convenience access to all tables in aem
  */
 @Generated(
     value = {
@@ -23,7 +23,7 @@ import javax.annotation.Generated;
 public class Tables {
 
     /**
-     * The table <code>exm.Profiles</code>.
+     * The table <code>aem.Profiles</code>.
      */
     public static final Profiles PROFILES = dk.magenta.eark.erms.db.connector.tables.Profiles.PROFILES;
 }

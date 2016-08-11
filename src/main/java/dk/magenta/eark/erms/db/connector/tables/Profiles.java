@@ -4,7 +4,7 @@
 package dk.magenta.eark.erms.db.connector.tables;
 
 
-import dk.magenta.eark.erms.db.connector.Exm;
+import dk.magenta.eark.erms.db.connector.Aem;
 import dk.magenta.eark.erms.db.connector.Keys;
 import dk.magenta.eark.erms.db.connector.tables.records.ProfilesRecord;
 
@@ -34,10 +34,10 @@ import org.jooq.impl.TableImpl;
 @SuppressWarnings({ "all", "unchecked", "rawtypes" })
 public class Profiles extends TableImpl<ProfilesRecord> {
 
-    private static final long serialVersionUID = 578407660;
+    private static final long serialVersionUID = 1267897226;
 
     /**
-     * The reference instance of <code>exm.Profiles</code>
+     * The reference instance of <code>aem.Profiles</code>
      */
     public static final Profiles PROFILES = new Profiles();
 
@@ -50,34 +50,34 @@ public class Profiles extends TableImpl<ProfilesRecord> {
     }
 
     /**
-     * The column <code>exm.Profiles.profileName</code>.
+     * The column <code>aem.Profiles.profileName</code>.
      */
     public final TableField<ProfilesRecord, String> PROFILENAME = createField("profileName", org.jooq.impl.SQLDataType.VARCHAR.length(50).nullable(false), this, "");
 
     /**
-     * The column <code>exm.Profiles.url</code>.
+     * The column <code>aem.Profiles.url</code>.
      */
     public final TableField<ProfilesRecord, String> URL = createField("url", org.jooq.impl.SQLDataType.VARCHAR.length(255), this, "");
 
     /**
-     * The column <code>exm.Profiles.userName</code>.
+     * The column <code>aem.Profiles.userName</code>.
      */
     public final TableField<ProfilesRecord, String> USERNAME = createField("userName", org.jooq.impl.SQLDataType.VARCHAR.length(50), this, "");
 
     /**
-     * The column <code>exm.Profiles.password</code>.
+     * The column <code>aem.Profiles.password</code>.
      */
     public final TableField<ProfilesRecord, String> PASSWORD = createField("password", org.jooq.impl.SQLDataType.VARCHAR.length(50), this, "");
 
     /**
-     * Create a <code>exm.Profiles</code> table reference
+     * Create a <code>aem.Profiles</code> table reference
      */
     public Profiles() {
         this("Profiles", null);
     }
 
     /**
-     * Create an aliased <code>exm.Profiles</code> table reference
+     * Create an aliased <code>aem.Profiles</code> table reference
      */
     public Profiles(String alias) {
         this(alias, PROFILES);
@@ -96,7 +96,7 @@ public class Profiles extends TableImpl<ProfilesRecord> {
      */
     @Override
     public Schema getSchema() {
-        return Exm.EXM;
+        return Aem.AEM;
     }
 
     /**
