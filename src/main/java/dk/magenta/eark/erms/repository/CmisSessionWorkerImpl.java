@@ -39,6 +39,10 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
         this.session = session;
         this.objectFactory = session.getObjectFactory();
         this.operationContext = session.createOperationContext();
+        //DELTA HACK
+        this.session.getDefaultContext().setIncludeAllowableActions(false);
+        this.operationContext.setIncludeAllowableActions(false);
+        this.session.setDefaultContext(this.operationContext);
     }
 
     //<editor-fold desc="Webservices endpoints">
@@ -230,7 +234,8 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
             throw new ErmsNotSupportedException("The operation requested is not supported by the repository");
 
         try {
-            Folder root = this.session.getRootFolder();
+            String rootFolderId = this.session.getRepositoryInfo().getRootFolderId();
+            Folder root = (Folder) this.session.getObject(rootFolderId);
             List<CmisObject> children = this.getFolderChildren(root.getId());
             List<JsonObject> jsonRep = children.stream().map(this::extractUsefulProperties).collect(Collectors.toList());
             JsonArrayBuilder cb = Json.createArrayBuilder();
@@ -240,6 +245,9 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
             rootFolder.add("children", cb.build());
 
         } catch (Exception ge) {
+            System.out.println("******** Error ********\n");
+            ge.printStackTrace();
+            System.out.println("\n******** End ********\n");
             throw new ErmsIOException("Unable to read folder items for root folder:\n" + ge.getMessage());
         }
 
@@ -281,15 +289,18 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
                 jsonBuilder.add(ErmsBaseTypes.CONTENT_STREAM_MIMETYPE, doc.getContentStreamMimeType());
                 jsonBuilder.add(ErmsBaseTypes.CONTENT_STREAM_ID, doc.getContentStreamId());
                 jsonBuilder.add(ErmsBaseTypes.CONTENT_STREAM_FILENAME, doc.getContentStreamFileName());
+                jsonBuilder.add(ErmsBaseTypes.PATH, doc.getPaths().get(0));
                 break;
             case "cmis:folder":
+                Folder folder = (Folder) cmisObject ;
                 jsonBuilder.add(ErmsBaseTypes.BASETYPE_ID, "folder");
+                jsonBuilder.add(ErmsBaseTypes.PATH, folder.getPath());
                 break;
             default: Utils.getPropertyPostFixValue(cmisObject.getBaseTypeId().value());
                 break;
         }
         jsonBuilder.add(ErmsBaseTypes.OBJECT_ID, cmisObject.getId() );
-        jsonBuilder.add(ErmsBaseTypes.OBJECT_TYPE_ID, cmisObject.getBaseTypeId().value() );
+        jsonBuilder.add(ErmsBaseTypes.OBJECT_TYPE_ID, cmisObject.getType().getId());
         jsonBuilder.add(ErmsBaseTypes.NAME, cmisObject.getName() );
         jsonBuilder.add(ErmsBaseTypes.CREATION_DATE, Utils.convertToISO8601Date(cmisObject.getCreationDate()) );
         jsonBuilder.add(ErmsBaseTypes.CREATED_BY, cmisObject.getCreatedBy() );

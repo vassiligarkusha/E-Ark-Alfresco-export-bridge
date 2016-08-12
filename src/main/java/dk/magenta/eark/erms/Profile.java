@@ -10,7 +10,7 @@ public class Profile {
     public static final String USERNAME = "userName";
     public static final String PASSWORD = "password";
 
-    private String name, url, userName, password;
+    private String name, url, userName, password, mapping;
 
     /**
      * Empty constructor meaning
@@ -23,6 +23,14 @@ public class Profile {
         this.url = url;
         this.userName = userName;
         this.password = password;
+    }
+
+    public Profile(String name, String url, String userName, String password, String mapping) {
+        this.name = name;
+        this.url = url;
+        this.userName = userName;
+        this.password = password;
+        this.mapping = mapping;
     }
 
     //<editor-fold desc="Getter methods">
