@@ -3,46 +3,45 @@ package dk.magenta.eark.erms.repository;
 import java.util.LinkedList;
 import java.util.List;
 
-public class RepositoryTreeNode implements TreeNode<CmisNode> {
+public class RepositoryTreeNode<T> implements TreeNode<T> {
 
-	private CmisNode data;
-	private TreeNode<CmisNode> parent;
-	private List<TreeNode<CmisNode>> children;
+	private T data;
+	private TreeNode<T> parent;
+	private List<TreeNode<T>> children;
 	
-	public RepositoryTreeNode(CmisNode data) {
+	public RepositoryTreeNode(T data) {
 		this.data = data;
-		children = new LinkedList<TreeNode<CmisNode>>();
-		
+		children = new LinkedList<TreeNode<T>>();
 	}
 	
 	@Override
-	public void addChild(CmisNode child) {
-		// TODO Auto-generated method stub
-
+	public void addChild(T child) {
+		RepositoryTreeNode<T> childNode = new RepositoryTreeNode<T>(child);
+		childNode.parent = this;
+		children.add(childNode);
 	}
 
 	@Override
-	public TreeNode<CmisNode> getParent() {
-		// TODO Auto-generated method stub
-		return null;
+	public TreeNode<T> getParent() {
+		return parent;
 	}
 
 	@Override
-	public List<TreeNode<CmisNode>> getChildren() {
-		// TODO Auto-generated method stub
-		return null;
+	public List<TreeNode<T>> getChildren() {
+		return children;
 	}
 
 	@Override
-	public CmisNode getData() {
-		// TODO Auto-generated method stub
-		return null;
+	public T getData() {
+		return data;
 	}
 
 	@Override
-	public CmisNode findNode(String id) {
-		// TODO Auto-generated method stub
-		return null;
+	public boolean isRoot() {
+		if (parent == null) {
+			return true;
+		}
+		return false;
 	}
 
 }

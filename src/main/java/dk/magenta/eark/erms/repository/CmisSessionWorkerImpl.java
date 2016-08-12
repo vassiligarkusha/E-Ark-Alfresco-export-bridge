@@ -5,6 +5,7 @@ import dk.magenta.eark.erms.Utils;
 import dk.magenta.eark.erms.exceptions.ErmsIOException;
 import dk.magenta.eark.erms.exceptions.ErmsNotSupportedException;
 import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
+
 import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.commons.data.ObjectData;
 import org.apache.chemistry.opencmis.commons.data.ObjectInFolderData;
@@ -16,6 +17,7 @@ import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.chemistry.opencmis.commons.spi.*;
 
 import javax.json.*;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -24,11 +26,13 @@ import java.util.stream.Collectors;
 
 /**
  * @author lanre.
+ * @author Andreas Kring <andreas@magenta.dk>
  */
 public class CmisSessionWorkerImpl implements CmisSessionWorker {
     private Session session;
     private ObjectFactory objectFactory;
     private OperationContext operationContext;
+    private TreeNode<CmisNode> treeNode;
 
     /**
      * Constructor
@@ -298,6 +302,10 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
         return jsonBuilder.build();
     }
 
-
+    @Override
+    public void addNode(Object node) {
+    	// TODO Auto-generated method stub
+    	
+    }
 
 }

@@ -8,6 +8,7 @@ public interface TreeNode<T> {
 	public TreeNode<T> getParent();
 	public List<TreeNode<T>> getChildren();
 	public T getData();
-	public T findNode(String id);
+	// public T findNode(String id);
+	public boolean isRoot();
 	
 }

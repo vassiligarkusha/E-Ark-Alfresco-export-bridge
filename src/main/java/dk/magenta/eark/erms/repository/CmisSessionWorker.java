@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * @author lanre.
  */
-public interface CmisSessionWorker {
+public interface CmisSessionWorker<T> {
 
     //<editor-fold desc="webservices endpoints">
     /**
@@ -109,4 +109,10 @@ public interface CmisSessionWorker {
      * @return
      */
     public JsonObject getRepositoryInfo();
+    
+    /**
+     * Add node to repository tree 
+     * @param node
+     */
+    public void addNode(T node);
 }
