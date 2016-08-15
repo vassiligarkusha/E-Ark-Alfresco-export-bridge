@@ -1,4 +1,4 @@
-package dk.magenta.eark.repository;
+package dk.magenta.eark.erms.repository;
 
 import static org.junit.Assert.*;
 

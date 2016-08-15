@@ -1,11 +1,11 @@
 package dk.magenta.eark.erms.repository;
 
-public class CmisNodeImpl implements CmisNode {
+public class CmisDataImpl implements CmisData {
 
 	private String objectId;
 	private String objectType;
 	
-	public CmisNodeImpl(String objectId, String objectType) {
+	public CmisDataImpl(String objectId, String objectType) {
 		this.objectId = objectId;
 		this.objectType = objectType;
 	}

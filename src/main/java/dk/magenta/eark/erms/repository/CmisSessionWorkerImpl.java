@@ -32,7 +32,7 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
     private Session session;
     private ObjectFactory objectFactory;
     private OperationContext operationContext;
-    private TreeNode<CmisNode> treeNode;
+    private TreeNode<CmisData> treeNode;
 
     /**
      * Constructor

@@ -6,7 +6,7 @@ package dk.magenta.eark.erms.repository;
  * @author Andreas Kring <andreas@magenta.dk>
  *
  */
-public interface CmisNode {
+public interface CmisData {
 	public String getObjectId();
 	public String getObjectType();
 }
