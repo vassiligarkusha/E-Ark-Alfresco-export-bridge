@@ -16,16 +16,27 @@ public class RepositoryTreeNode<T> implements TreeNode<T> {
 	
 	@Override
 	public void addChild(T child) {
-		RepositoryTreeNode<T> childNode = new RepositoryTreeNode<T>(child);
-		childNode.parent = this;
+		TreeNode<T> childNode = new RepositoryTreeNode<T>(child);
+		childNode.setParent(this);
 		children.add(childNode);
 	}
 
+	@Override
+	public void addChild(TreeNode<T> childNode) {
+		childNode.setParent(this);
+		children.add(childNode);
+	}
+	
 	@Override
 	public TreeNode<T> getParent() {
 		return parent;
 	}
 
+	@Override
+	public void setParent(TreeNode<T> parent) {
+		this.parent = parent;
+	}
+	
 	@Override
 	public List<TreeNode<T>> getChildren() {
 		return children;
@@ -44,10 +55,4 @@ public class RepositoryTreeNode<T> implements TreeNode<T> {
 		return false;
 	}
 
-	@Override
-	public void addChild(TreeNode<T> child) {
-		// TODO Auto-generated method stub
-		
-	}
-	
 }
