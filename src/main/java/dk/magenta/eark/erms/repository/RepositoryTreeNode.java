@@ -44,4 +44,10 @@ public class RepositoryTreeNode<T> implements TreeNode<T> {
 		return false;
 	}
 
+	@Override
+	public void addChild(TreeNode<T> child) {
+		// TODO Auto-generated method stub
+		
+	}
+	
 }

@@ -113,9 +113,9 @@ public class Cmis1Connector {
                     throw new CmisConnectionException("Could not connect to the Alfresco Server, no repository found!");
                 }
 
-
                 // Create a new session with the Alfresco repository
                 session = alfrescoRepository.createSession();
+                session.getDefaultContext().setIncludeAllowableActions(false);
 
                 // Save connection for reuse
                 connections.put(connectionProfile.getName(), session);
