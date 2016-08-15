@@ -1,4 +1,4 @@
-package dk.magenta.eark.erms;
+package dk.magenta.oldstuff;
 
 import javax.json.Json;
 import javax.json.JsonObject;
@@ -8,6 +8,10 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+
+import dk.magenta.eark.erms.Constants;
+import dk.magenta.eark.erms.LoadProfile;
+
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;

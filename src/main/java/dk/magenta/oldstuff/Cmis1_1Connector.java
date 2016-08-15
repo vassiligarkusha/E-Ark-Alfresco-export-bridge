@@ -1,4 +1,4 @@
-package dk.magenta.eark.erms;
+package dk.magenta.oldstuff;
 
 import java.util.HashMap;
 import java.util.List;
@@ -10,6 +10,10 @@ import org.apache.chemistry.opencmis.client.api.SessionFactory;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
+
+import dk.magenta.eark.erms.Constants;
+import dk.magenta.eark.erms.PropertiesHandler;
+import dk.magenta.eark.erms.PropertiesHandlerImpl;
 
 public class Cmis1_1Connector implements CmisConnector {
 

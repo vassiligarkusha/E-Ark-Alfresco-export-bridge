@@ -5,6 +5,7 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+
 import java.sql.SQLException;
 
 @Path("database")

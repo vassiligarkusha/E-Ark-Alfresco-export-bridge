@@ -1,4 +1,4 @@
-package dk.magenta.eark.erms;
+package dk.magenta.oldstuff;
 
 import javax.json.Json;
 import javax.json.JsonObject;

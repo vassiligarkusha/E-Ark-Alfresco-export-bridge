@@ -2,6 +2,7 @@ package dk.magenta.eark.erms.repository;
 
 import dk.magenta.eark.erms.*;
 import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
+
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +12,7 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+
 import java.sql.SQLException;
 
 /**

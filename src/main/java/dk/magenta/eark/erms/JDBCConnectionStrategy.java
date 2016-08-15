@@ -1,6 +1,7 @@
 package dk.magenta.eark.erms;
 
 import dk.magenta.eark.erms.db.connector.tables.Profiles;
+
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.SQLDialect;
@@ -10,6 +11,7 @@ import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
+
 import java.sql.*;
 import java.util.List;
 import java.util.stream.Collectors;

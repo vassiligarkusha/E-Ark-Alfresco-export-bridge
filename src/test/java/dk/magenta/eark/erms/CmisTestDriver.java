@@ -7,6 +7,9 @@ package dk.magenta.eark.erms;
 
 import org.apache.chemistry.opencmis.client.api.Session;
 
+import dk.magenta.oldstuff.Cmis1_1Connector;
+import dk.magenta.oldstuff.CmisConnector;
+
 public class CmisTestDriver {
 
 	public static void main(String[] args) {

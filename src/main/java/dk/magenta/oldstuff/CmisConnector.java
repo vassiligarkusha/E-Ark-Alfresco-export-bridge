@@ -1,4 +1,4 @@
-package dk.magenta.eark.erms;
+package dk.magenta.oldstuff;
 
 import org.apache.chemistry.opencmis.client.api.Session;
 

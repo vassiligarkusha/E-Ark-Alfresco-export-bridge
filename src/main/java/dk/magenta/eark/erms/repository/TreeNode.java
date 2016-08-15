@@ -5,6 +5,7 @@ import java.util.List;
 public interface TreeNode<T> {
 
 	public void addChild(T child);
+	public void addChild(TreeNode<T> child);
 	public TreeNode<T> getParent();
 	public List<TreeNode<T>> getChildren();
 	public T getData();
