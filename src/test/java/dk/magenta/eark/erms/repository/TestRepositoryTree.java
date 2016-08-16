@@ -1,6 +1,8 @@
 package dk.magenta.eark.erms.repository;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Before;
 import org.junit.Ignore;
@@ -19,15 +21,16 @@ public class TestRepositoryTree {
 	
 	@Test
 	public void shouldStoreTreeNode() {
-		RepositoryTree<CmisData> repositoryTree = new RepositoryTreeImpl(root);
+		RepositoryTree repositoryTree = new RepositoryTreeImpl(root);
 		assertNotNull(repositoryTree.getRoot());
+		assertEquals("id0", repositoryTree.getRoot().getData().getObjectId());
 	}
 
 	@Test
 	public void shouldAddNodeToRootCorrectly() {
 		CmisData cmisData1 = new CmisDataImpl("id1", "objectType");
 		TreeNode<CmisData> node1 = new RepositoryTreeNode<CmisData>(cmisData1);
-		RepositoryTree repositoryTree = new RepositoryTreeImpl<String>(root);
+		RepositoryTree repositoryTree = new RepositoryTreeImpl(root);
 		repositoryTree.addTreeNode("id0", node1);
 		assertEquals("id1", repositoryTree.getRoot().getChildren().get(0).getData().getObjectId());
 	}

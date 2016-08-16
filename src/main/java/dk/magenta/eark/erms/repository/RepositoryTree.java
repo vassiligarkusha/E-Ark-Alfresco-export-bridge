@@ -12,8 +12,8 @@ package dk.magenta.eark.erms.repository;
  *
  * @param <T>
  */
-public interface RepositoryTree<E> extends Iterable<CmisData> {
-	public void addTreeNode(E parentObjectId, TreeNode<CmisData> childTreeNode);
+public interface RepositoryTree extends Iterable<CmisData> {
+	public void addTreeNode(String parentObjectId, TreeNode<CmisData> childTreeNode);
 	public TreeNode<CmisData> getRoot();
 	// public void removeTreeNode(String objectId);
 }

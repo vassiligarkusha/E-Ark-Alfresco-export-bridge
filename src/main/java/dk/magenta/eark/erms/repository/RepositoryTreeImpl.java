@@ -8,7 +8,7 @@ import java.util.Iterator;
  *
  * @param <String>
  */
-public class RepositoryTreeImpl<String> implements RepositoryTree<String> {
+public class RepositoryTreeImpl implements RepositoryTree {
 
 	private TreeNode<CmisData> root;
 	
