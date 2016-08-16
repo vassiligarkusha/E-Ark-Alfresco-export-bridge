@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mapping xmlns="http://www.magenta.dk/eark/erms/mapping/1.0" 
+		 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+		 xsi:schemaLocation="http://www.magenta.dk/eark/erms/mapping/1.0 mapping.xsd">
+
+	<!-- Corresponding to the CMIS property ID "cmis:objectTypeId" -->
+	<objectTypes>
+		<objectType id="series">delta:series</objectType>
+		<objectType id="subseries">delta:subseries</objectType>
+		<objectType id="record">delta:record</objectType>
+	</objectTypes>
+
+
+</mapping>

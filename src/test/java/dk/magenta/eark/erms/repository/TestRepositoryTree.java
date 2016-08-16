@@ -35,18 +35,17 @@ public class TestRepositoryTree {
 		assertEquals("id1", repositoryTree.getRoot().getChildren().get(0).getData().getObjectId());
 	}
 	
-	@Ignore
 	@Test
 	public void shouldAddNodeToChildCorrectly() {
-		CmisData cmisData0 = new CmisDataImpl("id0", "objetType");
 		CmisData cmisData1 = new CmisDataImpl("id1", "objetType");
 		CmisData cmisData11 = new CmisDataImpl("id11", "objetType");
-		TreeNode<CmisData> root = new RepositoryTreeNode<CmisData>(cmisData0);
 		TreeNode<CmisData> node1 = new RepositoryTreeNode<CmisData>(cmisData1);
 		TreeNode<CmisData> node11 = new RepositoryTreeNode<CmisData>(cmisData11);
-		node1.addChild(node11);
 		root.addChild(node1);
-		assertEquals("id11", root.getChildren().get(0).getData().getObjectId());
+		
+		RepositoryTree repositoryTree = new RepositoryTreeImpl(root);
+		repositoryTree.addTreeNode("id1", node11);;
+		assertEquals("id11", repositoryTree.getRoot().getChildren().get(0).getChildren().get(0).getData().getObjectId());
 	}
 
 	// should add node to child node correctly

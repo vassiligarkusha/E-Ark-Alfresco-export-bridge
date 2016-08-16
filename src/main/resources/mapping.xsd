@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema"
+		xmlns:map="http://www.magenta.dk/eark/erms/mapping/1.0"
+		targetNamespace="http://www.magenta.dk/eark/erms/mapping/1.0"
+		elementFormDefault="qualified">
+	
+	<element name="mapping" type="map:mapping_type"/>
+	<complexType name="mapping_type">
+		<sequence>
+			<element ref="map:objectTypes"/>
+		</sequence>
+	</complexType>
+
+	<element name="objectTypes" type="map:object_types"/>
+	<complexType name="object_types">
+		<sequence>
+			<element ref="map:objectType" maxOccurs="unbounded"/>
+		</sequence>
+	</complexType>
+	
+	<element name="objectType" type="map:object_type"/>
+	<complexType name="object_type">
+		<simpleContent>
+			<extension base="string">
+				<attribute name="id" type="string"/>
+			</extension>
+		</simpleContent>
+	</complexType>
+</schema>
