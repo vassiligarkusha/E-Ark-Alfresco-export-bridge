@@ -1,10 +1,10 @@
 package dk.magenta.eark.erms;
 
+import dk.magenta.eark.erms.exceptions.ErmsConnectionException;
 import dk.magenta.eark.erms.exceptions.ErmsURLException;
 import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
-import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.chemistry.opencmis.commons.data.RepositoryCapabilities;
 import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
 import org.apache.chemistry.opencmis.commons.enums.BindingType;
@@ -12,6 +12,7 @@ import org.apache.chemistry.opencmis.commons.enums.CapabilityQuery;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisConnectionException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jdom.Element;
@@ -33,6 +34,9 @@ public class Cmis1Connector {
 
     private static Map<String, Session> connections = new ConcurrentHashMap<String, Session>();
 
+    public Cmis1Connector() {
+    }
+
     /**
      * Get an Open CMIS session to use when talking to the CMIS repo.
      * Will check if there is already a connection to the CMIS repo
@@ -44,10 +48,13 @@ public class Cmis1Connector {
     public Session getSession(Profile connectionProfile) {
         Session session = connections.get(connectionProfile.getName());
         URL wsdlUrl;
+        Map<String, String> serviceEndpoints;
         if (session == null) {
             //Validate that the url contains the wsdl we require or else throw an exception
             try {
                 wsdlUrl = new URL(connectionProfile.getUrl());
+                serviceEndpoints = this.extractWebservicesUrls(wsdlUrl);
+                addWSDL(serviceEndpoints);
                 if (!isValidWebServicesUrls(wsdlUrl))
                     throw new ErmsURLException("No wsdl document or no service endpoints in " +
                             "document retrieved from: " + connectionProfile.getUrl());
@@ -59,47 +66,54 @@ public class Cmis1Connector {
                 throw new ErmsURLException(ge.getMessage());
             }
 
-            logger.info("No apparent connection to the repository for profile: ("
-                    + connectionProfile.getName() + ")");
-
             // No connection to Alfresco available, create a new one
             SessionFactory sessionFactory = SessionFactoryImpl.newInstance();
 
-            Map<String, String> parameters = new HashMap<String, String>();
+            Map<String, String> parameters = new HashMap<>();
             parameters.put(SessionParameter.USER, connectionProfile.getUserName());
             parameters.put(SessionParameter.PASSWORD, connectionProfile.getPassword());
+            parameters.put(SessionParameter.FORCE_CMIS_VERSION, "1.0");
             parameters.put(SessionParameter.BINDING_TYPE, BindingType.WEBSERVICES.value());
-            parameters.put(SessionParameter.WEBSERVICES_REPOSITORY_SERVICE, wsdlUrl.toString());
-            parameters.put(SessionParameter.WEBSERVICES_NAVIGATION_SERVICE, wsdlUrl.toString());
-            parameters.put(SessionParameter.WEBSERVICES_OBJECT_SERVICE, wsdlUrl.toString());
-            parameters.put(SessionParameter.WEBSERVICES_VERSIONING_SERVICE, wsdlUrl.toString());
-            parameters.put(SessionParameter.WEBSERVICES_DISCOVERY_SERVICE, wsdlUrl.toString());
-            parameters.put(SessionParameter.WEBSERVICES_RELATIONSHIP_SERVICE, wsdlUrl.toString());
-            parameters.put(SessionParameter.WEBSERVICES_MULTIFILING_SERVICE, wsdlUrl.toString());
-            parameters.put(SessionParameter.WEBSERVICES_POLICY_SERVICE, wsdlUrl.toString());
-            parameters.put(SessionParameter.WEBSERVICES_ACL_SERVICE, wsdlUrl.toString());
+            parameters.put(SessionParameter.WEBSERVICES_REPOSITORY_SERVICE, serviceEndpoints.get("RepositoryService"));
+            parameters.put(SessionParameter.WEBSERVICES_NAVIGATION_SERVICE, serviceEndpoints.get("NavigationService"));
+            parameters.put(SessionParameter.WEBSERVICES_OBJECT_SERVICE, serviceEndpoints.get("ObjectService"));
+            parameters.put(SessionParameter.WEBSERVICES_VERSIONING_SERVICE, serviceEndpoints.get("VersioningService"));
+            parameters.put(SessionParameter.WEBSERVICES_DISCOVERY_SERVICE, serviceEndpoints.get("DiscoveryService"));
+            parameters.put(SessionParameter.WEBSERVICES_RELATIONSHIP_SERVICE, serviceEndpoints.get("RelationshipService"));
+            parameters.put(SessionParameter.WEBSERVICES_MULTIFILING_SERVICE, serviceEndpoints.get("MultiFilingService"));
+            parameters.put(SessionParameter.WEBSERVICES_POLICY_SERVICE, serviceEndpoints.get("PolicyService"));
+            parameters.put(SessionParameter.WEBSERVICES_ACL_SERVICE, serviceEndpoints.get("ACLService"));
             parameters.put(SessionParameter.COMPRESSION, "true");
             parameters.put(SessionParameter.CACHE_TTL_OBJECTS, "0"); // Caching is turned off
 
             // If there is only one repository exposed (e.g. Alfresco), these
             // lines will help detect it and its ID
-            List<Repository> repositories = sessionFactory.getRepositories(parameters);
-            Repository alfrescoRepository = null;
-            if (repositories != null && repositories.size() > 0) {
-                logger.info("Found (" + repositories.size() + ") Alfresco repositories");
-                alfrescoRepository = repositories.get(0);
-                logger.info("Info about the first Alfresco repo [ID=" + alfrescoRepository.getId() +
-                        "][name=" + alfrescoRepository.getName() +
-                        "][CMIS ver supported=" + alfrescoRepository.getCmisVersionSupported() + "]");
-            } else {
-                throw new CmisConnectionException("Could not connect to the Alfresco Server, no repository found!");
+            Repository alfrescoRepository;
+            try {
+                List<Repository> repositories = sessionFactory.getRepositories(parameters);
+                if (repositories != null && repositories.size() > 0) {
+                    logger.info("Found (" + repositories.size() + ") Alfresco repositories");
+                    alfrescoRepository = repositories.get(0);
+                    logger.info("Info about the first Alfresco repo [ID=" + alfrescoRepository.getId() +
+                            "][name=" + alfrescoRepository.getName() +
+                            "][CMIS ver supported=" + alfrescoRepository.getCmisVersionSupported() + "]");
+                } else {
+                    throw new CmisConnectionException("Could not connect to the Alfresco Server, no repository found!");
+                }
+
+                // Create a new session with the Alfresco repository
+                session = alfrescoRepository.createSession();
+                session.getDefaultContext().setIncludeAllowableActions(false);
+
+                // Save connection for reuse
+                connections.put(connectionProfile.getName(), session);
+            } catch (Exception ge) {
+                System.out.print("******** Error *********\n");
+                ge.printStackTrace();
+                throw new ErmsConnectionException("There is an issue connecting to the repository:\n\n"
+                        + ge.getMessage());
             }
 
-            // Create a new session with the Alfresco repository
-            session = alfrescoRepository.createSession();
-
-            // Save connection for reuse
-            connections.put(connectionProfile.getName(), session);
         } else {
             logger.info("Already connected to Alfresco with the connection id (" + connectionProfile.getName() + ")");
         }
@@ -125,22 +139,6 @@ public class Cmis1Connector {
         System.out.println("unfilingSupported? = " + repoCapabilities.isUnfilingSupported());
         System.out.println("versionSpecificFilingSupported? = " + repoCapabilities.isVersionSpecificFilingSupported());
     }
-
-    public void listTopFolder(Session session) {
-        Folder root = session.getRootFolder();
-        ItemIterable<CmisObject> contentItems = root.getChildren();
-        for (CmisObject contentItem : contentItems) {
-            if (contentItem instanceof Document) {
-                Document docMetadata = (Document) contentItem;
-                ContentStream docContent = docMetadata.getContentStream();
-                logger.info(docMetadata.getName() + " [size=" + docContent.getLength() + "][Mimetype=" +
-                        docContent.getMimeType() + "][type=" + docMetadata.getType().getDisplayName() + "]");
-            } else {
-                logger.info(contentItem.getName() + " [type=" + contentItem.getType().getDisplayName() + "]");
-            }
-        }
-    }
-
 
     public void searchMetadataAndFTS(Session session) {
         // Check if the repo supports Metadata search and Full Text Search (FTS)
@@ -258,13 +256,14 @@ public class Cmis1Connector {
 
     /**
      * Extracts the various CMIS 1.0 webservices endpoints from the wsdl file at the repository url.
+     * This is how we determine whether the webservices url is valid
      *
      * @param url for the wsdl file
      * @return
      */
     public boolean isValidWebServicesUrls(URL url) {
         try {
-            Map<String,String> servicesListURL;
+            Map<String, String> servicesListURL;
             File wsdlTemp = File.createTempFile("repoWSDL", ".xml"); //create temp file
             FileUtils.copyURLToFile(url, wsdlTemp);// copy the wsdl document so we can extract service endpoints
             SAXBuilder builder = new SAXBuilder();
@@ -284,6 +283,30 @@ public class Cmis1Connector {
     }
 
     /**
+     * Extracts the various CMIS 1.0 webservices endpoints from the wsdl file at the repository url.
+     *
+     * @param url for the wsdl file
+     * @return
+     */
+    private Map<String, String> extractWebservicesUrls(URL url) {
+        try {
+            File wsdlTemp = File.createTempFile("repoWSDL", ".xml"); //create temp file
+            FileUtils.copyURLToFile(url, wsdlTemp);// copy the wsdl document so we can extract service endpoints
+            SAXBuilder builder = new SAXBuilder();
+            org.jdom.Document wsdlDoc = builder.build(wsdlTemp);
+            Element rootNode = wsdlDoc.getRootElement();//extract root xml document
+            Namespace defaultNamespace = rootNode.getNamespace();
+            //never use the other method as it returns nothing. http://stackoverflow.com/a/12582380/107301
+            List<Element> servicesList = rootNode.getChildren("service", defaultNamespace);
+            return servicesList.stream().map(this::extractEndpoints).collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+        } catch (Exception ge) {
+            System.out.println("************ Error ***********\n\t\t\t" + ge.getMessage() + "\n\n=== Full stack trace ===\n");
+            ge.printStackTrace();
+        }
+        return Collections.<String, String>emptyMap();
+    }
+
+    /**
      * returns a Pair<String,String> containing the service name and it's webservices endpoint url from a
      * jDom xml element which is in turn extracted from a the wsdl.xml
      *
@@ -299,6 +322,25 @@ public class Cmis1Connector {
         );
     }
 
+    /**
+     * Adds a wsdl to the soap address location of each endpoint if they're not present
+     *
+     * @param servicesMap
+     */
+    private void addWSDL(Map<String, String> servicesMap) {
+        String urlValue;
+        for (String key : servicesMap.keySet()) {
+            urlValue = servicesMap.get(key);
+            if (!StringUtils.endsWith(urlValue, "?wsdl"))
+                servicesMap.put(key, urlValue + "?wsdl");
+        }
+    }
+
+    /**
+     * Just a short simple test against the CMIS repository to see if it's alive by retrieving a few attributes about it
+     *
+     * @param profile
+     */
     public void testCMISConnection(Profile profile) {
         try {
             Cmis1Connector tstConnector = new Cmis1Connector();
@@ -314,5 +356,6 @@ public class Cmis1Connector {
             logger.warn("There was an exception testing the repository's CMIS capabilities: \n" + ge.getMessage());
         }
     }
+
 
 }

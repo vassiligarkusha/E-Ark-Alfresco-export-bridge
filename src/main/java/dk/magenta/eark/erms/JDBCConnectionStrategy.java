@@ -107,6 +107,33 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
     }
 
     /**
+     * Gets a single profile from the db using the profile name (Profile name is unique)
+     *
+     * @param profileName the name of the profile to retrieve from the db
+     * @return
+     * @throws SQLException
+     */
+    @Override
+    public Profile getProfile(String profileName) throws SQLException{
+        Profile prf = new Profile();
+        try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
+            //Written just to understand how to chain the result from Jooq to a J8 stream. Actually does nothing
+            prf = db.select().from(Profiles.PROFILES).fetch().stream()
+                    .filter(t -> t.getValue(Profiles.PROFILES.PROFILENAME).equalsIgnoreCase(profileName))
+                    .limit(1) //limit it to just the one result
+                    .map(this::convertToProfile)
+                    .collect(Collectors.toList()).get(0);
+        }
+        catch (Exception ge) {
+            System.out.println("There was an error in attempting to update the profile:\n\t\t\t" + ge.getMessage());
+        }
+        finally {
+            close();
+        }
+        return prf;
+    }
+
+    /**
      * Converts a single record to a profile
      * @param r a single from from the db
      * @return
