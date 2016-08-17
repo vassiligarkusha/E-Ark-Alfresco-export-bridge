@@ -3,6 +3,7 @@ package dk.magenta.eark.erms.repository;
 import dk.magenta.eark.erms.*;
 import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
 import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,6 +12,7 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import java.net.URLDecoder;
 import java.sql.SQLException;
 
 /**
@@ -135,6 +137,43 @@ public class Repository {
         } else {
             builder.add(Constants.SUCCESS, false);
             builder.add(Constants.ERRORMSG, "The connection profile does not have a name!");
+        }
+
+        return builder.build();
+    }
+
+    /**
+     *
+     * @param profileName
+     * @param objectId
+     * @return
+     */
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("isroot/{objectId}/in/{profileName}")
+    public JsonObject isROOT(@PathParam("objectId") String objectId, @PathParam("profileName") String profileName) {
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+        if (StringUtils.isNotBlank(objectId) && StringUtils.isNotBlank(profileName)) {
+            try {
+                profileName = URLDecoder.decode(profileName, "UTF-8");
+                objectId = URLDecoder.decode(objectId, "UTF-8");
+                CmisSessionWorker cmisSessionWorker = this.getSessionWorker(profileName);
+                JsonObject rootFolder = cmisSessionWorker.getRootFolder();
+                String repoRoot =  rootFolder.getJsonObject("properties").getString("objectId") ;
+
+                //Build the json for the repository info
+                builder.add("isRoot", objectId.equalsIgnoreCase(repoRoot));
+
+            } catch (Exception e) {
+                builder.add(Constants.SUCCESS, false);
+                builder.add(Constants.ERRORMSG, e.getMessage());
+            }
+
+            builder.add(Constants.SUCCESS, true);
+
+        } else {
+            builder.add(Constants.SUCCESS, false);
+            builder.add(Constants.ERRORMSG, "One or more parameters missing or malformed");
         }
 
         return builder.build();
