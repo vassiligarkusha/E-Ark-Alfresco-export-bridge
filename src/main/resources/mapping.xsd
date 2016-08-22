@@ -25,7 +25,7 @@
 	<complexType name="object_type">
 		<simpleContent>
 			<extension base="string">
-				<attribute name="id" type="string" />
+				<attribute name="id" type="string" use="required"/>
 			</extension>
 		</simpleContent>
 	</complexType>
@@ -39,6 +39,32 @@
 
 	<element name="template" type="map:template_type" />
 	<complexType name="template_type">
+		<sequence>
+			<element ref="map:hooks"/>
+			<element ref="map:ead"/>
+		</sequence>
+		<attribute name="id" type="string" use="required"/>
+	</complexType>
+	
+	<element name="hooks" type="map:hooks_type"/>
+	<complexType name="hooks_type">
+		<sequence>
+			<element ref="map:hook" maxOccurs="unbounded"/>
+		</sequence>
+	</complexType>
+	
+	<element name="hook" type="map:hook_type"/>
+	<complexType name="hook_type">
+		<simpleContent>
+			<extension base="string">
+				<attribute name="path" type="string"/>
+			</extension>
+		</simpleContent>
+		
+	</complexType>
+	
+	<element name="ead" type="map:ead_type"/>
+	<complexType name="ead_type">
 		<choice>
 			<element name="c01" type="ead:c01"/>
 			<element name="c02" type="ead:c02"/>
@@ -54,6 +80,6 @@
 			<element name="c12" type="ead:c12"/>
 			<!-- element ref="ead:c01"/--> <!-- This is not working -->
 		</choice>
-		<attribute name="id" type="string"/>
 	</complexType>
+	
 </schema>

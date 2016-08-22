@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mapping xmlns="http://www.magenta.dk/eark/erms/mapping/1.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xmlns:ead="http://ead3.archivists.org/schema/" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ead="http://ead3.archivists.org/schema/"
 	xsi:schemaLocation="http://www.magenta.dk/eark/erms/mapping/1.0 mapping.xsd">
 
 	<!-- Corresponding to the CMIS property ID "cmis:objectTypeId" -->
@@ -13,35 +12,53 @@
 
 	<eadTemplates>
 		<template id="series">
-			<c01 level="series">
-				<ead:did>
-					<ead:unitdate datechar="created">cmis:creationDate</ead:unitdate>
-					<ead:unittitle>cmis:name</ead:unittitle>
-					<ead:unitid localtype="system_id">cmis:objectId</ead:unitid>
-				</ead:did>
-			</c01>
+			<hooks>
+				<hook path="c01/did/unitdate">cmis:creationDate</hook>
+			</hooks>
+			<ead>
+				<c01 level="series">
+					<ead:did>
+						<ead:unitdate datechar="created">cmis:creationDate
+						</ead:unitdate>
+						<ead:unittitle>cmis:name</ead:unittitle>
+						<ead:unitid localtype="system_id">cmis:objectId</ead:unitid>
+					</ead:did>
+				</c01>
+			</ead>
 		</template>
 		<template id="subseries">
-			<c02 level="subseries">
-				<ead:did>
-					<ead:unitdate datechar="created">cmis:creationDate</ead:unitdate>
-					<ead:unittitle>cmis:name</ead:unittitle>
-					<ead:unitid localtype="system_id">cmis:objectId</ead:unitid>
-				</ead:did>
-			</c02>
+			<hooks>
+				<hook path="c02/did/unitdate">cmis:creationDate</hook>
+			</hooks>
+			<ead>
+				<c02 level="subseries">
+					<ead:did>
+						<ead:unitdate datechar="created">cmis:creationDate
+						</ead:unitdate>
+						<ead:unittitle>cmis:name</ead:unittitle>
+						<ead:unitid localtype="system_id">cmis:objectId</ead:unitid>
+					</ead:did>
+				</c02>
+			</ead>
 		</template>
 		<template id="record">
-			<c03 level="file">
-				<ead:did>
-					<ead:unitdate datechar="created">cmis:creationDate</ead:unitdate>
-					<ead:unittitle>cmis:name</ead:unittitle>
-					<ead:unitid localtype="system_id">cmis:objectId</ead:unitid>
-					<ead:daoset label="Digital Object" coverage="whole">
-						<ead:dao daotype="unknown"/>
-						<ead:dao daotype="unknown"/>
-					</ead:daoset>
-				</ead:did>
-			</c03>
+			<hooks>
+				<hook path="c03/did/unitdate">cmis:creationDate</hook>
+			</hooks>
+			<ead>
+				<c03 level="file">
+					<ead:did>
+						<ead:unitdate datechar="created">cmis:creationDate
+						</ead:unitdate>
+						<ead:unittitle>cmis:name</ead:unittitle>
+						<ead:unitid localtype="system_id">cmis:objectId</ead:unitid>
+						<ead:daoset label="Digital Object" coverage="whole">
+							<ead:dao daotype="unknown" />
+							<ead:dao daotype="unknown" />
+						</ead:daoset>
+					</ead:did>
+				</c03>
+			</ead>
 		</template>
 	</eadTemplates>
 </mapping>
