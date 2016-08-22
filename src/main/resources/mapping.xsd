@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:map="http://www.magenta.dk/eark/erms/mapping/1.0"
+	targetNamespace="http://www.magenta.dk/eark/erms/mapping/1.0" 
+	xmlns:ead="http://ead3.archivists.org/schema/" 
+	elementFormDefault="qualified">
+	
+	<import namespace="http://ead3.archivists.org/schema/" schemaLocation="ead3.xsd"/>
+
+	<element name="mapping" type="map:mapping_type" />
+	<complexType name="mapping_type">
+		<sequence>
+			<element ref="map:objectTypes" />
+			<element ref="map:eadTemplates" />
+		</sequence>
+	</complexType>
+
+	<element name="objectTypes" type="map:object_types" />
+	<complexType name="object_types">
+		<sequence>
+			<element ref="map:objectType" maxOccurs="unbounded" />
+		</sequence>
+	</complexType>
+
+	<element name="objectType" type="map:object_type" />
+	<complexType name="object_type">
+		<simpleContent>
+			<extension base="string">
+				<attribute name="id" type="string" />
+			</extension>
+		</simpleContent>
+	</complexType>
+
+	<element name="eadTemplates" type="map:eadtemplates_type" />
+	<complexType name="eadtemplates_type">
+		<sequence>
+			<element ref="map:template" maxOccurs="unbounded" />
+		</sequence>
+	</complexType>
+
+	<element name="template" type="map:template_type" />
+	<complexType name="template_type">
+		<choice>
+			<element name="c01" type="ead:c01"/>
+			<element name="c02" type="ead:c02"/>
+			<element name="c03" type="ead:c03"/>
+			<element name="c04" type="ead:c04"/>
+			<element name="c05" type="ead:c05"/>
+			<element name="c06" type="ead:c06"/>
+			<element name="c07" type="ead:c07"/>
+			<element name="c08" type="ead:c08"/>
+			<element name="c09" type="ead:c09"/>
+			<element name="c10" type="ead:c10"/>
+			<element name="c11" type="ead:c11"/>
+			<element name="c12" type="ead:c12"/>
+			<!-- element ref="ead:c01"/--> <!-- This is not working -->
+		</choice>
+		<attribute name="id" type="string"/>
+	</complexType>
+</schema>
