@@ -60,7 +60,6 @@
 				<attribute name="path" type="string"/>
 			</extension>
 		</simpleContent>
-		
 	</complexType>
 	
 	<element name="ead" type="map:ead_type"/>

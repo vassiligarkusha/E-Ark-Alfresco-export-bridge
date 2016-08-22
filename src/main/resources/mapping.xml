@@ -14,14 +14,15 @@
 		<template id="series">
 			<hooks>
 				<hook path="c01/did/unitdate">cmis:creationDate</hook>
+				<hook path="c01/did/unittitle">cmis:name</hook>
+				<hook path="c01/did/unitid">cmis:objectId</hook>
 			</hooks>
 			<ead>
 				<c01 level="series">
 					<ead:did>
-						<ead:unitdate datechar="created">cmis:creationDate
-						</ead:unitdate>
-						<ead:unittitle>cmis:name</ead:unittitle>
-						<ead:unitid localtype="system_id">cmis:objectId</ead:unitid>
+						<ead:unitdate datechar="created"/>
+						<ead:unittitle/>
+						<ead:unitid localtype="system_id"/>
 					</ead:did>
 				</c01>
 			</ead>
@@ -29,14 +30,15 @@
 		<template id="subseries">
 			<hooks>
 				<hook path="c02/did/unitdate">cmis:creationDate</hook>
+				<hook path="c02/did/unittitle">cmis:name</hook>
+				<hook path="c02/did/unitid">cmis:objectId</hook>
 			</hooks>
 			<ead>
 				<c02 level="subseries">
 					<ead:did>
-						<ead:unitdate datechar="created">cmis:creationDate
-						</ead:unitdate>
-						<ead:unittitle>cmis:name</ead:unittitle>
-						<ead:unitid localtype="system_id">cmis:objectId</ead:unitid>
+						<ead:unitdate datechar="created"/>
+						<ead:unittitle/>
+						<ead:unitid localtype="system_id"/>
 					</ead:did>
 				</c02>
 			</ead>
@@ -44,14 +46,15 @@
 		<template id="record">
 			<hooks>
 				<hook path="c03/did/unitdate">cmis:creationDate</hook>
+				<hook path="c03/did/unittitle">cmis:name</hook>
+				<hook path="c03/did/unitid">cmis:objectId</hook>
 			</hooks>
 			<ead>
 				<c03 level="file">
 					<ead:did>
-						<ead:unitdate datechar="created">cmis:creationDate
-						</ead:unitdate>
-						<ead:unittitle>cmis:name</ead:unittitle>
-						<ead:unitid localtype="system_id">cmis:objectId</ead:unitid>
+						<ead:unitdate datechar="created"/>
+						<ead:unittitle/>
+						<ead:unitid localtype="system_id"/>
 						<ead:daoset label="Digital Object" coverage="whole">
 							<ead:dao daotype="unknown" />
 							<ead:dao daotype="unknown" />
