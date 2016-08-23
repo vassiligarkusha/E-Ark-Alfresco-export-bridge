@@ -1,5 +1,7 @@
 package dk.magenta.eark.erms;
 
+import dk.magenta.eark.erms.Profiles.Profile;
+
 import javax.json.JsonObject;
 import java.sql.SQLException;
 
@@ -12,7 +14,18 @@ public interface DatabaseConnectionStrategy {
      * @param userName
      * @param password
      */
-    public void insertRepository(String profileName, String url, String userName, String password) throws SQLException;
+    void insertRepository(String profileName, String url, String userName, String password) throws SQLException;
+
+    /**
+     *
+     * @param profileName
+     * @param url
+     * @param userName
+     * @param password
+     * @param repos
+     * @throws SQLException
+     */
+    void insertRepository(String profileName, String url, String userName, String password, String[] repos) throws SQLException;
 
     /**
      * Updates a profile in the db
@@ -20,7 +33,7 @@ public interface DatabaseConnectionStrategy {
      * @param profile
      * @throws SQLException
      */
-    public void updateProfile(Profile profile) throws SQLException;
+    void updateProfile(Profile profile) throws SQLException;
 
     /**
      * Gets a single profile from the db using the profile name (Profile name is unique)
@@ -29,7 +42,34 @@ public interface DatabaseConnectionStrategy {
      * @return
      * @throws SQLException
      */
-    public Profile getProfile(String profileName) throws SQLException;
+    Profile getProfile(String profileName) throws SQLException;
 
-    public JsonObject selectRepositories() throws SQLException;
+    /**
+     * returns whether the repository root exists for that profile
+     * @param profileName the name of the profile for which we want to check
+     * @param repositoryRoot the repository root name
+     * @return
+     * @throws SQLException
+     */
+    boolean repositoryRootExists(String profileName, String repositoryRoot) throws SQLException;
+
+    /**
+     * Add a repository root from a profile
+     * @param profileName the profile name for which we wish to add a repository root
+     * @param repositoryRoot the name of the repository root we wish to add
+     * @return
+     * @throws SQLException
+     */
+    boolean addRepoRoot(String profileName, String repositoryRoot) throws SQLException;
+
+    /**
+     * Remove a repository root from a profile
+     * @param profileName the profile name for which we wish to subtract a repository root
+     * @param repositoryRoot the name of the repository root we wish to remove
+     * @return
+     * @throws SQLException
+     */
+    boolean removeRepoRoot(String profileName, String repositoryRoot) throws SQLException;
+
+    JsonObject selectRepositories() throws SQLException;
 }
