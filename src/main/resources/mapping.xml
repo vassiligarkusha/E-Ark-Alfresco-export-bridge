@@ -18,13 +18,13 @@
 				<hook path="c01/did/unitid">cmis:objectId</hook>
 			</hooks>
 			<ead>
-				<c01 level="series">
+				<c level="series">
 					<ead:did>
 						<ead:unitdate datechar="created"/>
 						<ead:unittitle/>
 						<ead:unitid localtype="system_id"/>
 					</ead:did>
-				</c01>
+				</c>
 			</ead>
 		</template>
 		<template id="subseries">
@@ -34,13 +34,13 @@
 				<hook path="c02/did/unitid">cmis:objectId</hook>
 			</hooks>
 			<ead>
-				<c02 level="subseries">
+				<c level="subseries">
 					<ead:did>
 						<ead:unitdate datechar="created"/>
 						<ead:unittitle/>
 						<ead:unitid localtype="system_id"/>
 					</ead:did>
-				</c02>
+				</c>
 			</ead>
 		</template>
 		<template id="record">
@@ -50,7 +50,7 @@
 				<hook path="c03/did/unitid">cmis:objectId</hook>
 			</hooks>
 			<ead>
-				<c03 level="file">
+				<c level="file">
 					<ead:did>
 						<ead:unitdate datechar="created"/>
 						<ead:unittitle/>
@@ -60,7 +60,7 @@
 							<ead:dao daotype="unknown" />
 						</ead:daoset>
 					</ead:did>
-				</c03>
+				</c>
 			</ead>
 		</template>
 	</eadTemplates>

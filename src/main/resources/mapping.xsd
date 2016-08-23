@@ -64,21 +64,10 @@
 	
 	<element name="ead" type="map:ead_type"/>
 	<complexType name="ead_type">
-		<choice>
-			<element name="c01" type="ead:c01"/>
-			<element name="c02" type="ead:c02"/>
-			<element name="c03" type="ead:c03"/>
-			<element name="c04" type="ead:c04"/>
-			<element name="c05" type="ead:c05"/>
-			<element name="c06" type="ead:c06"/>
-			<element name="c07" type="ead:c07"/>
-			<element name="c08" type="ead:c08"/>
-			<element name="c09" type="ead:c09"/>
-			<element name="c10" type="ead:c10"/>
-			<element name="c11" type="ead:c11"/>
-			<element name="c12" type="ead:c12"/>
+		<sequence>
+			<element name="c" type="ead:c"/>
 			<!-- element ref="ead:c01"/--> <!-- This is not working -->
-		</choice>
+		</sequence>
 	</complexType>
 	
 </schema>
