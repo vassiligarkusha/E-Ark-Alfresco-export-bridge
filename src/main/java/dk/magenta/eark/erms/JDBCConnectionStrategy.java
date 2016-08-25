@@ -1,21 +1,26 @@
 package dk.magenta.eark.erms;
 
+import dk.magenta.eark.erms.db.connector.tables.Mappings;
 import dk.magenta.eark.erms.db.connector.tables.Profiles;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
 import org.jooq.SQLDialect;
 import org.jooq.impl.DSL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.json.Json;
 import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import java.sql.*;
+import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
-
+    private final Logger logger = LoggerFactory.getLogger(JDBCConnectionStrategy.class);
     private PropertiesHandler propertiesHandler;
 
     private Connection connection;
@@ -85,7 +90,7 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
             //Written just to understand how to chain the result from Jooq to a J8 stream. Actually does nothing
             List<Profile> storedProfile = db.select().from(Profiles.PROFILES).fetch().stream()
-                    .filter(t -> t.getValue(Profiles.PROFILES.PROFILENAME).equalsIgnoreCase(profile.getName()))
+                    .filter(t -> t.getValue(Profiles.PROFILES.NAME).equalsIgnoreCase(profile.getName()))
                     .limit(1) //limit it to just the one result
                     .map(this::convertToProfile)
                     .collect(Collectors.toList());
@@ -95,7 +100,7 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
                     .set(Profiles.PROFILES.URL, profile.getUrl())
                     .set(Profiles.PROFILES.USERNAME, profile.getUserName())
                     .set(Profiles.PROFILES.PASSWORD, profile.getPassword())
-                    .where(Profiles.PROFILES.PROFILENAME.equalIgnoreCase(profile.getName()))
+                    .where(Profiles.PROFILES.NAME.equalIgnoreCase(profile.getName()))
                     .execute();
 
         } catch (Exception ge) {
@@ -119,7 +124,7 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
             //Written just to understand how to chain the result from Jooq to a J8 stream. Actually does nothing
             prf = db.select().from(Profiles.PROFILES).fetch().stream()
-                    .filter(t -> t.getValue(Profiles.PROFILES.PROFILENAME).equalsIgnoreCase(profileName))
+                    .filter(t -> t.getValue(Profiles.PROFILES.NAME).equalsIgnoreCase(profileName))
                     .limit(1) //limit it to just the one result
                     .map(this::convertToProfile)
                     .collect(Collectors.toList()).get(0);
@@ -133,13 +138,48 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
         return prf;
     }
 
+
+    /**
+     * Persists the information about the saved file into the db
+     * @param mapName the name with which to give the mapping file
+     * @param sysPath the location of the actual mapping file on disk
+     * @return
+     */
+    @Override
+    public boolean saveMapping(String mapName,String sysPath, FormDataContentDisposition fileMetadata){
+        int result;
+
+        try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
+             result = db.transactionResult( configuration -> {
+                int commits = DSL.using(configuration).insertInto(Mappings.MAPPINGS, Mappings.MAPPINGS.NAME,
+                        Mappings.MAPPINGS.SYSPATH, Mappings.MAPPINGS.CREATED, Mappings.MAPPINGS.REALFILENAME)
+                        .values(mapName, sysPath, new Date(Calendar.getInstance().getTime().getTime()),
+                                fileMetadata.getFileName() )
+                        .execute();
+
+                if(commits != 1) {
+                    System.out.println("The data may not have been persisted correctly. Output of the result was: "+ commits);
+                    logger.error("The data may not have been persisted correctly. Output of the result was: "+ commits);
+                }
+                return commits;
+
+            });
+        } catch (Exception ge){
+            ge.printStackTrace();
+            logger.error("An issue with persisting the mapping in the db.\n"+ ge.getMessage());
+            return false;
+        }
+        return result==1;
+    }
+
+//private methods
     /**
      * Converts a single record to a profile
      * @param r a single from from the db
      * @return
      */
     private Profile convertToProfile(Record r){
-        return new Profile(r.getValue(Profiles.PROFILES.PROFILENAME), r.getValue(Profiles.PROFILES.URL),
+        return new Profile(r.getValue(Profiles.PROFILES.NAME), r.getValue(Profiles.PROFILES.URL),
                 r.getValue(Profiles.PROFILES.USERNAME), r.getValue(Profiles.PROFILES.PASSWORD));
     }
 
