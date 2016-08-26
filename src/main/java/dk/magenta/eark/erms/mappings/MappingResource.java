@@ -68,13 +68,29 @@ public class MappingResource {
         return builder.build();
     }
 
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("mapping/{mappingName}")
+    public JsonObject deleteMapping(@PathParam("mappingName") String mappingName){
+        MapWorker mapWorker = new MapWorkerImpl();
+        return mapWorker.deleteMapping(mappingName);
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("mapping/{mappingName}")
+    public JsonObject getMapping(@PathParam("mappingName") String mappingName){
+        MapWorker mapWorker = new MapWorkerImpl();
+        return mapWorker.getMapping(mappingName);
+    }
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Path("mappings")
     public JsonObject mappings(){
         MapWorker mapWorker = new MapWorkerImpl();
+        return mapWorker.getMappings();
     }
-
 
 
 }
