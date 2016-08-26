@@ -2,6 +2,7 @@ package dk.magenta.eark.erms.mappings;
 
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 
+import javax.json.JsonObject;
 import java.io.File;
 
 /**
@@ -17,6 +18,24 @@ public interface MapWorker {
      */
     void saveMapping(String mappingName, File mapFile, FormDataContentDisposition fileMetadata);
 
-    void deleteMapping(String mappingName);
+    /**
+     * Gets the Json object representing the requested mapping from the db
+     * @param mappingName
+     * @return
+     */
+    JsonObject getMapping(String mappingName);
+
+    /**
+     * Return a list of mappings on the system
+     * @return
+     */
+    JsonObject getMappings();
+
+    /**
+     * removes a mapping from the FS and db
+     * @param mappingName name of the mapping to remove
+     * @return JsonObject containing the success of the operation.
+     */
+    JsonObject deleteMapping(String mappingName);
 
 }

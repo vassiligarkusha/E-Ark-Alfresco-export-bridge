@@ -28,10 +28,10 @@ public class DatabaseResource {
   public JsonObject addProfile(JsonObject json) {
     JsonObjectBuilder builder = Json.createObjectBuilder();
 
-    if (json.containsKey(Profile.PROFILENAME) && json.containsKey(Profile.URL) && json.containsKey(Profile.USERNAME)
+    if (json.containsKey(Profile.NAME) && json.containsKey(Profile.URL) && json.containsKey(Profile.USERNAME)
       && json.containsKey(Profile.PASSWORD)) {
 
-      String profileName = json.getString(Profile.PROFILENAME);
+      String profileName = json.getString(Profile.NAME);
       String url = json.getString(Profile.URL);
       String userName = json.getString(Profile.USERNAME);
       String password = json.getString(Profile.PASSWORD);
@@ -76,10 +76,10 @@ public class DatabaseResource {
   public JsonObject updateProfile(JsonObject json) {
     JsonObjectBuilder builder = Json.createObjectBuilder();
 
-    if (json.containsKey(Profile.PROFILENAME) && json.containsKey(Profile.URL) && json.containsKey(Profile.USERNAME)
+    if (json.containsKey(Profile.NAME) && json.containsKey(Profile.URL) && json.containsKey(Profile.USERNAME)
             && json.containsKey(Profile.PASSWORD)) {
 
-      String profileName = json.getString(Profile.PROFILENAME);
+      String profileName = json.getString(Profile.NAME);
       String url = json.getString(Profile.URL);
       String userName = json.getString(Profile.USERNAME);
       String password = json.getString(Profile.PASSWORD);

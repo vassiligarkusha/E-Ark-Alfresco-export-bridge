@@ -7,7 +7,12 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.json.Json;
+import javax.json.JsonArrayBuilder;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
 import java.io.File;
+import java.util.List;
 
 /**
  * @author lanre.
@@ -58,9 +63,78 @@ public class MapWorkerImpl implements MapWorker {
         }
     }
 
+    /**
+     * Gets the Json object representing the requested mapping from the db
+     * @param mappingName
+     * @return
+     */
     @Override
-    public void deleteMapping(String mappingName) {
+    public JsonObject getMapping(String mappingName) {
+        JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder();
+        try {
+            Mapping mp = this.dbConnectionStrategy.getMapping(mappingName);
+            if (!mp.isEmpty) {
+                jsonObjectBuilder.add("mapping", mp.toJsonObject());
+                jsonObjectBuilder.add(Constants.SUCCESS, true);
+            }
+        }
+        catch (Exception ge){
+            ge.printStackTrace();
+        }
+        return jsonObjectBuilder.build();
+    }
 
+    /**
+     * Return a list of mappings on the system
+     *
+     * @return
+     */
+    @Override
+    public JsonObject getMappings() {
+        JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder();
+        JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
+        try {
+            List<Mapping> mappings = this.dbConnectionStrategy.getMappings();
+            if(mappings.size() > 0){
+                mappings.forEach(t -> jsonArrayBuilder.add(t.toJsonObject()));
+                jsonObjectBuilder.add("mappings", jsonArrayBuilder);
+                jsonObjectBuilder.add(Constants.SUCCESS, true);
+            }
+        }
+        catch (Exception ge){
+            ge.printStackTrace();
+        }
+        return jsonObjectBuilder.build();
+    }
+
+    @Override
+    public JsonObject deleteMapping(String mappingName) {
+        JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder();
+        try {
+            Mapping mp = this.dbConnectionStrategy.getMapping(mappingName);
+            if (!mp.isEmpty) {
+                boolean res = this.dbConnectionStrategy.deleteMapping(mappingName);
+                if (res) {
+                    jsonObjectBuilder.add("dbEntryDeleted", true);
+                }
+                //TODO: clean up orphaned files
+                //Not a critical error though we would need to be able to clean up "orphaned" files at some point
+                File mappingFile = new File(mp.getSyspath());
+                if(mappingFile.exists() && mappingFile.delete()){
+                    jsonObjectBuilder.add("fileDeleted", true);
+                }
+            }
+            else{
+                jsonObjectBuilder.add(Constants.ERRORMSG, "Unable to instantiate mapping object before deletion");
+                jsonObjectBuilder.add(Constants.SUCCESS, false);
+            }
+        }
+        catch(Exception ge){
+            ge.printStackTrace();
+            jsonObjectBuilder.add(Constants.ERRORMSG, "Unable to delet mapping");
+            jsonObjectBuilder.add(Constants.SUCCESS, false);
+        }
+        return jsonObjectBuilder.build();
     }
 
     private String replaceTokens(String token){

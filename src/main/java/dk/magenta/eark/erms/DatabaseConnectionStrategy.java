@@ -1,9 +1,11 @@
 package dk.magenta.eark.erms;
 
+import dk.magenta.eark.erms.mappings.Mapping;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 
 import javax.json.JsonObject;
 import java.sql.SQLException;
+import java.util.List;
 
 public interface DatabaseConnectionStrategy {
     /**
@@ -34,6 +36,29 @@ public interface DatabaseConnectionStrategy {
     Profile getProfile(String profileName) throws SQLException;
 
     JsonObject selectRepositories() throws SQLException;
+
+    /**
+     * Removes a mapping from db given the system mapping name
+     *
+     * @param mappingName the name of the mapping to delete
+     * @return a boolean indicating success
+     * @throws SQLException
+     */
+    boolean deleteMapping(String mappingName) throws SQLException;
+
+    /**
+     * Gets a mapping from db given the system mapping name
+     * @param mappingName the name of the mapping to retrieve
+     * @return json object representing the mapping
+     * @throws SQLException
+     */
+    Mapping getMapping(String mappingName) throws SQLException;
+
+    /**
+     * Gets all mappings on the system
+     * @return
+     */
+    List getMappings() throws SQLException;
 
     /**
      * Persists the information about the saved file into the db

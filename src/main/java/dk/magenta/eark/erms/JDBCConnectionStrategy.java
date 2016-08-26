@@ -2,6 +2,7 @@ package dk.magenta.eark.erms;
 
 import dk.magenta.eark.erms.db.connector.tables.Mappings;
 import dk.magenta.eark.erms.db.connector.tables.Profiles;
+import dk.magenta.eark.erms.mappings.Mapping;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.jooq.DSLContext;
 import org.jooq.Record;
@@ -16,6 +17,7 @@ import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import java.sql.*;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -42,11 +44,11 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
     }
 
     @Override
-    public void insertRepository(String profileName, String url, String userName, String password) throws SQLException {
+    public void insertRepository(String name, String url, String userName, String password) throws SQLException {
 
         String insertSql = "INSERT INTO Profiles VALUES (?, ?, ?, ?)";
         statement = connection.prepareStatement(insertSql);
-        statement.setString(1, profileName);
+        statement.setString(1, name);
         statement.setString(2, url);
         statement.setString(3, userName);
         statement.setString(4, password); // TODO: this should NOT be clear text
@@ -65,7 +67,7 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
         rs = statement.executeQuery();
         while (rs.next()) {
             JsonObjectBuilder profile = Json.createObjectBuilder();
-            profile.add(Profile.PROFILENAME, rs.getString(Profile.PROFILENAME));
+            profile.add(Profile.NAME, rs.getString(Profile.NAME));
             profile.add(Profile.URL, rs.getString(Profile.URL));
             profile.add(Profile.USERNAME, rs.getString(Profile.USERNAME));
             profile.add(Profile.PASSWORD, rs.getString(Profile.PASSWORD));
@@ -78,6 +80,8 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
         close();
         return jsonObjectBuilder.build();
     }
+
+    //TODO: Switch several of the statements to use transactions and handle transaction errors properly
 
     /**
      * Updates a profile in the db
@@ -138,6 +142,78 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
         return prf;
     }
 
+    /**
+     * Removes a mapping from db given the system mapping name
+     *
+     * @param mappingName the name of the mapping to delete
+     * @return a boolean indicating success
+     * @throws SQLException
+     */
+    @Override
+    public boolean deleteMapping(String mappingName) throws SQLException {
+        int result;
+        try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
+            result = db.transactionResult( configuration -> {
+                int deletes = DSL.using(configuration).delete(Mappings.MAPPINGS)
+                        .where(Mappings.MAPPINGS.NAME.equalIgnoreCase(mappingName))
+                        .execute();
+
+                if(deletes != 1) {
+                    System.out.println("Grave error in deletion attempt. Number of deleted records were: "+ deletes);
+                    logger.error("The number of deletions made was ["+ (deletes - 1) +"] more than was necessary");
+                }
+                return deletes;
+            });
+        } catch (Exception ge){
+            ge.printStackTrace();
+            logger.error("An issue removing the mapping from the db.\n"+ ge.getMessage());
+            return false;
+        }
+        return result==1;
+    }
+
+    /**
+     * Gets a mapping from db given the system mapping name
+     *
+     * @param mappingName the name of the mapping to retrieve
+     * @return json object representing the mapping
+     * @throws SQLException
+     */
+    @Override
+    public Mapping getMapping(String mappingName) throws SQLException {
+        try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
+            Record mapping = db.select().from(Mappings.MAPPINGS)
+                    .where(Mappings.MAPPINGS.NAME.equalIgnoreCase(mappingName))
+                    .fetchOne();
+            return convertToMapping(mapping);
+        }
+        catch (Exception ge){
+            ge.printStackTrace();
+        }
+        close();
+        return Mapping.EMPTY_MAP;
+    }
+
+    /**
+     * Gets all mappings on the system
+     *
+     * @return
+     */
+    @Override
+    public List getMappings() throws SQLException{
+        try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
+            return db.select().from(Mappings.MAPPINGS)
+                    .fetch()
+                    .stream()
+                    .map(this::convertToMapping)
+                    .collect(Collectors.toList());
+        }
+        catch (Exception ge){
+            ge.printStackTrace();
+        }
+        close();
+        return Collections.EMPTY_LIST;
+    }
 
     /**
      * Persists the information about the saved file into the db
@@ -181,6 +257,18 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
     private Profile convertToProfile(Record r){
         return new Profile(r.getValue(Profiles.PROFILES.NAME), r.getValue(Profiles.PROFILES.URL),
                 r.getValue(Profiles.PROFILES.USERNAME), r.getValue(Profiles.PROFILES.PASSWORD));
+    }
+
+    /**
+     * Converts a single record to a mapping
+     *
+     * @param r a single mapping from from the db
+     * @return
+     */
+    private Mapping convertToMapping(Record r) {
+        System.out.println("Debugger");
+        Mapping tmp = r.into(Mapping.class);
+        return tmp;
     }
 
     private void close() throws SQLException {
