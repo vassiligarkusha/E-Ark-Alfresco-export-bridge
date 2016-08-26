@@ -1,4 +1,4 @@
-package dk.magenta.eark.erms.mapping;
+package dk.magenta.eark.erms.parser;
 
 public class Hook {
 
