@@ -21,14 +21,18 @@ import java.sql.SQLException;
 
 
 @Path("repository")
-public class Repository {
+public class RepositoryResource {
 
-    private final Logger logger = LoggerFactory.getLogger(Repository.class);
+    public static final String FOLDER_OBJECT_ID = "folderObjectId";
+    public static final String DOCUMENT_OBJECT_ID = "documentObjectId";
+
+
+    private final Logger logger = LoggerFactory.getLogger(RepositoryResource.class);
 
     private Cmis1Connector cmis1Connector;
     DatabaseConnectionStrategy dbConnectionStrategy;
 
-    public Repository() {
+    public RepositoryResource() {
 
         try {
             this.cmis1Connector = new Cmis1Connector();
@@ -45,8 +49,8 @@ public class Repository {
     public JsonObject connect(JsonObject json) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
         JsonObject response;
-        if (json.containsKey(Profile.PROFILENAME)) {
-            String profileName = json.getString(Profile.PROFILENAME);
+        if (json.containsKey(Profile.NAME)) {
+            String profileName = json.getString(Profile.NAME);
 
             try {
                 //Get a session worker
@@ -78,9 +82,9 @@ public class Repository {
     @Path("getDocument")
     public JsonObject Document(JsonObject json) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
-        if (json.containsKey(Profile.DOCUMENT_OBJECT_ID) && json.containsKey(Profile.PROFILENAME)) {
-            String profileName = json.getString(Profile.PROFILENAME);
-            String documentObjectId = json.getString(Profile.DOCUMENT_OBJECT_ID);
+        if (json.containsKey(DOCUMENT_OBJECT_ID) && json.containsKey(Profile.NAME)) {
+            String profileName = json.getString(Profile.NAME);
+            String documentObjectId = json.getString(DOCUMENT_OBJECT_ID);
             boolean includeContentStream = json.getBoolean("includeContentStream", false);
 
             try {
@@ -116,10 +120,10 @@ public class Repository {
     @Path("getFolder")
     public JsonObject getFolder(JsonObject json) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
-        if (json.containsKey(Profile.FOLDER_OBJECT_ID) && json.containsKey(Profile.PROFILENAME)) {
+        if (json.containsKey(FOLDER_OBJECT_ID) && json.containsKey(Profile.NAME)) {
 
-            String profileName = json.getString(Profile.PROFILENAME);
-            String folderObjectId = json.getString(Profile.FOLDER_OBJECT_ID);
+            String profileName = json.getString(Profile.NAME);
+            String folderObjectId = json.getString(FOLDER_OBJECT_ID);
 
             try {
                 CmisSessionWorker cmisSessionWorker = this.getSessionWorker(profileName);
