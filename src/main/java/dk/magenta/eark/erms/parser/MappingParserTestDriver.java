@@ -1,12 +1,9 @@
-package dk.magenta.eark.erms;
+package dk.magenta.eark.erms.parser;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-
-import dk.magenta.eark.erms.parser.MappingParser;
-import dk.magenta.eark.erms.parser.XmlValidator;
 
 public class MappingParserTestDriver {
 
