@@ -64,6 +64,9 @@ public class MappingResource {
                 if (xmlValidator.isXmlValid(xmlInputStream)) {
                     builder.add(Constants.SUCCESS, true);
                     builder.add(Constants.MESSAGE, "Mapping validated and successfully saved");
+
+                    MapWorker mapWorker = new MapWorkerImpl();
+                    mapWorker.saveMapping(mapName, tempFile, fileMetaData);
                 } else {
                 	builder.add(Constants.SUCCESS, false);
                 	builder.add(Constants.MESSAGE, "The uploaded XML mapping is not valid according to mapping.xsd");
@@ -71,9 +74,6 @@ public class MappingResource {
                 }
                 xmlInputStream.close();
                 
-                MapWorker mapWorker = new MapWorkerImpl();
-                mapWorker.saveMapping(mapName, tempFile, fileMetaData);
-
             } catch (Exception e) {
                 e.printStackTrace();
                 builder.add(Constants.SUCCESS, false);
