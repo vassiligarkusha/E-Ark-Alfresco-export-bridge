@@ -1,7 +1,11 @@
 package dk.magenta.eark.erms.mappings;
 
 import dk.magenta.eark.erms.*;
+import dk.magenta.eark.erms.db.DatabaseConnectionStrategy;
+import dk.magenta.eark.erms.db.JDBCConnectionStrategy;
 import dk.magenta.eark.erms.exceptions.ErmsIOException;
+import dk.magenta.eark.erms.system.PropertiesHandler;
+import dk.magenta.eark.erms.system.PropertiesHandlerImpl;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.slf4j.Logger;
