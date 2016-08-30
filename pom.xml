@@ -190,8 +190,7 @@
         <dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-servlet-core</artifactId>
-            <version>${jersey.version}</version>
-			<!-- use the following artifactId if you don't need servlet 2.x compatibility -->
+            <!-- use the following artifactId if you don't need servlet 2.x compatibility -->
 			<!-- artifactId>jersey-container-servlet</artifactId -->
 		</dependency>
 		<dependency>
@@ -236,12 +235,13 @@
             <version>3.8.2</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/jdom/jdom -->
-        <dependency>
-            <groupId>jdom</groupId>
-            <artifactId>jdom</artifactId>
-            <version>1.1</version>
-        </dependency>
+		<!-- https://mvnrepository.com/artifact/org.jdom/jdom2 -->
+		<dependency>
+			<groupId>org.jdom</groupId>
+			<artifactId>jdom2</artifactId>
+			<version>2.0.6</version>
+		</dependency>
+
 
         <!--Some apache commons libraries-->
         <dependency>
