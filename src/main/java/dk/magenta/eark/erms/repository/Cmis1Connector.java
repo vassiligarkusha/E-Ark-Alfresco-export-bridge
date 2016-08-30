@@ -1,29 +1,9 @@
 package dk.magenta.eark.erms.repository;
 
-import dk.magenta.eark.erms.Profiles.Profile;
 import dk.magenta.eark.erms.exceptions.ErmsConnectionException;
 import dk.magenta.eark.erms.exceptions.ErmsURLException;
 import dk.magenta.eark.erms.repository.profiles.Profile;
 import org.apache.chemistry.opencmis.client.api.*;
-import java.io.File;
-import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.client.api.Document;
-import org.apache.chemistry.opencmis.client.api.Folder;
-import org.apache.chemistry.opencmis.client.api.ItemIterable;
-import org.apache.chemistry.opencmis.client.api.QueryResult;
-import org.apache.chemistry.opencmis.client.api.Repository;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.chemistry.opencmis.client.api.SessionFactory;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
 import org.apache.chemistry.opencmis.commons.data.RepositoryCapabilities;
@@ -42,8 +22,12 @@ import org.jdom2.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import dk.magenta.eark.erms.exceptions.ErmsConnectionException;
-import dk.magenta.eark.erms.exceptions.ErmsURLException;
+import java.io.File;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class Cmis1Connector {
 
