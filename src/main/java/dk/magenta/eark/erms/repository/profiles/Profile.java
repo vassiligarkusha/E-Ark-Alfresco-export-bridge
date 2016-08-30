@@ -1,4 +1,4 @@
-package dk.magenta.eark.erms.Profiles;
+package dk.magenta.eark.erms.repository.profiles;
 
 import org.apache.commons.lang3.StringUtils;
 

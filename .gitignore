@@ -218,3 +218,4 @@ local.properties
 
 #ignore the jooq generated files
 /src/main/java/dk/magenta/eark/erms/db/connetor/
+/dev notes/

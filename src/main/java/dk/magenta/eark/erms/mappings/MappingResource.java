@@ -89,7 +89,7 @@ public class MappingResource {
 
     @DELETE
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("mapping/{mappingName}")
+    @Path("remove/{mappingName}")
     public JsonObject deleteMapping(@PathParam("mappingName") String mappingName){
         MapWorker mapWorker = new MapWorkerImpl();
         return mapWorker.deleteMapping(mappingName);
@@ -97,7 +97,7 @@ public class MappingResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("mapping/{mappingName}")
+    @Path("get/{mappingName}")
     public JsonObject getMapping(@PathParam("mappingName") String mappingName){
         MapWorker mapWorker = new MapWorkerImpl();
         return mapWorker.getMapping(mappingName);
@@ -105,7 +105,7 @@ public class MappingResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("mappings")
+    @Path("get/mappings")
     public JsonObject mappings(){
         MapWorker mapWorker = new MapWorkerImpl();
         return mapWorker.getMappings();

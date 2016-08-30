@@ -1,8 +1,11 @@
 package dk.magenta.eark.erms.repository;
 
 import dk.magenta.eark.erms.*;
-import dk.magenta.eark.erms.Profiles.Profile;
+import dk.magenta.eark.erms.db.DatabaseConnectionStrategy;
+import dk.magenta.eark.erms.db.JDBCConnectionStrategy;
 import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
+import dk.magenta.eark.erms.repository.profiles.Profile;
+import dk.magenta.eark.erms.system.PropertiesHandlerImpl;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;

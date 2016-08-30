@@ -12,7 +12,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -79,22 +78,13 @@ public class ExtractionResource {
     public String getIt() {
         return "Got it YES sir hut hurra...Ihh jep igen kkjubiiiii kk nnnn mmmm!";
     }
-    
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("test")
-    public JsonObject test() {
-		LoadProfile p = new LoadProfile();
-		try {
-			p.getInfo();
-		}
-		catch (SQLException sqe){
-			System.out.println("An error occurred reading the data from SQl: "+ sqe.getMessage());
-		}
-    	JsonObject json = Json.createObjectBuilder()
-    			.add("success", false)
-    			.build();
-    	return json;
-    }
+
+
+
+	@GET
+	@Path("test")
+	public String test() {
+		return "It's working!";
+	}
     
 }

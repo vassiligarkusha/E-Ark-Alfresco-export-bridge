@@ -1,8 +1,9 @@
-package dk.magenta.eark.erms;
+package dk.magenta.eark.erms.repository;
 
 import dk.magenta.eark.erms.Profiles.Profile;
 import dk.magenta.eark.erms.exceptions.ErmsConnectionException;
 import dk.magenta.eark.erms.exceptions.ErmsURLException;
+import dk.magenta.eark.erms.repository.profiles.Profile;
 import org.apache.chemistry.opencmis.client.api.*;
 import java.io.File;
 import java.net.URL;

@@ -21,6 +21,7 @@ public class Mapping {
 
     public void setName(String name) {
         this.name = name;
+        this.isEmpty = false;
     }
 
     public String getSyspath() {

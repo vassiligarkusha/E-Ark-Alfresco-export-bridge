@@ -1,24 +1,21 @@
-package dk.magenta.eark.erms;
+package dk.magenta.eark.erms.db;
 
-import dk.magenta.eark.erms.Profiles.Profile;
 import dk.magenta.eark.erms.db.connector.tables.Mappings;
 import dk.magenta.eark.erms.db.connector.tables.Profiles;
 import dk.magenta.eark.erms.db.connector.tables.Repositories;
-import org.jooq.*;
-import org.jooq.exception.DataAccessException;
 import dk.magenta.eark.erms.mappings.Mapping;
+import dk.magenta.eark.erms.repository.profiles.Profile;
+import dk.magenta.eark.erms.system.PropertiesHandler;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.jooq.DSLContext;
+import org.jooq.Query;
 import org.jooq.Record;
 import org.jooq.SQLDialect;
+import org.jooq.exception.DataAccessException;
 import org.jooq.impl.DSL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.json.Json;
-import javax.json.JsonArrayBuilder;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -27,15 +24,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
-
     private final Logger logger = LoggerFactory.getLogger(JDBCConnectionStrategy.class);
     private PropertiesHandler propertiesHandler;
-
     private Connection connection;
-    private PreparedStatement statement;
-    private ResultSet rs;
 
-    public JDBCConnectionStrategy(PropertiesHandler propertiesHandler) throws SQLException {
+    public JDBCConnectionStrategy(PropertiesHandler propertiesHandler) throws SQLException{
         this.propertiesHandler = propertiesHandler;
         try {
             Class.forName("com.mysql.jdbc.Driver").newInstance();
@@ -49,69 +42,112 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
         }
     }
 
-    @Override
-    public void insertRepository(String name, String url, String userName, String password) throws SQLException {
+    //TODO: Switch several of the statements to use transactions and handle transaction errors properly
 
-        String insertSql = "INSERT INTO Profiles VALUES (?, ?, ?, ?)";
-        statement = connection.prepareStatement(insertSql);
-        statement.setString(1, name);
-        statement.setString(2, url);
-        statement.setString(3, userName);
-        statement.setString(4, password); // TODO: this should NOT be clear text
-        statement.executeUpdate();
-        close();
+    /**
+     * Returns a list of profiles from the db
+     * @return
+     * @throws SQLException
+     */
+    public List<Profile> getProfiles() throws SQLException {
+        try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
+            return db.select().from(Profiles.PROFILES)
+                    .fetch()
+                    .stream()
+                    .map(this::convertToProfile)
+                    .collect(Collectors.toList());
+        }
+        catch (Exception ge){
+            ge.printStackTrace();
+        }
+        finally{
+            close();
+        }
+        return Collections.EMPTY_LIST;
     }
 
+    /**
+     * Adds the profile to the db
+     *
+     * @param profile
+     * @return true | false
+     * @throws SQLException
+     */
     @Override
-    public void insertRepository(String profileName, String url, String userName, String password, String[] repos) throws SQLException {
+    public boolean createProfile(Profile profile) throws SQLException {
 
+        int result;
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
             List<Query> queries = new ArrayList<>();
             //First create the query for the profile table
             Query profQuery = db.insertInto(Profiles.PROFILES, Profiles.PROFILES.NAME, Profiles.PROFILES.URL,
                     Profiles.PROFILES.USERNAME, Profiles.PROFILES.PASSWORD)
-                    .values(profileName, url, userName, password);
+                    .values(profile.getName(), profile.getUrl(), profile.getUserName(), profile.getPassword());
+
             //add it to the list
             queries.add(profQuery);
+
             //check if the profile has repository roots, then add queries to the list
-            if (repos.length > 0) {
-                for (String repo : repos) {
-                    queries.add(db.insertInto(Repositories.REPOSITORIES, Repositories.REPOSITORIES.NAME,
-                            Repositories.REPOSITORIES.REPOSITORYNAME).values(profileName, repo));
-                }
+            if (profile.getRepositories().size() > 0) {
+                queries.addAll(profile.getRepositories().stream().map(repo -> db.insertInto(Repositories.REPOSITORIES,
+                        Repositories.REPOSITORIES.NAME, Repositories.REPOSITORIES.REPOSITORYNAME)
+                        .values(profile.getName(), repo)).collect(Collectors.toList()));
             }
-            //execute said queries
-            db.batch(queries).execute();
 
-        } catch (Exception ge) {
+            result = db.transactionResult( configuration -> {
+                int[] commits = DSL.using(configuration).batch(queries).execute();
+
+                if(commits.length != queries.size()) {
+                    logger.error("The data may not have been persisted correctly."+ commits +
+                            ": number of queries were executed instead of "+queries.size()+" queries");
+                }
+                return commits.length;
+
+            });
+        } catch (Exception ge){
             ge.printStackTrace();
-            System.out.println("There was an error in attempting to create the profile:\n" + ge.getMessage());
+            logger.error("An issue with persisting the profile to the db.\n"+ ge.getMessage());
+            return false;
         }
+        finally {
+            close();
+        }
+        return result <= 1;
     }
 
+    /**
+     * Removes a single profile from the repository
+     * @param profileName the name of the profile to remove
+     * @return
+     * @throws SQLException
+     */
     @Override
-    public JsonObject selectRepositories() throws SQLException {
-
-        JsonObjectBuilder jsonObjectBuilder = Json.createObjectBuilder();
-        JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
-
+    public boolean deleteProfile(String profileName) throws SQLException {
+        int result;
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
-            List<Profile> storedProfile = db.select().from(Profiles.PROFILES)
-                    .fetch()
-                    .stream()
-                    .map(this::convertToProfile)
-                    .collect(Collectors.toList());
-            storedProfile.forEach(t -> jsonArrayBuilder.add(t.toJsonObject()));
+            result = db.transactionResult( configuration -> {
+                int deletes = DSL.using(configuration).delete(Profiles.PROFILES)
+                        .where(Profiles.PROFILES.NAME.equalIgnoreCase(profileName))
+                        .execute();
 
+                if(deletes >= 1) {
+                    logger.error("The number of deletions made were ["+ (deletes - 1) +"] more than was necessary");
+                }
+                if(deletes < 1) {
+                    logger.error("No deletions were performed. DB transaction result: "+ deletes);
+                }
+                return deletes;
+            });
+        } catch (Exception ge){
+            ge.printStackTrace();
+            logger.error("An issue removing the profile from the db.\n"+ ge.getMessage());
+            return false;
         }
-        jsonObjectBuilder.add("profiles", jsonArrayBuilder);
-        jsonObjectBuilder.add(Constants.SUCCESS, true);
-
-        close();
-        return jsonObjectBuilder.build();
+        finally {
+            close();
+        }
+        return result==1;
     }
-
-    //TODO: Switch several of the statements to use transactions and handle transaction errors properly
 
     /**
      * Updates a profile in the db
@@ -120,28 +156,31 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
      * @throws SQLException
      */
     @Override
-    public void updateProfile(Profile profile) throws SQLException {
+    public boolean updateProfile(Profile profile) throws SQLException {
+        int result;
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
-            //Written just to understand how to chain the result from Jooq to a J8 stream. Actually does nothing
-            List<Profile> storedProfile = db.select().from(Profiles.PROFILES).fetch().stream()
-                    .filter(t -> t.getValue(Profiles.PROFILES.NAME).equalsIgnoreCase(profile.getName()))
-                    .limit(1) //limit it to just the one result
-                    .map(this::convertToProfile)
-                    .collect(Collectors.toList());
-
-            //Update the profile in question. This should actually lock the record during update. I think/hope
-            db.update(Profiles.PROFILES)
-                    .set(Profiles.PROFILES.URL, profile.getUrl())
-                    .set(Profiles.PROFILES.USERNAME, profile.getUserName())
-                    .set(Profiles.PROFILES.PASSWORD, profile.getPassword())
-                    .where(Profiles.PROFILES.NAME.equalIgnoreCase(profile.getName()))
-                    .execute();
+            result = db.transactionResult( configuration -> {
+                //Update the profile in question. This should actually lock the record during update. I think/hope
+               int commits = DSL.using(configuration).update(Profiles.PROFILES)
+                        .set(Profiles.PROFILES.URL, profile.getUrl())
+                        .set(Profiles.PROFILES.USERNAME, profile.getUserName())
+                        .set(Profiles.PROFILES.PASSWORD, profile.getPassword())
+                        .where(Profiles.PROFILES.NAME.equalIgnoreCase(profile.getName()))
+                        .execute();
+               if(commits != 1) {
+                   logger.warn("The update may not have been done correctly. Output of the result was: " + commits);
+               }
+               return commits;
+            });
 
         } catch (Exception ge) {
             System.out.println("There was an error in attempting to update the profile:\n\t\t\t" + ge.getMessage());
-        } finally {
+            return false;
+        }
+        finally {
             close();
         }
+        return result==1;
     }
 
     /**
@@ -152,23 +191,20 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
      * @throws SQLException
      */
     @Override
-    public Profile getProfile(String profileName) throws SQLException {
+    public Profile getProfile(String profileName) throws SQLException{
         Profile prf = new Profile();
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
             //Written just to understand how to chain the result from Jooq to a J8 stream. Actually does nothing
-            prf = db.select().from(Profiles.PROFILES)
-                    // LEFT JOIN expression and predicates here:
-                    .leftJoin(Repositories.REPOSITORIES)
-                    .on(Profiles.PROFILES.NAME.equal(Repositories.REPOSITORIES.NAME))
-                    .where(Profiles.PROFILES.NAME.equalIgnoreCase(profileName))
+            prf = db.select().from(Profiles.PROFILES).fetch().stream()
+                    .filter(t -> t.getValue(Profiles.PROFILES.NAME).equalsIgnoreCase(profileName))
                     .limit(1) //limit it to just the one result
-                    .fetch().stream()
                     .map(this::convertToProfile)
                     .collect(Collectors.toList()).get(0);
-        } catch (Exception ge) {
-            ge.printStackTrace();
-            System.out.println("There was an error in attempting to retrieve the profile:\n\t\t\t" + ge.getMessage());
-        } finally {
+        }
+        catch (Exception ge) {
+            System.out.println("There was an error in attempting to update the profile:\n\t\t\t" + ge.getMessage());
+        }
+        finally {
             close();
         }
         return prf;
@@ -258,6 +294,9 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
             logger.error("An issue removing the mapping from the db.\n"+ ge.getMessage());
             return false;
         }
+        finally {
+            close();
+        }
         return result==1;
     }
 
@@ -279,7 +318,9 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
         catch (Exception ge){
             ge.printStackTrace();
         }
-        close();
+        finally {
+            close();
+        }
         return Mapping.EMPTY_MAP;
     }
 
@@ -300,7 +341,9 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
         catch (Exception ge){
             ge.printStackTrace();
         }
-        close();
+        finally {
+            close();
+        }
         return Collections.EMPTY_LIST;
     }
 
@@ -311,7 +354,7 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
      * @return
      */
     @Override
-    public boolean saveMapping(String mapName,String sysPath, FormDataContentDisposition fileMetadata){
+    public boolean saveMapping(String mapName,String sysPath, FormDataContentDisposition fileMetadata) throws SQLException{
         int result;
 
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
@@ -333,6 +376,9 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
             ge.printStackTrace();
             logger.error("An issue with persisting the mapping in the db.\n"+ ge.getMessage());
             return false;
+        }
+        finally {
+            close();
         }
         return result==1;
     }
@@ -407,12 +453,6 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
     }
 
     private void close() throws SQLException {
-        if (rs != null) {
-            rs.close();
-        }
-        if (statement != null) {
-            statement.close();
-        }
         if (connection != null) {
             connection.close();
         }
