@@ -3,6 +3,7 @@ package dk.magenta.eark.erms.parser;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Iterator;
+import java.util.Map;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -17,20 +18,29 @@ import org.jdom2.input.SAXBuilder;
  * @author andreas
  *
  */
-// Should maybe be static
 public class MappingParser {
 
 	private static final String mapNs = "http://www.magenta.dk/eark/erms/mapping/1.0";
 	private static final String eadNs = "http://ead3.archivists.org/schema/";
 	
+	private String mappingId;
 	private ObjectTypeMap objectTypeMap;
+	private Map<String, Hook> hooks;
 	private Namespace mappingNamespace;
 	private Namespace eadNamespace;
+	private Document mappingDocument;
 	
-	public MappingParser() {
+	public MappingParser(String mappingId) {
+		this.mappingId = mappingId;
 		objectTypeMap = new ObjectTypeMap();
 		mappingNamespace = Namespace.getNamespace(mapNs);
 		eadNamespace = Namespace.getNamespace(eadNs);
+	}
+	
+	public MappingParser(String mappingId, InputStream in) {
+		this(mappingId);
+		buildMappingDocument(in);
+		extractObjectTypes(mappingDocument);
 	}
 	
 	public Document buildMappingDocument(InputStream in) {
@@ -43,14 +53,15 @@ public class MappingParser {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+		mappingDocument = xml;
 		return xml;
 	}
 	
 	public ObjectTypeMap extractObjectTypes(Document doc) {
-		Filter filter = new ElementFilter("objectType", mappingNamespace);
-		Iterator iterator = doc.getDescendants(filter);
+		Filter<Element> filter = new ElementFilter("objectType", mappingNamespace);
+		Iterator<Element> iterator = doc.getDescendants(filter);
 		while (iterator.hasNext()) {
-			Element objectType = (Element) iterator.next();
+			Element objectType = iterator.next();
 			String repoType = objectType.getAttributeValue("id");
 			String cmisType = objectType.getTextTrim();
 			objectTypeMap.addObjectType(repoType, cmisType);
@@ -58,4 +69,13 @@ public class MappingParser {
 		return objectTypeMap;
 	}
 	
+	public Map<String, Hook> extractHooks(Document doc) {
+		Filter<Element> filter = new ElementFilter("template", mappingNamespace);
+		
+		return null;
+	}
+	
+	public ObjectTypeMap getObjectTypeMap() {
+		return objectTypeMap;
+	}
 }

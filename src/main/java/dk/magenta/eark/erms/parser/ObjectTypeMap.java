@@ -2,6 +2,7 @@ package dk.magenta.eark.erms.parser;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class ObjectTypeMap {
 	
@@ -26,9 +27,16 @@ public class ObjectTypeMap {
 		return repositoryTypeToCmisType.get(repoType);
 	}
 	
+	public Set<String> getAllRepositoryTypes() {
+		return repositoryTypeToCmisType.keySet();
+	}
+	
+	public Set<String> getAllCmisTypes() {
+		return cmisTypeToRepositoryType.keySet();
+	}
+	
 	@Override
 	public String toString() {
 		return repositoryTypeToCmisType.toString();
 	}
-	// public List getAll...()
 }
