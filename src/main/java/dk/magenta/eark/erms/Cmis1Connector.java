@@ -1,5 +1,9 @@
 package dk.magenta.eark.erms;
 
+import dk.magenta.eark.erms.Profiles.Profile;
+import dk.magenta.eark.erms.exceptions.ErmsConnectionException;
+import dk.magenta.eark.erms.exceptions.ErmsURLException;
+import org.apache.chemistry.opencmis.client.api.*;
 import java.io.File;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -104,7 +108,7 @@ public class Cmis1Connector {
             try {
                 List<Repository> repositories = sessionFactory.getRepositories(parameters);
                 if (repositories != null && repositories.size() > 0) {
-                    logger.info("Found (" + repositories.size() + ") Alfresco repositories");
+                    logger.info("Found (" + repositories.size() + ") repositories");
                     alfrescoRepository = repositories.get(0);
                     logger.info("Info about the first Alfresco repo [ID=" + alfrescoRepository.getId() +
                             "][name=" + alfrescoRepository.getName() +

@@ -1,6 +1,7 @@
 package dk.magenta.eark.erms.repository;
 
 import dk.magenta.eark.erms.*;
+import dk.magenta.eark.erms.Profiles.Profile;
 import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.commons.lang3.StringUtils;
