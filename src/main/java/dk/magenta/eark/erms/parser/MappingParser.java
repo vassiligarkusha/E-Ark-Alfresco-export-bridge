@@ -40,7 +40,6 @@ public class MappingParser {
 		mappingNamespace = Namespace.getNamespace(mapNs);
 		eadNamespace = Namespace.getNamespace(eadNs);
 		buildMappingDocument(in);
-		getObjectTypes(mappingDocument);
 	}
 
 	
@@ -58,18 +57,13 @@ public class MappingParser {
 		return xml;
 	}
 	
-	
-	public ObjectTypeMap getObjectTypes() {
-		return getObjectTypes(mappingDocument);
-	}
 
-	
-	public ObjectTypeMap getObjectTypes(Document doc) {
+	public ObjectTypeMap getObjectTypes() {
 		if (objectTypeMap != null) {
 			return objectTypeMap;
 		}
 		objectTypeMap = new ObjectTypeMap();
-		List<Element> objectTypes = extractElements(doc, "objectType", mappingNamespace);
+		List<Element> objectTypes = extractElements(mappingDocument, "objectType", mappingNamespace);
 		for (Element objectType : objectTypes) {
 			String repoType = objectType.getAttributeValue("id");
 			String cmisType = objectType.getTextTrim();
@@ -80,16 +74,11 @@ public class MappingParser {
 	
 	
 	public Map<String, List<Hook>> getHooks() {
-		return getHooks(mappingDocument);
-	}
-
-	
-	public Map<String, List<Hook>> getHooks(Document doc) {
 		if (hooks != null) {
 			return hooks;
 		}
 		hooks = new HashMap<String, List<Hook>>();
-		List<Element> templates = extractElements(doc, "template", mappingNamespace);
+		List<Element> templates = extractElements(mappingDocument, "template", mappingNamespace);
 		for (Element template : templates) {
 			Element hooksElement = extractElements(template, "hooks", mappingNamespace).get(0);
 			List<Element> hookElements = extractElements(hooksElement, "hook", mappingNamespace);
@@ -111,16 +100,11 @@ public class MappingParser {
 	
 	
 	public Map<String, Element> getCElements() {
-		return getCElements(mappingDocument);
-	}
-	
-	
-	public Map<String, Element> getCElements(Document doc) {
 		if (CElements != null) {
 			return CElements;
 		}
 		CElements = new HashMap<String, Element>();
-		List<Element> templates = extractElements(doc, "template", mappingNamespace);
+		List<Element> templates = extractElements(mappingDocument, "template", mappingNamespace);
 		for (Element template : templates) {
 			Element ead = extractElements(template, "ead", mappingNamespace).get(0);
 			Element c = ead.getChild("c", mappingNamespace);
