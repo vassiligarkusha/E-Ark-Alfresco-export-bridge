@@ -21,26 +21,23 @@
     </developers>
 
     <properties>
-        <!--The version of the jar to load-->
-        <mysql.version>5.1.39</mysql.version>
 
         <!--<connection properties for the db-->
         <db.host>localhost</db.host>
-
         <db.username>emt</db.username>
         <db.password>eark</db.password>
         <db.name>exm</db.name>
-
-        <maven.db.port>3306</maven.db.port>
-        <maven.tomcat.port>9090</maven.tomcat.port>
-        <maven.cmis.lib.version>0.14.0</maven.cmis.lib.version>
-        <maven.springloaded.version>1.2.6.RELEASE</maven.springloaded.version>
-
+        <db.port>3306</db.port>
+        <!--The version of the mysql jar to load-->
+        <mysql.version>5.1.39</mysql.version>
         <!--driver details for db-->
         <jdbc.driver>com.mysql.jdbc.Driver</jdbc.driver>
         <jdbc.url.params> <![CDATA[?autoReconnect=true&useSSL=false]]></jdbc.url.params>
-        <jdbc.url>jdbc:mysql://${db.host}:${maven.db.port}/${db.name}${jdbc.url.params}</jdbc.url>
+        <jdbc.url>jdbc:mysql://${db.host}:${db.port}/${db.name}${jdbc.url.params}</jdbc.url>
 
+        <maven.tomcat.port>9090</maven.tomcat.port>
+        <maven.cmis.lib.version>0.14.0</maven.cmis.lib.version>
+        <maven.springloaded.version>1.2.6.RELEASE</maven.springloaded.version>
 
         <jersey.version>2.22.1</jersey.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -100,9 +97,6 @@
                     </execution>
                 </executions>
             </plugin>
-			<!-- <plugin> <groupId>org.springframework.boot</groupId> <artifactId>spring-boot-maven-plugin</artifactId> 
-				<dependencies> <dependency> <groupId>org.springframework</groupId> <artifactId>springloaded</artifactId> 
-				<version>1.2.3.RELEASE</version> </dependency> </dependencies> </plugin> -->
 
             <!--JOOQ code gen integration-->
             <plugin>
@@ -160,30 +154,6 @@
                 </configuration>
             </plugin>
 
-            <!--
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>properties-maven-plugin</artifactId>
-                <version>1.0.0</version>
-                <executions>
-                    <execution>
-                        &lt;!&ndash; any phase before your app deploys &ndash;&gt;
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>set-system-properties</goal>
-                        </goals>
-                        <configuration>
-                            <properties>
-                                <property>
-                                    <name>jsse.enableSNIExtension</name>
-                                    <value>false</value>
-                                </property>
-                            </properties>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            -->
 		</plugins>
 
 		<resources>
@@ -220,23 +190,20 @@
         <dependency>
 			<groupId>org.glassfish.jersey.containers</groupId>
 			<artifactId>jersey-container-servlet-core</artifactId>
-			<!-- use the following artifactId if you don't need servlet 2.x compatibility -->
+            <!-- use the following artifactId if you don't need servlet 2.x compatibility -->
 			<!-- artifactId>jersey-container-servlet</artifactId -->
 		</dependency>
 		<dependency>
 			<groupId>org.glassfish.jersey.media</groupId>
 			<artifactId>jersey-media-json-processing</artifactId>
+            <version>${jersey.version}</version>
 		</dependency>
         <!--To use multipart feature-->
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-multipart</artifactId>
+            <version>${jersey.version}</version>
         </dependency>
-		<!-- uncomment this to get JSON support
-		<dependency>
-		    <groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-moxy</artifactId>
-		</dependency> -->
 
         <!-- Springloaded https://mvnrepository.com/artifact/org.springframework/springloaded -->
         <dependency>
@@ -268,12 +235,13 @@
             <version>3.8.2</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/jdom/jdom -->
-        <dependency>
-            <groupId>jdom</groupId>
-            <artifactId>jdom</artifactId>
-            <version>1.1</version>
-        </dependency>
+		<!-- https://mvnrepository.com/artifact/org.jdom/jdom2 -->
+		<dependency>
+			<groupId>org.jdom</groupId>
+			<artifactId>jdom2</artifactId>
+			<version>2.0.6</version>
+		</dependency>
+
 
         <!--Some apache commons libraries-->
         <dependency>

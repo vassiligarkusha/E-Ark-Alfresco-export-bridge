@@ -1,8 +1,8 @@
-package dk.magenta.eark.erms;
+package dk.magenta.eark.erms.repository;
 
-import dk.magenta.eark.erms.Profiles.Profile;
 import dk.magenta.eark.erms.exceptions.ErmsConnectionException;
 import dk.magenta.eark.erms.exceptions.ErmsURLException;
+import dk.magenta.eark.erms.repository.profiles.Profile;
 import org.apache.chemistry.opencmis.client.api.*;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
@@ -16,9 +16,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import org.jdom.Element;
-import org.jdom.Namespace;
-import org.jdom.input.SAXBuilder;
+import org.jdom2.Element;
+import org.jdom2.Namespace;
+import org.jdom2.input.SAXBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -284,7 +284,7 @@ public class Cmis1Connector {
             File wsdlTemp = File.createTempFile("repoWSDL", ".xml"); //create temp file
             FileUtils.copyURLToFile(url, wsdlTemp);// copy the wsdl document so we can extract service endpoints
             SAXBuilder builder = new SAXBuilder();
-            org.jdom.Document wsdlDoc = builder.build(wsdlTemp);
+            org.jdom2.Document wsdlDoc = builder.build(wsdlTemp);
             Element rootNode = wsdlDoc.getRootElement();//extract root xml document
             Namespace defaultNamespace = rootNode.getNamespace();
             //never use the other method as it returns nothing. http://stackoverflow.com/a/12582380/107301
@@ -310,7 +310,7 @@ public class Cmis1Connector {
             File wsdlTemp = File.createTempFile("repoWSDL", ".xml"); //create temp file
             FileUtils.copyURLToFile(url, wsdlTemp);// copy the wsdl document so we can extract service endpoints
             SAXBuilder builder = new SAXBuilder();
-            org.jdom.Document wsdlDoc = builder.build(wsdlTemp);
+            org.jdom2.Document wsdlDoc = builder.build(wsdlTemp);
             Element rootNode = wsdlDoc.getRootElement();//extract root xml document
             Namespace defaultNamespace = rootNode.getNamespace();
             //never use the other method as it returns nothing. http://stackoverflow.com/a/12582380/107301

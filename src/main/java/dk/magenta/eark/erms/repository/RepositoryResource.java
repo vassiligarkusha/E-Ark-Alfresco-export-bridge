@@ -31,6 +31,8 @@ public class RepositoryResource {
     public static final String DOCUMENT_OBJECT_ID = "documentObjectId";
     public static final String MAP_NAME = "mapName";
     public static final String REPO_ROOT = "repositoryRoot";
+    public static final String FOLDER_OBJECT_ID = "folderObjectId";
+    public static final String DOCUMENT_OBJECT_ID = "documentObjectId";
 
     
     private final Logger logger = LoggerFactory.getLogger(RepositoryResource.class);

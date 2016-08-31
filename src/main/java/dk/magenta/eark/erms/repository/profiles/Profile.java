@@ -1,4 +1,4 @@
-package dk.magenta.eark.erms.Profiles;
+package dk.magenta.eark.erms.repository.profiles;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -10,8 +10,6 @@ import java.util.List;
 
 public class Profile {
     public static final String NAME = "name";
-    public static final String FOLDER_OBJECT_ID = "folderObjectId";
-    public static final String DOCUMENT_OBJECT_ID = "documentObjectId";
     public static final String URL = "url";
     public static final String USERNAME = "userName";
     public static final String PASSWORD = "password";
