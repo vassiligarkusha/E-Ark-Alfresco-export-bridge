@@ -1,8 +1,11 @@
 package dk.magenta.eark.erms.repository;
 
 import dk.magenta.eark.erms.*;
-import dk.magenta.eark.erms.Profiles.Profile;
+import dk.magenta.eark.erms.db.DatabaseConnectionStrategy;
+import dk.magenta.eark.erms.db.JDBCConnectionStrategy;
 import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
+import dk.magenta.eark.erms.repository.profiles.Profile;
+import dk.magenta.eark.erms.system.PropertiesHandlerImpl;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -22,14 +25,20 @@ import java.sql.SQLException;
 
 
 @Path("repository")
-public class Repository {
+public class RepositoryResource {
 
-    private final Logger logger = LoggerFactory.getLogger(Repository.class);
+    public static final String FOLDER_OBJECT_ID = "folderObjectId";
+    public static final String DOCUMENT_OBJECT_ID = "documentObjectId";
+    public static final String MAP_NAME = "mapName";
+    public static final String REPO_ROOT = "repositoryRoot";
+
+    
+    private final Logger logger = LoggerFactory.getLogger(RepositoryResource.class);
 
     private Cmis1Connector cmis1Connector;
     DatabaseConnectionStrategy dbConnectionStrategy;
 
-    public Repository() {
+    public RepositoryResource() {
 
         try {
             this.cmis1Connector = new Cmis1Connector();
@@ -46,12 +55,14 @@ public class Repository {
     public JsonObject connect(JsonObject json) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
         JsonObject response;
-        if (json.containsKey(Profile.NAME)) {
+        if (json.containsKey(Profile.NAME) && json.containsKey(MAP_NAME) ) {
             String profileName = json.getString(Profile.NAME);
+            String mapName = json.getString(MAP_NAME);
+            String repoRoot = json.getString(REPO_ROOT);
 
             try {
                 //Get a session worker
-                CmisSessionWorker sessionWorker =this.getSessionWorker(profileName);
+                CmisSessionWorker sessionWorker =this.getSessionWorker(profileName, repoRoot, mapName);
 
                 //Build the json for the repository info
                 response = sessionWorker.getRepositoryInfo();
@@ -79,14 +90,14 @@ public class Repository {
     @Path("getDocument")
     public JsonObject Document(JsonObject json) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
-        if (json.containsKey(Profile.DOCUMENT_OBJECT_ID) && json.containsKey(Profile.NAME)) {
+        if (json.containsKey(DOCUMENT_OBJECT_ID) && json.containsKey(Profile.NAME)) {
             String profileName = json.getString(Profile.NAME);
-            String documentObjectId = json.getString(Profile.DOCUMENT_OBJECT_ID);
+            String documentObjectId = json.getString(DOCUMENT_OBJECT_ID);
             boolean includeContentStream = json.getBoolean("includeContentStream", false);
 
             try {
                 //Get a session worker
-                CmisSessionWorker sessionWorker =this.getSessionWorker(profileName);
+                CmisSessionWorker sessionWorker =this.getSessionWorker(profileName,null,null);
 
                 //Build the json for the repository info
                 builder.add("document", sessionWorker.getDocument(documentObjectId, includeContentStream));
@@ -117,13 +128,13 @@ public class Repository {
     @Path("getFolder")
     public JsonObject getFolder(JsonObject json) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
-        if (json.containsKey(Profile.FOLDER_OBJECT_ID) && json.containsKey(Profile.NAME)) {
+        if (json.containsKey(FOLDER_OBJECT_ID) && json.containsKey(Profile.NAME)) {
 
             String profileName = json.getString(Profile.NAME);
-            String folderObjectId = json.getString(Profile.FOLDER_OBJECT_ID);
+            String folderObjectId = json.getString(FOLDER_OBJECT_ID);
 
             try {
-                CmisSessionWorker cmisSessionWorker = this.getSessionWorker(profileName);
+                CmisSessionWorker cmisSessionWorker = this.getSessionWorker(profileName,null,null);
 
                 //Build the json for the repository info
                 builder.add("folder", cmisSessionWorker.getFolder(folderObjectId));
@@ -158,7 +169,7 @@ public class Repository {
             try {
                 profileName = URLDecoder.decode(profileName, "UTF-8");
                 objectId = URLDecoder.decode(objectId, "UTF-8");
-                CmisSessionWorker cmisSessionWorker = this.getSessionWorker(profileName);
+                CmisSessionWorker cmisSessionWorker = this.getSessionWorker(profileName,null,null);
                 JsonObject rootFolder = cmisSessionWorker.getRootFolder();
                 String repoRoot =  rootFolder.getJsonObject("properties").getString("objectId") ;
 
@@ -185,12 +196,12 @@ public class Repository {
      * @param profileName
      * @return
      */
-    private CmisSessionWorker getSessionWorker(String profileName){
+    private CmisSessionWorker getSessionWorker(String profileName, String repoRoot, String mapName){
         try{
             //Retrieve the connection profile
             Profile connProfile = this.dbConnectionStrategy.getProfile(profileName);
             //Get a CMIS session object
-            Session repoSession = this.cmis1Connector.getSession(connProfile);
+            Session repoSession = this.cmis1Connector.getSession(connProfile, repoRoot);
             //Instantiate a session worker
             return new CmisSessionWorkerImpl(repoSession);
         }
