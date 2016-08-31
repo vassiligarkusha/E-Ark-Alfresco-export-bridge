@@ -22,4 +22,9 @@ public class Hook {
 		}
 		return true;
 	}
+	
+	@Override
+	public String toString() {
+		return "{" + path + ", " + cmisProperty + ", " + attribute + "}";
+	}
 }

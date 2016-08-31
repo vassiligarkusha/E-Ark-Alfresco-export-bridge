@@ -2,7 +2,10 @@ package dk.magenta.eark.erms.parser;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import org.jdom2.Document;
@@ -22,26 +25,24 @@ public class MappingParser {
 
 	private static final String mapNs = "http://www.magenta.dk/eark/erms/mapping/1.0";
 	private static final String eadNs = "http://ead3.archivists.org/schema/";
-	
+
 	private String mappingId;
 	private ObjectTypeMap objectTypeMap;
-	private Map<String, Hook> hooks;
+	private Map<String, List<Hook>> hooks;
+	private Map<String, Element> CElements;
 	private Namespace mappingNamespace;
 	private Namespace eadNamespace;
 	private Document mappingDocument;
-	
-	public MappingParser(String mappingId) {
-		this.mappingId = mappingId;
-		objectTypeMap = new ObjectTypeMap();
-		mappingNamespace = Namespace.getNamespace(mapNs);
-		eadNamespace = Namespace.getNamespace(eadNs);
-	}
+
 	
 	public MappingParser(String mappingId, InputStream in) {
-		this(mappingId);
+		this.mappingId = mappingId;
+		mappingNamespace = Namespace.getNamespace(mapNs);
+		eadNamespace = Namespace.getNamespace(eadNs);
 		buildMappingDocument(in);
-		extractObjectTypes(mappingDocument);
+		getObjectTypes(mappingDocument);
 	}
+
 	
 	public Document buildMappingDocument(InputStream in) {
 		SAXBuilder builder = new SAXBuilder();
@@ -57,11 +58,19 @@ public class MappingParser {
 		return xml;
 	}
 	
-	public ObjectTypeMap extractObjectTypes(Document doc) {
-		Filter<Element> filter = new ElementFilter("objectType", mappingNamespace);
-		Iterator<Element> iterator = doc.getDescendants(filter);
-		while (iterator.hasNext()) {
-			Element objectType = iterator.next();
+	
+	public ObjectTypeMap getObjectTypes() {
+		return getObjectTypes(mappingDocument);
+	}
+
+	
+	public ObjectTypeMap getObjectTypes(Document doc) {
+		if (objectTypeMap != null) {
+			return objectTypeMap;
+		}
+		objectTypeMap = new ObjectTypeMap();
+		List<Element> objectTypes = extractElements(doc, "objectType", mappingNamespace);
+		for (Element objectType : objectTypes) {
 			String repoType = objectType.getAttributeValue("id");
 			String cmisType = objectType.getTextTrim();
 			objectTypeMap.addObjectType(repoType, cmisType);
@@ -69,13 +78,91 @@ public class MappingParser {
 		return objectTypeMap;
 	}
 	
-	public Map<String, Hook> extractHooks(Document doc) {
-		Filter<Element> filter = new ElementFilter("template", mappingNamespace);
-		
-		return null;
+	
+	public Map<String, List<Hook>> getHooks() {
+		return getHooks(mappingDocument);
 	}
+
+	
+	public Map<String, List<Hook>> getHooks(Document doc) {
+		if (hooks != null) {
+			return hooks;
+		}
+		hooks = new HashMap<String, List<Hook>>();
+		List<Element> templates = extractElements(doc, "template", mappingNamespace);
+		for (Element template : templates) {
+			Element hooksElement = extractElements(template, "hooks", mappingNamespace).get(0);
+			List<Element> hookElements = extractElements(hooksElement, "hook", mappingNamespace);
+			List<Hook> hookList = new LinkedList<Hook>();
+			for (Element hookElement : hookElements) {
+				Hook hook;
+				if (hookElement.getAttribute("attribute", mappingNamespace) == null) {
+					hook = new Hook(hookElement.getAttributeValue("path"), hookElement.getTextTrim());
+				} else {
+					hook = new Hook(hookElement.getAttributeValue("path"), hookElement.getTextTrim(),
+							hookElement.getAttributeValue("attribute"));
+				}
+				hookList.add(hook);
+			}
+			hooks.put(template.getAttributeValue("id"), hookList);
+		}
+		return hooks;
+	}
+	
+	
+	public Map<String, Element> getCElements() {
+		return getCElements(mappingDocument);
+	}
+	
+	
+	public Map<String, Element> getCElements(Document doc) {
+		if (CElements != null) {
+			return CElements;
+		}
+		CElements = new HashMap<String, Element>();
+		List<Element> templates = extractElements(doc, "template", mappingNamespace);
+		for (Element template : templates) {
+			Element ead = extractElements(template, "ead", mappingNamespace).get(0);
+			Element c = ead.getChild("c", mappingNamespace);
+			CElements.put(template.getAttributeValue("id"), c);
+		}
+		return CElements;
+	}
+
 	
 	public ObjectTypeMap getObjectTypeMap() {
 		return objectTypeMap;
+	}
+
+	
+	public String getMappingId() {
+		return mappingId;
+	}
+
+	
+	/**
+	 * Extracts all descending Elements from a Document or an Element
+	 * 
+	 * @param obj
+	 *            Must be either a Document or an Element
+	 * @param elementName
+	 * @param namespace
+	 * @return List of descending Elements
+	 */
+	private List<Element> extractElements(Object obj, String elementName, Namespace namespace) {
+		Filter<Element> filter = new ElementFilter(elementName, namespace);
+		Iterator<Element> iterator = null;
+		if (obj instanceof Document) {
+			iterator = ((Document) obj).getDescendants(filter);
+		} else if (obj instanceof Element) {
+			iterator = ((Element) obj).getDescendants(filter);
+		} else {
+			throw new RuntimeException("Cannot extract Elements from " + obj);
+		}
+		List<Element> elements = new LinkedList<Element>();
+		while (iterator.hasNext()) {
+			elements.add(iterator.next());
+		}
+		return elements;
 	}
 }
