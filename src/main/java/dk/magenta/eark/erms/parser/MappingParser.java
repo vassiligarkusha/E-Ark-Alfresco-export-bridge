@@ -16,6 +16,8 @@ import org.jdom2.filter.ElementFilter;
 import org.jdom2.filter.Filter;
 import org.jdom2.input.SAXBuilder;
 
+import dk.magenta.eark.erms.Constants;
+
 /**
  * 
  * @author andreas
@@ -23,22 +25,17 @@ import org.jdom2.input.SAXBuilder;
  */
 public class MappingParser {
 
-	private static final String mapNs = "http://www.magenta.dk/eark/erms/mapping/1.0";
-	private static final String eadNs = "http://ead3.archivists.org/schema/";
-
 	private String mappingId;
 	private ObjectTypeMap objectTypeMap;
 	private Map<String, List<Hook>> hooks;
 	private Map<String, Element> CElements;
 	private Namespace mappingNamespace;
-	private Namespace eadNamespace;
 	private Document mappingDocument;
 
 	
 	public MappingParser(String mappingId, InputStream in) {
 		this.mappingId = mappingId;
-		mappingNamespace = Namespace.getNamespace(mapNs);
-		eadNamespace = Namespace.getNamespace(eadNs);
+		mappingNamespace = Namespace.getNamespace(Constants.MAPPING_NAMESPACE);
 		buildMappingDocument(in);
 	}
 
@@ -84,13 +81,7 @@ public class MappingParser {
 			List<Element> hookElements = extractElements(hooksElement, "hook", mappingNamespace);
 			List<Hook> hookList = new LinkedList<Hook>();
 			for (Element hookElement : hookElements) {
-				Hook hook;
-				if (hookElement.getAttribute("attribute", mappingNamespace) == null) {
-					hook = new Hook(hookElement.getAttributeValue("path"), hookElement.getTextTrim());
-				} else {
-					hook = new Hook(hookElement.getAttributeValue("path"), hookElement.getTextTrim(),
-							hookElement.getAttributeValue("attribute"));
-				}
+				Hook hook = new Hook(hookElement.getAttributeValue("xpath"), hookElement.getTextTrim());
 				hookList.add(hook);
 			}
 			hooks.put(template.getAttributeValue("id"), hookList);
@@ -123,6 +114,11 @@ public class MappingParser {
 		return mappingId;
 	}
 
+	
+	public Document getMappingDocument() {
+		return mappingDocument;
+	}
+	
 	
 	/**
 	 * Extracts all descending Elements from a Document or an Element

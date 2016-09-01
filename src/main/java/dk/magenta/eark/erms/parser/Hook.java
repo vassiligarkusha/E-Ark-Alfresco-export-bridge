@@ -1,30 +1,26 @@
 package dk.magenta.eark.erms.parser;
 
+// Refactor to use Pair instead
 public class Hook {
 
-	private String path;
-	private String cmisProperty;
-	private String attribute;
+	private String xpath;
+	private String cmisPropertyId;
 	
-	public Hook(String path, String cmisProperty) {
-		this.path = path;
-		this.cmisProperty = cmisProperty;
+	public Hook(String xpath, String cmisPropertyId) {
+		this.xpath = xpath;
+		this.cmisPropertyId = cmisPropertyId;
 	}
 	
-	public Hook(String path, String cmisProperty, String attribute) {
-		this(path, cmisProperty);
-		this.attribute = attribute;
+	public String getCmisPropertyId() {
+		return cmisPropertyId;
 	}
 	
-	public boolean isAttribute() {
-		if (attribute == null) {
-			return false;
-		}
-		return true;
+	public String getXpath() {
+		return xpath;
 	}
 	
 	@Override
 	public String toString() {
-		return "{" + path + ", " + cmisProperty + ", " + attribute + "}";
+		return "{" + cmisPropertyId + " -> " + xpath + "}";
 	}
 }

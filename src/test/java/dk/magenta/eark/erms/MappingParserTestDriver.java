@@ -5,8 +5,6 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-import org.jdom2.Document;
-
 import dk.magenta.eark.erms.parser.Hook;
 import dk.magenta.eark.erms.parser.MappingParser;
 import dk.magenta.eark.erms.parser.ObjectTypeMap;
@@ -28,7 +26,6 @@ public class MappingParserTestDriver {
 		try {
 			in.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

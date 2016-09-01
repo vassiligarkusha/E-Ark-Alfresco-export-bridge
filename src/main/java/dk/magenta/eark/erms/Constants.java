@@ -13,5 +13,9 @@ public class Constants {
   // File paths
   public static final String SETTINGS = "settings.properties";
   public static final String CMIS_SETTINGS_PATH = "cmis.properties";
+  
+  // Namespaces
+  public static final String MAPPING_NAMESPACE = "http://www.magenta.dk/eark/erms/mapping/1.0";
+  public static final String EAD_NAMESPACE = "http://ead3.archivists.org/schema/";
 
 }

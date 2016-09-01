@@ -57,7 +57,7 @@
 	<complexType name="hook_type">
 		<simpleContent>
 			<extension base="string">
-				<attribute name="path" type="string" use="required"/>
+				<attribute name="xpath" type="string" use="required"/>
 				<attribute name="attribute" type="string" use="optional"/>
 			</extension>
 		</simpleContent>

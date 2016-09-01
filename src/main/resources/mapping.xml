@@ -13,9 +13,9 @@
 	<eadTemplates>
 		<template id="series">
 			<hooks>
-				<hook path="c/did/unitdate">cmis:creationDate</hook>
-				<hook path="c/did/unittitle">cmis:name</hook>
-				<hook path="c/did/unitid">cmis:objectId</hook>
+				<hook xpath="//child::ead:did/child::ead:unitdate">cmis:creationDate</hook>
+				<hook xpath="//child::ead:did/child::ead:unittitle">cmis:name</hook>
+				<hook xpath="//child::ead:did/child::ead:unitid">cmis:objectId</hook>
 			</hooks>
 			<ead>
 				<c level="series">
@@ -29,9 +29,9 @@
 		</template>
 		<template id="subseries">
 			<hooks>
-				<hook path="c/did/unitdate">cmis:creationDate</hook>
-				<hook path="c/did/unittitle">cmis:name</hook>
-				<hook path="c/did/unitid">cmis:objectId</hook>
+				<hook xpath="//child::ead:did/child::ead:unitdate">cmis:creationDate</hook>
+				<hook xpath="//child::ead:did/child::ead:unittitle">cmis:name</hook>
+				<hook xpath="//child::ead:did/child::ead:unitid">cmis:objectId</hook>
 			</hooks>
 			<ead>
 				<c level="subseries">
@@ -45,9 +45,9 @@
 		</template>
 		<template id="record">
 			<hooks>
-				<hook path="c/did/unitdate">cmis:creationDate</hook>
-				<hook path="c/did/unittitle">cmis:name</hook>
-				<hook path="c/did/unitid">cmis:objectId</hook>
+				<hook xpath="//child::ead:did/child::ead:unitdate">cmis:creationDate</hook>
+				<hook xpath="//child::ead:did/child::ead:unittitle">cmis:name</hook>
+				<hook xpath="//child::ead:did/child::ead:unitid">cmis:objectId</hook>
 			</hooks>
 			<ead>
 				<c level="file">
