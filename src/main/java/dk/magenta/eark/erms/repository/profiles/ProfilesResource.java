@@ -68,6 +68,13 @@ public class ProfilesResource {
         return builder.build();
     }
 
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("delete/{profileName}")
+    public JsonObject deleteProfile(@PathParam("profileName") final String profileName) {
+        return this.profilesWorker.deleteProfile(profileName);
+    }
+
     @GET
     @Path("getProfiles")
     @Produces(MediaType.APPLICATION_JSON)
