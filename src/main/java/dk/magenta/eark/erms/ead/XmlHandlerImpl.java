@@ -39,7 +39,8 @@ public class XmlHandlerImpl implements XmlHandler {
 		for (int i = 0; i < schemas.length; i++) {
 			sources.add(new StreamSource(XmlHandlerImpl.class.getClassLoader().getResourceAsStream(schemas[i])));
 		}
-		Source[] sourcesArray = (Source[]) sources.toArray();
+		Source[] sourcesArray = new Source[sources.size()];
+		sourcesArray = sources.toArray(sourcesArray);		
 		
 		Document doc = null;
 		try {

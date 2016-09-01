@@ -22,14 +22,17 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.jdom2.JDOMException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.magenta.eark.erms.Constants;
+import dk.magenta.eark.erms.ead.XmlHandler;
+import dk.magenta.eark.erms.ead.XmlHandlerImpl;
 import dk.magenta.eark.erms.ead.XmlValidator;
 
 /**
- * @author lanre.
+ * @author lanre, andreas.
  */
 
 
@@ -60,17 +63,20 @@ public class MappingResource {
 
             	// Validate the uploaded mapping XML file
                 InputStream xmlInputStream = new FileInputStream(tempFile);
-                XmlValidator xmlValidator = new XmlValidator();
-                if (xmlValidator.isXmlValid(xmlInputStream)) {
-                    builder.add(Constants.SUCCESS, true);
-                    builder.add(Constants.MESSAGE, "Mapping validated and successfully saved");
+                XmlHandler xmlHandler = new XmlHandlerImpl();
+                try {
+                	// NOTE: the order of the last two arguments in the method below is significant!
+                	xmlHandler.readAndValidateXml(xmlInputStream, "ead3.xsd", "mapping.xsd");
 
+                	builder.add(Constants.SUCCESS, true);
+                    builder.add(Constants.MESSAGE, "Mapping validated and successfully saved");
                     MapWorker mapWorker = new MapWorkerImpl();
                     mapWorker.saveMapping(mapName, tempFile, fileMetaData);
-                } else {
+                    
+                } catch (JDOMException e) {
                 	builder.add(Constants.SUCCESS, false);
                 	builder.add(Constants.MESSAGE, "The uploaded XML mapping is not valid according to mapping.xsd");
-                    builder.add("validationError", xmlValidator.getErrorMessage());
+                    builder.add("validationError", xmlHandler.getErrorMessage());
                 }
                 xmlInputStream.close();
                 
