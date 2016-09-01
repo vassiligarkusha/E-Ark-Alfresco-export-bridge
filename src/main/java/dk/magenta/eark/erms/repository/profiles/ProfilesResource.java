@@ -68,7 +68,7 @@ public class ProfilesResource {
         return builder.build();
     }
 
-    @POST
+    @DELETE
     @Produces(MediaType.APPLICATION_JSON)
     @Path("delete/{profileName}")
     public JsonObject deleteProfile(@PathParam("profileName") final String profileName) {
