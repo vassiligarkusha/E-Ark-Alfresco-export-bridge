@@ -1,4 +1,4 @@
-package dk.magenta.eark.erms.parser;
+package dk.magenta.eark.erms.ead;
 
 import java.util.HashMap;
 import java.util.Map;

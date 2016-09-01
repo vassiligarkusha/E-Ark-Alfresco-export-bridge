@@ -1,7 +1,6 @@
 package dk.magenta.eark.erms;
 
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
@@ -12,9 +11,9 @@ import org.jdom2.filter.Filters;
 import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
 
-import dk.magenta.eark.erms.parser.Hook;
-import dk.magenta.eark.erms.parser.MappingParser;
-import dk.magenta.eark.erms.parser.MetadataMapper;
+import dk.magenta.eark.erms.ead.Hook;
+import dk.magenta.eark.erms.ead.MappingParser;
+import dk.magenta.eark.erms.ead.MetadataMapper;
 
 public class XPathTestDriver {
 

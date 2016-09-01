@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.magenta.eark.erms.Constants;
-import dk.magenta.eark.erms.parser.XmlValidator;
+import dk.magenta.eark.erms.ead.XmlValidator;
 
 /**
  * @author lanre.

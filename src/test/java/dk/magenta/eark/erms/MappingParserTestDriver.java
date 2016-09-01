@@ -5,9 +5,9 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-import dk.magenta.eark.erms.parser.Hook;
-import dk.magenta.eark.erms.parser.MappingParser;
-import dk.magenta.eark.erms.parser.ObjectTypeMap;
+import dk.magenta.eark.erms.ead.Hook;
+import dk.magenta.eark.erms.ead.MappingParser;
+import dk.magenta.eark.erms.ead.ObjectTypeMap;
 
 public class MappingParserTestDriver {
 
