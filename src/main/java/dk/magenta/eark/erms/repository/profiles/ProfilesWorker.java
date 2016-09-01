@@ -37,8 +37,24 @@ public interface ProfilesWorker {
 
     /**
      * Deletes a profile from the db
-     * @param ProfileName name of the profile to delete
+     * @param profileName name of the profile to delete
      * @return a Json object containing {success: true | false, message : "some error message | created" }
      */
     JsonObject deleteProfile(String profileName);
+
+    /**
+     * Adds a browse folder to the profile repository
+     * @param profileName
+     * @param repositoryName
+     * @return
+     */
+    JsonObject addRepoToProfile(String profileName, String repositoryName);
+
+    /**
+     * Removes a browse repository from profile
+     * @param profileName
+     * @param repositoryName
+     * @return
+     */
+    JsonObject removeRepoFromProfile(String profileName, String repositoryName);
 }

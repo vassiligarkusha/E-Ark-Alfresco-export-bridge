@@ -139,4 +139,43 @@ public class ProfilesWorkerImpl implements ProfilesWorker {
         }
         return jsonObjectBuilder.build();
     }
+
+    /**
+     * Adds a browse folder to the profile repository
+     * @param profileName
+     * @param repositoryName
+     * @return
+     */
+    public JsonObject addRepoToProfile(String profileName, String repositoryName) {
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+
+        try {
+            boolean created = databaseConnectionStrategy.addRepoRoot(profileName, repositoryName);
+            builder.add(Constants.SUCCESS, created);
+        } catch (SQLException sqe) {
+            builder.add(Constants.SUCCESS, false);
+            builder.add(Constants.ERRORMSG, sqe.getMessage());
+        }
+        return builder.build();
+    }
+
+    /**
+     * Removes a browse repository from profile
+     * @param profileName
+     * @param repositoryName
+     * @return
+     */
+    public JsonObject removeRepoFromProfile(String profileName, String repositoryName) {
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+
+        try{
+            boolean deleted = databaseConnectionStrategy.removeRepoRoot(profileName, repositoryName);
+            builder.add(Constants.SUCCESS, deleted);
+        }
+        catch(SQLException sqe){
+            builder.add(Constants.SUCCESS, false);
+            builder.add(Constants.ERRORMSG, sqe.getMessage());
+        }
+        return builder.build();
+    }
 }

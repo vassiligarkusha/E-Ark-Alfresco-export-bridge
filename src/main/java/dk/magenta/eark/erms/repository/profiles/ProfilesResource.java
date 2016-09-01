@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Path("database")
+@Path("profile")
 public class ProfilesResource {
     private final Logger logger = LoggerFactory.getLogger(ProfilesResource.class);
 
@@ -103,5 +103,23 @@ public class ProfilesResource {
 
         return builder.build();
     }
+
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("add/{profileName}/repository/{repository}")
+    public JsonObject addProfileToRepo(@PathParam("profileName") final String profileName,
+                                       @PathParam("repository") final String repository ) {
+        return this.profilesWorker.addRepoToProfile(profileName, repository);
+    }
+
+    @DELETE
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("remove/{profileName}/repository/{repository}")
+    public JsonObject removeProfileFromRepo(@PathParam("profileName") final String profileName,
+                                            @PathParam("repository") final String repository ) {
+
+        return this.profilesWorker.removeRepoFromProfile(profileName, repository);
+    }
+
 
 }
