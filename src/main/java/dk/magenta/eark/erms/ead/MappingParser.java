@@ -31,27 +31,25 @@ public class MappingParser {
 	private Map<String, Element> CElements;
 	private Namespace mappingNamespace;
 	private Document mappingDocument;
+	private XmlHandler xmlHandler;
 
 	
 	public MappingParser(String mappingId, InputStream in) {
 		this.mappingId = mappingId;
 		mappingNamespace = Namespace.getNamespace(Constants.MAPPING_NAMESPACE);
+		xmlHandler = new XmlHandlerImpl();
 		buildMappingDocument(in);
 	}
 
-	
+	/**
+	 * Build the JDOM mapping.xml Document from an input stream
+	 * (the mapping.xml has been validated earlier on)
+	 * @param in stream containing the mapping.xml
+	 * @return JDOM representation of the mapping.xml
+	 */
 	public Document buildMappingDocument(InputStream in) {
-		SAXBuilder builder = new SAXBuilder();
-		Document xml = null;
-		try {
-			xml = builder.build(in);
-		} catch (JDOMException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		mappingDocument = xml;
-		return xml;
+		mappingDocument = xmlHandler.readXml(in);
+		return mappingDocument;
 	}
 	
 
