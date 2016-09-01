@@ -38,10 +38,6 @@ public class Cmis1Connector {
     public Cmis1Connector() {
     }
 
-    public Session getSession(Profile connectionProfile) {
-        return this.getSession(connectionProfile, null);
-    }
-
     /**
      * Get an Open CMIS session to use when talking to the CMIS repo.
      * Will check if there is already a connection to the CMIS repo
@@ -50,7 +46,7 @@ public class Cmis1Connector {
      * @param connectionProfile the connection profile containing all info required to establish the connection
      * @return an Open CMIS Session object
      */
-    public Session getSession(Profile connectionProfile, String repoRoot) {
+    public Session getSession(Profile connectionProfile) {
         Session session = connections.get(connectionProfile.getName());
         URL wsdlUrl;
         Map<String, String> serviceEndpoints;
@@ -100,14 +96,11 @@ public class Cmis1Connector {
                     logger.info("Found (" + repositories.size() + ") repositories");
                     cmisRepository = repositories.get(0);
 
-                    logger.info("Info about the first repo [ID=" + cmisRepository.getId() +
-                            "][name=" + cmisRepository.getName() +
-                            "][CMIS ver supported=" + cmisRepository.getCmisVersionSupported() + "]");
                 } else {
                     throw new CmisConnectionException("Could not connect to the cmis server, no repository found!");
                 }
 
-                // Create a new session with the Alfresco repository
+                // Create a new session with the cmis repository
                 session = cmisRepository.createSession();
                 session.getDefaultContext().setIncludeAllowableActions(false);
 
