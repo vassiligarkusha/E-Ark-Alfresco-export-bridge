@@ -98,24 +98,13 @@ public class Cmis1Connector {
                 List<Repository> repositories = sessionFactory.getRepositories(parameters);
                 if (repositories != null && repositories.size() > 0) {
                     logger.info("Found (" + repositories.size() + ") repositories");
-                    if(StringUtils.isBlank(repoRoot))
-                        cmisRepository = repositories.get(0);
-                    else{
-                        for (Repository rep : repositories){
-                            if(rep.getName().equalsIgnoreCase(repoRoot)){
-                                cmisRepository = rep;
-                                break;
-                            }
-                        }
-                    }
-                    if(cmisRepository ==null)
-                        throw new ErmsConnectionException("The repository root ["+ repoRoot+"] specified does not exist.");
+                    cmisRepository = repositories.get(0);
 
-                    logger.info("Info about the first Alfresco repo [ID=" + cmisRepository.getId() +
+                    logger.info("Info about the first repo [ID=" + cmisRepository.getId() +
                             "][name=" + cmisRepository.getName() +
                             "][CMIS ver supported=" + cmisRepository.getCmisVersionSupported() + "]");
                 } else {
-                    throw new CmisConnectionException("Could not connect to the Alfresco Server, no repository found!");
+                    throw new CmisConnectionException("Could not connect to the cmis server, no repository found!");
                 }
 
                 // Create a new session with the Alfresco repository
@@ -132,7 +121,7 @@ public class Cmis1Connector {
             }
 
         } else {
-            logger.info("Already connected to Alfresco with the connection id (" + connectionProfile.getName() + ")");
+            logger.info("Already connected to cmis repository with the connection id (" + connectionProfile.getName() + ")");
         }
 
         return session;
