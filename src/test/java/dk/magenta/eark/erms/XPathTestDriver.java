@@ -37,13 +37,13 @@ public class XPathTestDriver {
 		List<Hook> hooks = mp.getHooks().get("series");
 		MetadataMapper metadataMapper = new MetadataMapper();
 		Element e = metadataMapper.map(cmisObj, hooks, c);
+		Element clone = e.clone();
 		
-		System.out.println(e.getName());
-		System.out.println(e.getChild("did", ead).getChild("unitdate", ead).getTextTrim());
 		
-		String x;
-		x = "";
-		
+		System.out.println(clone.getName());
+		System.out.println(clone.getParentElement());
+		System.out.println(clone.getNamespace());
+		System.out.println(clone.getChild("did", ead).getChild("unitdate", ead).getTextTrim());
 	}
 
 }

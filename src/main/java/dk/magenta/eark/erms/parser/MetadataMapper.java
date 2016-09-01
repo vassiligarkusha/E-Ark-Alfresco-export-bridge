@@ -38,7 +38,7 @@ public class MetadataMapper {
 				target.addContent(value);
 			}
 		}
-		return c;
+		return c.clone();
 	}
 	
 }
