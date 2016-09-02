@@ -268,6 +268,11 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
         JsonReader rdr = Json.createReader(tmp);
         return rdr.readObject();
     }
+    
+    @Override
+    public Session getSession() {
+    	return session;
+    }
 
     /**
      * Just to filter out the useful properties for UI consumption.

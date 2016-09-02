@@ -1,26 +1,35 @@
 package dk.magenta.eark.erms.repository;
 
-import dk.magenta.eark.erms.*;
-import dk.magenta.eark.erms.db.DatabaseConnectionStrategy;
-import dk.magenta.eark.erms.db.JDBCConnectionStrategy;
-import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
-import dk.magenta.eark.erms.repository.profiles.Profile;
-import dk.magenta.eark.erms.system.PropertiesHandlerImpl;
+import java.net.URLDecoder;
+import java.sql.SQLException;
+
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.ws.rs.*;
-import javax.ws.rs.core.MediaType;
-import java.net.URLDecoder;
-import java.sql.SQLException;
+import dk.magenta.eark.erms.Constants;
+import dk.magenta.eark.erms.db.DatabaseConnectionStrategy;
+import dk.magenta.eark.erms.db.JDBCConnectionStrategy;
+import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
+import dk.magenta.eark.erms.json.JsonUtils;
+import dk.magenta.eark.erms.repository.profiles.Profile;
+import dk.magenta.eark.erms.system.PropertiesHandlerImpl;
 
 /**
- * @author lanre.
+ * @author lanre, andreas
  */
 
 
@@ -188,6 +197,38 @@ public class RepositoryResource {
         return builder.build();
     }
 
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("extract")
+    public JsonObject extract(JsonObject json) {
+    	JsonObjectBuilder builder = Json.createObjectBuilder();
+    	
+    	// Check if the mandatory keys are in the request JSON 
+    	String[] mandatoryJsonKeys = {Profile.NAME, "exportList", "excludeList"};
+    	if (JsonUtils.containsCorrectKeys(json, mandatoryJsonKeys)) {
+    		
+    		// Check that the exportList is not empty etc...
+    		if (JsonUtils.isArrayValid(json, "exportList")) {
+    		
+    		Session session = getSessionWorker(json.getString(Profile.NAME)).getSession();
+    		JsonArray exportList = json.getJsonArray("exportList");
+    		for (int i = 0; i < exportList.size(); i++) {
+    			// We know (assume) that the values are strings
+    			String objectId = exportList.getString(i);
+    			
+    		}
+    		
+    		} else {
+    			JsonUtils.addArrayErrorMessage(builder, "exportList");
+    		}
+    		
+    	} else {
+    		JsonUtils.addKeyErrorMessage(builder, mandatoryJsonKeys);
+    	}
+    	return builder.build();
+    }
+    
     /**
      * Returns a cmis session worker instance given a profile name
      * @param profileName
