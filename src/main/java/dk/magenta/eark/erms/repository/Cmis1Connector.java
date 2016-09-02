@@ -89,21 +89,19 @@ public class Cmis1Connector {
 
             // If there is only one repository exposed (e.g. Alfresco), these
             // lines will help detect it and its ID
-            Repository alfrescoRepository;
+            Repository cmisRepository = null;
             try {
                 List<Repository> repositories = sessionFactory.getRepositories(parameters);
                 if (repositories != null && repositories.size() > 0) {
                     logger.info("Found (" + repositories.size() + ") repositories");
-                    alfrescoRepository = repositories.get(0);
-                    logger.info("Info about the first Alfresco repo [ID=" + alfrescoRepository.getId() +
-                            "][name=" + alfrescoRepository.getName() +
-                            "][CMIS ver supported=" + alfrescoRepository.getCmisVersionSupported() + "]");
+                    cmisRepository = repositories.get(0);
+
                 } else {
-                    throw new CmisConnectionException("Could not connect to the Alfresco Server, no repository found!");
+                    throw new CmisConnectionException("Could not connect to the cmis server, no repository found!");
                 }
 
-                // Create a new session with the Alfresco repository
-                session = alfrescoRepository.createSession();
+                // Create a new session with the cmis repository
+                session = cmisRepository.createSession();
                 session.getDefaultContext().setIncludeAllowableActions(false);
 
                 // Save connection for reuse
@@ -116,7 +114,7 @@ public class Cmis1Connector {
             }
 
         } else {
-            logger.info("Already connected to Alfresco with the connection id (" + connectionProfile.getName() + ")");
+            logger.info("Already connected to cmis repository with the connection id (" + connectionProfile.getName() + ")");
         }
 
         return session;

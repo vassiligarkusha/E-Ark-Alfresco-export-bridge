@@ -29,7 +29,7 @@ public class RepositoryResource {
 
     public static final String FOLDER_OBJECT_ID = "folderObjectId";
     public static final String DOCUMENT_OBJECT_ID = "documentObjectId";
-
+    public static final String MAP_NAME = "mapName";
 
     private final Logger logger = LoggerFactory.getLogger(RepositoryResource.class);
 
@@ -53,8 +53,9 @@ public class RepositoryResource {
     public JsonObject connect(JsonObject json) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
         JsonObject response;
-        if (json.containsKey(Profile.NAME)) {
+        if (json.containsKey(Profile.NAME) && json.containsKey(MAP_NAME) ) {
             String profileName = json.getString(Profile.NAME);
+            String mapName = json.getString(MAP_NAME);
 
             try {
                 //Get a session worker
