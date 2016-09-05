@@ -39,7 +39,13 @@ public class JsonUtils {
 		return builder;
 	}
 	
-	public static boolean isArrayValid(JsonObject json, String key) {
+	/**
+	 * 
+	 * @param json
+	 * @param key
+	 * @return true if value corresponding to key is an JsonArray which is not empty
+	 */
+	public static boolean isArrayNoneEmpty(JsonObject json, String key) {
 		JsonArray array;
 		try {
 			array = json.getJsonArray(key);
@@ -51,6 +57,23 @@ public class JsonUtils {
 		}
 		return true;
 	}
+	
+	/**
+	 * 
+	 * @param json
+	 * @param key
+	 * @return true if value corresponding to key is an JsonArray
+	 */
+	public static boolean isArray(JsonObject json, String key) {
+		JsonArray array;
+		try {
+			array = json.getJsonArray(key);
+		} catch (ClassCastException e) {
+			return false;
+		}
+		return true;
+	}
+	
 	
 	public static JsonObjectBuilder addArrayErrorMessage(JsonObjectBuilder builder, String key) {
 		builder.add(Constants.SUCCESS, false);
