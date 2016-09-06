@@ -6,37 +6,37 @@ import java.util.Set;
 
 public class ObjectTypeMap {
 	
-	private Map<String, String> repositoryTypeToCmisType;
-	private Map<String, String> cmisTypeToRepositoryType;
+	private Map<String, String> semanticTypeToCmisType;
+	private Map<String, String> cmisTypeToSemanticType;
 	
 	public ObjectTypeMap() {
-		repositoryTypeToCmisType = new HashMap<String, String>();
-		cmisTypeToRepositoryType = new HashMap<String, String>();
+		semanticTypeToCmisType = new HashMap<String, String>();
+		cmisTypeToSemanticType = new HashMap<String, String>();
 	}
 	
 	public void addObjectType(String repoType, String cmisType) {
-		repositoryTypeToCmisType.put(repoType, cmisType);
-		cmisTypeToRepositoryType.put(cmisType, repoType);
+		semanticTypeToCmisType.put(repoType, cmisType);
+		cmisTypeToSemanticType.put(cmisType, repoType);
 	}
 	
-	public String getRepositoryTypeFromCmisType(String cmisType) {
-		return cmisTypeToRepositoryType.get(cmisType);
+	public String getSemanticTypeFromCmisType(String cmisType) {
+		return cmisTypeToSemanticType.get(cmisType);
 	}
 	
-	public String getCmisTypeFromRepositoryType(String repoType) {
-		return repositoryTypeToCmisType.get(repoType);
+	public String getCmisTypeFromSemanticType(String repoType) {
+		return semanticTypeToCmisType.get(repoType);
 	}
 	
-	public Set<String> getAllRepositoryTypes() {
-		return repositoryTypeToCmisType.keySet();
+	public Set<String> getAllSemanticTypes() {
+		return semanticTypeToCmisType.keySet();
 	}
 	
 	public Set<String> getAllCmisTypes() {
-		return cmisTypeToRepositoryType.keySet();
+		return cmisTypeToSemanticType.keySet();
 	}
 	
 	@Override
 	public String toString() {
-		return repositoryTypeToCmisType.toString();
+		return semanticTypeToCmisType.toString();
 	}
 }

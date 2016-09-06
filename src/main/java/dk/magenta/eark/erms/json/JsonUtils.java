@@ -13,6 +13,8 @@ import dk.magenta.eark.erms.Constants;
  */
 public class JsonUtils {
 
+	// TODO: methods below should not return builders but JsonObjects
+	
 	/**
 	 * Checks if a JSON object contains the given keys
 	 * @param json The JSON object to check
@@ -78,6 +80,12 @@ public class JsonUtils {
 	public static JsonObjectBuilder addArrayErrorMessage(JsonObjectBuilder builder, String key) {
 		builder.add(Constants.SUCCESS, false);
 		builder.add(Constants.ERRORMSG, "The array given in " + key + " is not valid");
+		return builder;
+	}
+	
+	public static JsonObjectBuilder addErrorMessage(JsonObjectBuilder builder, String message) {
+		builder.add(Constants.SUCCESS, false);
+		builder.add(Constants.ERRORMSG, message);
 		return builder;
 	}
 	

@@ -62,7 +62,7 @@ public class RepositoryResource {
 	private String mapName;
 	private MappingParser mappingParser = null;
 	private EadBuilder eadBuilder;
-	
+
 	public RepositoryResource() {
 
 		try {
@@ -223,81 +223,47 @@ public class RepositoryResource {
 	public JsonObject extract(JsonObject json) {
 		JsonObjectBuilder builder = Json.createObjectBuilder();
 
+		// TODO: the JsonUtils methods below should not take a builder as an
+		// argument...
+
 		// Check if the mandatory keys are in the request JSON
-		String[] mandatoryJsonKeys = { Profile.NAME, Constants.MAP_NAME, Constants.EXPORT_LIST, Constants.EXCLUDE_LIST };
-		if (JsonUtils.containsCorrectKeys(json, mandatoryJsonKeys)) {
-			
-			// Get the mapping 
-			mapName = json.getString(Constants.MAP_NAME);
-			try {
-				InputStream mappingInputStream = new FileInputStream(new File("/home/andreas/.erms/mappings/mapping.xml")); //TODO: Change this!
-				mappingParser = new MappingParser(mapName, mappingInputStream);
-				mappingInputStream.close();
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-				builder.add(Constants.SUCCESS, false);
-				builder.add(Constants.ERRORMSG, "Mapping file not found!");
-				return builder.build();
-			} catch (java.io.IOException e) {
-				e.printStackTrace();
-			}
-
-			// Check that the excludeList is an array and load the list into a Set
-			if (JsonUtils.isArray(json, Constants.EXCLUDE_LIST)) {
-				// Load exclude list TreeSet to make search in the exclude list fast
-				JsonArray excludeList = json.getJsonArray(Constants.EXCLUDE_LIST);
-				this.excludeList = new TreeSet<String>();
-				for (int i = 0; i < excludeList.size(); i++) {
-					this.excludeList.add(excludeList.getString(i));
-				}
-			} else {
-				JsonUtils.addArrayErrorMessage(builder, Constants.EXCLUDE_LIST);
-				return builder.build();
-			}
-			
-			// Check that the exportList is not empty and start iteration over the CMIS tree
-			if (JsonUtils.isArrayNoneEmpty(json, Constants.EXPORT_LIST)) {
-
-				Session session = getSessionWorker(json.getString(Profile.NAME)).getSession();
-				JsonArray exportList = json.getJsonArray(Constants.EXPORT_LIST);
-				for (int i = 0; i < exportList.size(); i++) {
-					// We know (assume) that the values are strings
-					String objectId = exportList.getString(i);
-					CmisObject cmisObject = session.getObject(objectId);
-					
-
-					Folder folder = (Folder) cmisObject;
-					for (Tree<FileableCmisObject> tree : folder.getDescendants(-1)) {
-						handleNode(tree);
-					}
-				}
-
-			} else {
-				JsonUtils.addArrayErrorMessage(builder, Constants.EXPORT_LIST);
-			}
-
-		} else {
+		String[] mandatoryJsonKeys = { Profile.NAME, Constants.MAP_NAME, Constants.EXPORT_LIST,
+				Constants.EXCLUDE_LIST };
+		if (!JsonUtils.containsCorrectKeys(json, mandatoryJsonKeys)) {
 			JsonUtils.addKeyErrorMessage(builder, mandatoryJsonKeys);
+			return builder.build();
 		}
+
+		// Check that the profile name and the mapping name are not blank
+		if (!StringUtils.isNotBlank(json.getString(Profile.NAME))
+				|| !StringUtils.isNotBlank(json.getString(Constants.MAP_NAME))) {
+			builder.add(Constants.SUCCESS, false);
+			builder.add(Constants.ERRORMSG, "Blank values are not allowed in the request JSON");
+			return builder.build();
+		}
+
+		// Check that the exportList is a none-empty array
+		if (!JsonUtils.isArrayNoneEmpty(json, Constants.EXPORT_LIST)) {
+			JsonUtils.addArrayErrorMessage(builder, Constants.EXPORT_LIST);
+			return builder.build();
+		}
+
+		// Check that the excludeList is an array
+		if (!JsonUtils.isArray(json, Constants.EXCLUDE_LIST)) {
+			JsonUtils.addArrayErrorMessage(builder, Constants.EXCLUDE_LIST);
+			return builder.build();
+		}
+
+		// Everything OK in the request JSON - begin extraction
+
+		ExtractionWorker extractionWorker = new ExtractionWorker(json, getSessionWorker(json.getString(Profile.NAME)));
+		JsonObject result = extractionWorker.extract();
+
+
+
+
+		builder.add("foo", "bar");
 		return builder.build();
-	}
-
-	private void handleNode(Tree<FileableCmisObject> tree) {
-		// System.out.println(tree.getItem().getId());
-		String childObjectId = tree.getItem().getId();
-		if (!excludeList.contains(childObjectId)) {
-			// System.out.println("not in list...");
-			// Build EAD
-
-			Mapping mapping = null;
-			try {
-				mapping = dbConnectionStrategy.getMapping("LocalTest");
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			System.out.println(mapping.getSyspath());
-		}
 	}
 
 

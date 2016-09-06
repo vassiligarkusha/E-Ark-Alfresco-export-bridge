@@ -52,7 +52,10 @@ public class MappingParser {
 		return mappingDocument;
 	}
 	
-
+	/**
+	 * Extract the objectTypes from the mapping.xml and put these into an ObjectTypeMap
+	 * @return the ObjectTypeMap containing the datastructures
+	 */
 	public ObjectTypeMap getObjectTypes() {
 		if (objectTypeMap != null) {
 			return objectTypeMap;
@@ -67,7 +70,10 @@ public class MappingParser {
 		return objectTypeMap;
 	}
 	
-	
+	/**
+	 * Gets map of hooks
+	 * @return map from semantic name to list of Hooks 
+	 */
 	public Map<String, List<Hook>> getHooks() {
 		if (hooks != null) {
 			return hooks;
@@ -87,7 +93,27 @@ public class MappingParser {
 		return hooks;
 	}
 	
+
+	public List<Hook> getHooksFromSemanticType(String semanticType) {
+		getHooks();
+		return hooks.get(semanticType);
+	}
 	
+	
+	public List<Hook> getHooksFromCmisType(String cmisType) {
+		String semanticType = objectTypeMap.getSemanticTypeFromCmisType(cmisType);
+		return getHooksFromSemanticType(semanticType);
+	}
+	
+	
+	public String getSemanticTypeFromCmisType(String cmisType) {
+		return getObjectTypes().getSemanticTypeFromCmisType(cmisType);
+	}
+	
+	/**
+	 * Get map from semantic type to c element
+	 * @return map from semantic type to c element
+	 */
 	public Map<String, Element> getCElements() {
 		if (CElements != null) {
 			return CElements;
@@ -102,10 +128,13 @@ public class MappingParser {
 		return CElements;
 	}
 
-	
-	public ObjectTypeMap getObjectTypeMap() {
-		return objectTypeMap;
+	public Element getCElementFromSemanticType(String semanticType) {
+		return getCElements().get(semanticType);
 	}
+	
+//	public ObjectTypeMap getObjectTypeMap() {
+//		return objectTypeMap;
+//	}
 
 	
 	public String getMappingId() {
@@ -117,6 +146,7 @@ public class MappingParser {
 		return mappingDocument;
 	}
 	
+
 	
 	/**
 	 * Extracts all descending Elements from a Document or an Element

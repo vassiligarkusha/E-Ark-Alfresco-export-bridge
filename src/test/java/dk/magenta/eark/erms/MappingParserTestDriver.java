@@ -20,7 +20,7 @@ public class MappingParserTestDriver {
 		
 		Map<String, List<Hook>> hooks = mp.getHooks();
 		for (String key : hooks.keySet()) {
-			System.out.println(hooks.get(key));
+			System.out.println(key + " " + hooks.get(key));
 		}		
 		
 		try {

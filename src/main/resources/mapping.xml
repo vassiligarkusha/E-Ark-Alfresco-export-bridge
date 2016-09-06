@@ -26,6 +26,7 @@
 					</ead:did>
 				</c>
 			</ead>
+			<leaf>false</leaf>
 		</template>
 		<template id="subseries">
 			<hooks>
@@ -42,6 +43,7 @@
 					</ead:did>
 				</c>
 			</ead>
+			<leaf>false</leaf>
 		</template>
 		<template id="record">
 			<hooks>
@@ -62,6 +64,7 @@
 					</ead:did>
 				</c>
 			</ead>
+			<leaf>true</leaf>
 		</template>
 	</eadTemplates>
 </mapping>
