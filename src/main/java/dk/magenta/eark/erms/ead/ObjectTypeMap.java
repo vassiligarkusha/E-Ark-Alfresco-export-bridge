@@ -8,15 +8,18 @@ public class ObjectTypeMap {
 	
 	private Map<String, String> semanticTypeToCmisType;
 	private Map<String, String> cmisTypeToSemanticType;
+	private Map<String, Boolean> leafMap;
 	
 	public ObjectTypeMap() {
 		semanticTypeToCmisType = new HashMap<String, String>();
 		cmisTypeToSemanticType = new HashMap<String, String>();
+		leafMap = new HashMap<String, Boolean>();
 	}
 	
-	public void addObjectType(String repoType, String cmisType) {
-		semanticTypeToCmisType.put(repoType, cmisType);
-		cmisTypeToSemanticType.put(cmisType, repoType);
+	public void addObjectType(String semanticType, String cmisType, boolean leaf) {
+		semanticTypeToCmisType.put(semanticType, cmisType);
+		cmisTypeToSemanticType.put(cmisType, semanticType);
+		leafMap.put(semanticType, leaf);
 	}
 	
 	public String getSemanticTypeFromCmisType(String cmisType) {
@@ -33,6 +36,10 @@ public class ObjectTypeMap {
 	
 	public Set<String> getAllCmisTypes() {
 		return cmisTypeToSemanticType.keySet();
+	}
+	
+	public boolean isLeaf(String semanticType) {
+		return leafMap.get(semanticType);
 	}
 	
 	@Override

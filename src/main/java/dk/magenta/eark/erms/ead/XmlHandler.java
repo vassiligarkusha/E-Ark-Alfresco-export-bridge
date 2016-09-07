@@ -34,6 +34,10 @@ public interface XmlHandler {
 	 */
 	public String getErrorMessage();
 	
+	/**
+	 * Write an XML element to System.out (for debugging)
+	 * @param e
+	 */
 	public static void writeXml(Element e) {
 		XMLOutputter outputter = new XMLOutputter();
 		try {

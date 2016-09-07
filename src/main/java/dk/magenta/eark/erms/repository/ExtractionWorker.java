@@ -145,21 +145,22 @@ public class ExtractionWorker {
 
 			// Get the CMIS object type id
 			String cmisType = node.getType().getId();
-			System.out.println(cmisType);
+
 			if (isObjectTypeInSematicStructure(cmisType)) {
-				// If not leaf...
-				
-				// Debugging
-				List<Hook> hooks = mappingParser.getHooksFromCmisType(cmisType);
-				for (Hook h : hooks) {
-					// System.out.println(cmisType + " " + h);
-				}
-				
 				Element c = metadataMapper.map(node, mappingParser.getHooksFromCmisType(cmisType),
 						mappingParser.getCElementFromCmisType(cmisType));
 				eadBuilder.addCElement(c, parent);
-				for (Tree<FileableCmisObject> children : tree.getChildren()) {
-					handleNode(children, c);
+				if (!mappingParser.isLeaf(cmisType)) {
+					for (Tree<FileableCmisObject> children : tree.getChildren()) {
+						handleNode(children, c);
+					}
+				} else {
+					// Flatten the folder/file structure below here and store the
+					// metadata in <dao> elements
+					
+					// If no children -> remove dao element
+					
+					
 				}
 
 			}

@@ -63,9 +63,10 @@ public class MappingParser {
 		objectTypeMap = new ObjectTypeMap();
 		List<Element> objectTypes = extractElements(mappingDocument, "objectType", mappingNamespace);
 		for (Element objectType : objectTypes) {
-			String repoType = objectType.getAttributeValue("id");
+			String semanticType = objectType.getAttributeValue("id");
+			boolean leaf = Boolean.parseBoolean(objectType.getAttributeValue("leaf").trim());
 			String cmisType = objectType.getTextTrim();
-			objectTypeMap.addObjectType(repoType, cmisType);
+			objectTypeMap.addObjectType(semanticType, cmisType, leaf);
 		}
 		return objectTypeMap;
 	}
@@ -151,7 +152,10 @@ public class MappingParser {
 		return mappingDocument;
 	}
 	
-
+	public boolean isLeaf(String cmisType) {
+		String semanticType = getObjectTypes().getSemanticTypeFromCmisType(cmisType);
+		return getObjectTypes().isLeaf(semanticType);
+	}
 	
 	/**
 	 * Extracts all descending Elements from a Document or an Element

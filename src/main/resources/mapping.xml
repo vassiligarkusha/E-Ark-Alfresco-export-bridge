@@ -5,9 +5,9 @@
 
 	<!-- Corresponding to the CMIS property ID "cmis:objectTypeId" -->
 	<objectTypes>
-		<objectType id="series">F:eark:series</objectType>
- 		<objectType id="subseries">F:eark:subseries</objectType>
- 		<objectType id="record">F:eark:record</objectType>
+		<objectType id="series" leaf="false">F:eark:series</objectType>
+ 		<objectType id="subseries" leaf="false">F:eark:subseries</objectType>
+ 		<objectType id="record" leaf="true">F:eark:record</objectType>
 	</objectTypes>
 
 	<eadTemplates>
@@ -26,7 +26,6 @@
 					</ead:did>
 				</c>
 			</ead>
-			<leaf>false</leaf>
 		</template>
 		<template id="subseries">
 			<hooks>
@@ -43,7 +42,6 @@
 					</ead:did>
 				</c>
 			</ead>
-			<leaf>false</leaf>
 		</template>
 		<template id="record">
 			<hooks>
@@ -57,14 +55,14 @@
 						<ead:unitdate datechar="created"/>
 						<ead:unittitle/>
 						<ead:unitid localtype="system_id"/>
-						<ead:daoset label="Digital Object" coverage="whole">
+						<ead:dao daotype="borndigital"/>
+						<!-- ead:daoset label="Digital Object" coverage="whole">
 							<ead:dao daotype="unknown" />
 							<ead:dao daotype="unknown" />
-						</ead:daoset>
+						</ead:daoset-->
 					</ead:did>
 				</c>
 			</ead>
-			<leaf>true</leaf>
 		</template>
 	</eadTemplates>
 </mapping>
