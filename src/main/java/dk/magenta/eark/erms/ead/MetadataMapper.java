@@ -35,10 +35,12 @@ public class MetadataMapper {
 			} else {
 				XPathExpression<Element> expression = factory.compile(xpath, Filters.element(), null, ead);
 				Element target = expression.evaluate(c).get(0);
-				target.addContent(value);
+				target.setText(value);
 			}
 		}
-		return c.clone();
+		Element clone = c.clone();
+		c.setNamespace(ead);
+		return clone;
 	}
 	
 }

@@ -5,9 +5,9 @@
 
 	<!-- Corresponding to the CMIS property ID "cmis:objectTypeId" -->
 	<objectTypes>
-		<objectType id="series">delta:series</objectType>
-		<objectType id="subseries">delta:subseries</objectType>
-		<objectType id="record">delta:record</objectType>
+		<objectType id="series">F:eark:series</objectType>
+ 		<objectType id="subseries">F:eark:subseries</objectType>
+ 		<objectType id="record">F:eark:record</objectType>
 	</objectTypes>
 
 	<eadTemplates>

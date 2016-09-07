@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -23,6 +24,7 @@ import org.jdom2.JDOMException;
 
 import dk.magenta.eark.erms.Constants;
 import dk.magenta.eark.erms.ead.EadBuilder;
+import dk.magenta.eark.erms.ead.Hook;
 import dk.magenta.eark.erms.ead.MappingParser;
 import dk.magenta.eark.erms.ead.MetadataMapper;
 import dk.magenta.eark.erms.json.JsonUtils;
@@ -58,9 +60,10 @@ public class ExtractionWorker {
 		// Get the mapping
 		String mapName = json.getString(Constants.MAP_NAME);
 		try {
-			InputStream mappingInputStream = new FileInputStream(new File("/home/andreas/.erms/mappings/mapping.xml")); // TODO:
-																														// Change
-																														// this!
+			InputStream mappingInputStream = new FileInputStream(
+					new File("/home/andreas/eark/E-Ark-Alfresco-export-bridge/src/main/resources/mapping.xml")); // TODO:
+			// Change
+			// this!
 			mappingParser = new MappingParser(mapName, mappingInputStream);
 			mappingInputStream.close();
 		} catch (FileNotFoundException e) {
@@ -98,7 +101,7 @@ public class ExtractionWorker {
 					.build();
 		}
 
-		// Start iteration over the CMIS tree
+		// Start traversing the CMIS tree
 		JsonArray exportList = json.getJsonArray(Constants.EXPORT_LIST);
 		for (int i = 0; i < exportList.size(); i++) {
 			// We know (assume) that the values in the exportList are strings
@@ -127,7 +130,7 @@ public class ExtractionWorker {
 		}
 
 		eadBuilder.writeXml("/tmp/ead.xml");
-		
+
 		builder.add(Constants.SUCCESS, true);
 		return builder.build();
 	}
@@ -142,15 +145,24 @@ public class ExtractionWorker {
 
 			// Get the CMIS object type id
 			String cmisType = node.getType().getId();
+			System.out.println(cmisType);
 			if (isObjectTypeInSematicStructure(cmisType)) {
 				// If not leaf...
-				Element c = metadataMapper.map(node, mappingParser.getHooksFromCmisType(cmisType), mappingParser.getCElementFromCmisType(cmisType));
+				
+				// Debugging
+				List<Hook> hooks = mappingParser.getHooksFromCmisType(cmisType);
+				for (Hook h : hooks) {
+					// System.out.println(cmisType + " " + h);
+				}
+				
+				Element c = metadataMapper.map(node, mappingParser.getHooksFromCmisType(cmisType),
+						mappingParser.getCElementFromCmisType(cmisType));
 				eadBuilder.addCElement(c, parent);
 				for (Tree<FileableCmisObject> children : tree.getChildren()) {
 					handleNode(children, c);
 				}
 
-			} 
+			}
 
 			// Mapping mapping = null;
 			// try {

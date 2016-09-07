@@ -15,7 +15,7 @@ import dk.magenta.eark.erms.ead.Hook;
 import dk.magenta.eark.erms.ead.MappingParser;
 import dk.magenta.eark.erms.ead.MetadataMapper;
 
-public class XPathTestDriver {
+public class MetadataMapperTestDriver {
 
 	public static void main(String[] args) {
 		InputStream in = MappingParser.class.getClassLoader().getResourceAsStream("mapping.xml");
