@@ -1,6 +1,5 @@
 package dk.magenta.eark.erms.ead;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
@@ -8,7 +7,6 @@ import org.jdom2.Attribute;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
 import org.jdom2.filter.Filters;
-import org.jdom2.output.XMLOutputter;
 import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
 
@@ -43,8 +41,4 @@ public class MetadataMapper {
 		}
 		return clone;
 	}
-	
-	
-	
-	
 }
