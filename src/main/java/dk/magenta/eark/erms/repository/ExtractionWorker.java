@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -24,7 +23,6 @@ import org.jdom2.JDOMException;
 
 import dk.magenta.eark.erms.Constants;
 import dk.magenta.eark.erms.ead.EadBuilder;
-import dk.magenta.eark.erms.ead.Hook;
 import dk.magenta.eark.erms.ead.MappingParser;
 import dk.magenta.eark.erms.ead.MetadataMapper;
 import dk.magenta.eark.erms.json.JsonUtils;
@@ -85,7 +83,7 @@ public class ExtractionWorker {
 		// Create EadBuilder
 		try {
 			// TODO: change this! - uploading of the EAD template should be
-			// handles elsewhere
+			// handled elsewhere
 			InputStream eadInputStream = new FileInputStream(new File("/home/andreas/.erms/mappings/ead_template.xml"));
 			eadBuilder = new EadBuilder(eadInputStream);
 			eadInputStream.close();
@@ -113,7 +111,9 @@ public class ExtractionWorker {
 			// Get the CMIS types
 			String cmisType = cmisObject.getType().getId();
 			String semanticType = mappingParser.getSemanticTypeFromCmisType(cmisType);
-
+			
+			// Store the parent path for this current top-level node in the CmisPathHandler
+			
 			// Get element for the current node in the exportList
 			Element c = metadataMapper.map(cmisObject, mappingParser.getHooksFromSemanticType(semanticType),
 					mappingParser.getCElementFromSemanticType(semanticType));
@@ -159,6 +159,8 @@ public class ExtractionWorker {
 					// metadata in <dao> elements
 					
 					// If no children -> remove dao element
+					// Get CMIS path
+					// Make variable (hardcode) containing path to store EAD and files // TODO: fix this
 					
 					
 				}

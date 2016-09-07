@@ -18,11 +18,7 @@ public class EadBuilder {
 	
 	private Document ead;
 	private XmlHandler xmlHandler;
-//	private String topAggregationLevel;
 	private Element topLevelElement;
-//	private String currentAggregationLevel; // Maybe not needed...
-//	private Element currentElementAggregationLevel;
-	
 	
 	/**
 	 * 
@@ -51,7 +47,7 @@ public class EadBuilder {
 	}
 	
 	/**
-	 * For testing...
+	 * For testing... TODO: move to XmlHandler
 	 */
 	public void writeXml(String filename) {
 		try {
@@ -63,18 +59,6 @@ public class EadBuilder {
 			e.printStackTrace();
 		}
 	}
-	
-//	public void setTopAggregationLevel(String topAggregationLevel) {
-//		this.topAggregationLevel = topAggregationLevel;
-//	}
-//	
-//	public void setCurrentAggregationLevel(String currentAggregationLevel) {
-//		this.currentAggregationLevel = currentAggregationLevel;
-//	}
-//	
-//	public String getCurrentAggregationLevel() {
-//		return currentAggregationLevel;
-//	}
 	
 	public String getValidationErrorMessage() {
 		return xmlHandler.getErrorMessage();
