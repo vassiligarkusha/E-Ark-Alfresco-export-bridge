@@ -1,11 +1,14 @@
 package dk.magenta.eark.erms.ead;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.Namespace;
+import org.jdom2.output.XMLOutputter;
 
 import dk.magenta.eark.erms.Constants;
 
@@ -15,9 +18,10 @@ public class EadBuilder {
 	
 	private Document ead;
 	private XmlHandler xmlHandler;
-	private String topAggregationLevel;
-	private String currentAggregationLevel; // Maybe not needed...
-	private Element currentElementAggregationLevel;
+//	private String topAggregationLevel;
+	private Element topLevelElement;
+//	private String currentAggregationLevel; // Maybe not needed...
+//	private Element currentElementAggregationLevel;
 	
 	
 	/**
@@ -35,25 +39,42 @@ public class EadBuilder {
 		Element dsc = new Element("dsc", eadNs);
 		dsc.setAttribute("desctype", "combined");
 		archdesc.addContent(dsc);
-		currentElementAggregationLevel = dsc;
+		topLevelElement = dsc;
 	}
 	
-	public void addCElement(Element c, String aggregationLevel) {
-		currentElementAggregationLevel.addContent(c);
-		currentElementAggregationLevel = c;
+	public void addCElement(Element c, Element parent) {
+		parent.addContent(c);
 	}
 	
-	public void setTopAggregationLevel(String topAggregationLevel) {
-		this.topAggregationLevel = topAggregationLevel;
+	public Element getTopLevelElement() {
+		return topLevelElement;
 	}
 	
-	public void setCurrentAggregationLevel(String currentAggregationLevel) {
-		this.currentAggregationLevel = currentAggregationLevel;
+	/**
+	 * For testing...
+	 */
+	public void writeXml(String filename) {
+		try {
+			FileWriter writer = new FileWriter(filename);
+			XMLOutputter outputter = new XMLOutputter();
+			outputter.output(ead, writer);
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
-	public String getCurrentAggregationLevel() {
-		return currentAggregationLevel;
-	}
+//	public void setTopAggregationLevel(String topAggregationLevel) {
+//		this.topAggregationLevel = topAggregationLevel;
+//	}
+//	
+//	public void setCurrentAggregationLevel(String currentAggregationLevel) {
+//		this.currentAggregationLevel = currentAggregationLevel;
+//	}
+//	
+//	public String getCurrentAggregationLevel() {
+//		return currentAggregationLevel;
+//	}
 	
 	public String getValidationErrorMessage() {
 		return xmlHandler.getErrorMessage();

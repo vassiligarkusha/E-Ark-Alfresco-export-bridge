@@ -101,7 +101,7 @@ public class MappingParser {
 	
 	
 	public List<Hook> getHooksFromCmisType(String cmisType) {
-		String semanticType = objectTypeMap.getSemanticTypeFromCmisType(cmisType);
+		String semanticType = getObjectTypes().getSemanticTypeFromCmisType(cmisType);
 		return getHooksFromSemanticType(semanticType);
 	}
 	
@@ -130,6 +130,11 @@ public class MappingParser {
 
 	public Element getCElementFromSemanticType(String semanticType) {
 		return getCElements().get(semanticType);
+	}
+	
+	public Element getCElementFromCmisType(String cmisType) {
+		String semanticType = getObjectTypes().getSemanticTypeFromCmisType(cmisType);
+		return getCElementFromSemanticType(semanticType);
 	}
 	
 //	public ObjectTypeMap getObjectTypeMap() {

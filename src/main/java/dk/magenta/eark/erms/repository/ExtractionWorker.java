@@ -101,7 +101,7 @@ public class ExtractionWorker {
 		// Start iteration over the CMIS tree
 		JsonArray exportList = json.getJsonArray(Constants.EXPORT_LIST);
 		for (int i = 0; i < exportList.size(); i++) {
-			// We know (assume) that the values are strings
+			// We know (assume) that the values in the exportList are strings
 
 			// Get the CMIS object
 			String objectId = exportList.getString(i);
@@ -111,52 +111,46 @@ public class ExtractionWorker {
 			String cmisType = cmisObject.getType().getId();
 			String semanticType = mappingParser.getSemanticTypeFromCmisType(cmisType);
 
-			// Set the top-level aggregation level (we assume that all nodes in the exportList are at the same level)
-			eadBuilder.setTopAggregationLevel(cmisType);
-			
+			// Get element for the current node in the exportList
 			Element c = metadataMapper.map(cmisObject, mappingParser.getHooksFromSemanticType(semanticType),
 					mappingParser.getCElementFromSemanticType(semanticType));
-			
+			eadBuilder.addCElement(c, eadBuilder.getTopLevelElement());
 			// write to EAD
 
+			// This way of traversing the CMIS tree follows the example given in
+			// the official documentation - see
+			// http://chemistry.apache.org/java/developing/guide.html
 			Folder folder = (Folder) cmisObject;
 			for (Tree<FileableCmisObject> tree : folder.getDescendants(-1)) {
-				handleNode(tree);
+				handleNode(tree, c);
 			}
 		}
 
-		return null;
+		eadBuilder.writeXml("/tmp/ead.xml");
+		
+		builder.add(Constants.SUCCESS, true);
+		return builder.build();
 	}
 
-	private void handleNode(Tree<FileableCmisObject> tree) {
+	private void handleNode(Tree<FileableCmisObject> tree, Element parent) {
 		// System.out.println(tree.getItem().getId());
+
 		CmisObject node = tree.getItem();
-
-		// EAD: update current aggregation level
-		// eadBuilder.setCurrentAggregationLevel(node.getType().getId());
-
-		String childObjectId = node.getId();
+		String childObjectId = node.getId(); // E.g. a nodeRef in Alfresco...
 		if (!excludeList.contains(childObjectId)) {
-			// System.out.println("not in list...");
 			// Build EAD
 
 			// Get the CMIS object type id
-			String objectTypeId = node.getType().getId();
-			if (isObjectTypeInSematicStructure(objectTypeId)) {
-				// extract data to EAD
+			String cmisType = node.getType().getId();
+			if (isObjectTypeInSematicStructure(cmisType)) {
+				// If not leaf...
+				Element c = metadataMapper.map(node, mappingParser.getHooksFromCmisType(cmisType), mappingParser.getCElementFromCmisType(cmisType));
+				eadBuilder.addCElement(c, parent);
+				for (Tree<FileableCmisObject> children : tree.getChildren()) {
+					handleNode(children, c);
+				}
 
-			} else {
-				// for each child
-				// handleNode()
-			}
-
-			/*
-			 * if node.objectType in semantic structure: if node is not semantic
-			 * leaf insert metadata into EAD for t in tree.getChildren:
-			 * handleNode(t)
-			 * 
-			 * else
-			 */
+			} 
 
 			// Mapping mapping = null;
 			// try {

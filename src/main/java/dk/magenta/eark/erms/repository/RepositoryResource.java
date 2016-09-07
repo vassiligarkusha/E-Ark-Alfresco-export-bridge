@@ -259,11 +259,11 @@ public class RepositoryResource {
 		ExtractionWorker extractionWorker = new ExtractionWorker(json, getSessionWorker(json.getString(Profile.NAME)));
 		JsonObject result = extractionWorker.extract();
 
+		return result;
 
 
-
-		builder.add("foo", "bar");
-		return builder.build();
+//		builder.add("foo", "bar");
+//		return builder.build();
 	}
 
 
