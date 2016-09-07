@@ -1,5 +1,6 @@
 package dk.magenta.eark.erms.ead;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
@@ -7,6 +8,7 @@ import org.jdom2.Attribute;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
 import org.jdom2.filter.Filters;
+import org.jdom2.output.XMLOutputter;
 import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
 
@@ -23,6 +25,7 @@ public class MetadataMapper {
 	}
 	
 	public Element map(CmisObject cmisObj, List<Hook> hooks, Element c) {
+		Element clone = c.clone();
 		for (Hook hook : hooks) {
 			String cmisPropertyId = hook.getCmisPropertyId();
 			String xpath = hook.getXpath();
@@ -30,17 +33,18 @@ public class MetadataMapper {
 
 			if (xpath.contains("attribute")) {
 				XPathExpression<Attribute> expression = factory.compile(xpath, Filters.attribute(), null, ead);
-				Attribute target = expression.evaluate(c).get(0);
+				Attribute target = expression.evaluate(clone).get(0);
 				target.setValue(value);
 			} else {
 				XPathExpression<Element> expression = factory.compile(xpath, Filters.element(), null, ead);
-				Element target = expression.evaluate(c).get(0);
+				Element target = expression.evaluate(clone).get(0);
 				target.setText(value);
 			}
 		}
-		Element clone = c.clone();
-		c.setNamespace(ead);
 		return clone;
 	}
+	
+	
+	
 	
 }
