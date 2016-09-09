@@ -13,6 +13,8 @@ import dk.magenta.eark.erms.Constants;
  */
 public class JsonUtils {
 
+	// TODO: methods below should not return builders but JsonObjects
+	
 	/**
 	 * Checks if a JSON object contains the given keys
 	 * @param json The JSON object to check
@@ -39,7 +41,13 @@ public class JsonUtils {
 		return builder;
 	}
 	
-	public static boolean isArrayValid(JsonObject json, String key) {
+	/**
+	 * 
+	 * @param json
+	 * @param key
+	 * @return true if value corresponding to key is an JsonArray which is not empty
+	 */
+	public static boolean isArrayNoneEmpty(JsonObject json, String key) {
 		JsonArray array;
 		try {
 			array = json.getJsonArray(key);
@@ -52,9 +60,32 @@ public class JsonUtils {
 		return true;
 	}
 	
+	/**
+	 * 
+	 * @param json
+	 * @param key
+	 * @return true if value corresponding to key is an JsonArray
+	 */
+	public static boolean isArray(JsonObject json, String key) {
+		JsonArray array;
+		try {
+			array = json.getJsonArray(key);
+		} catch (ClassCastException e) {
+			return false;
+		}
+		return true;
+	}
+	
+	
 	public static JsonObjectBuilder addArrayErrorMessage(JsonObjectBuilder builder, String key) {
 		builder.add(Constants.SUCCESS, false);
 		builder.add(Constants.ERRORMSG, "The array given in " + key + " is not valid");
+		return builder;
+	}
+	
+	public static JsonObjectBuilder addErrorMessage(JsonObjectBuilder builder, String message) {
+		builder.add(Constants.SUCCESS, false);
+		builder.add(Constants.ERRORMSG, message);
 		return builder;
 	}
 	

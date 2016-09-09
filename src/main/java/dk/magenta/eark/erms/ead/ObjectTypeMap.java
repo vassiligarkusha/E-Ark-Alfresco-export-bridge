@@ -6,37 +6,44 @@ import java.util.Set;
 
 public class ObjectTypeMap {
 	
-	private Map<String, String> repositoryTypeToCmisType;
-	private Map<String, String> cmisTypeToRepositoryType;
+	private Map<String, String> semanticTypeToCmisType;
+	private Map<String, String> cmisTypeToSemanticType;
+	private Map<String, Boolean> leafMap;
 	
 	public ObjectTypeMap() {
-		repositoryTypeToCmisType = new HashMap<String, String>();
-		cmisTypeToRepositoryType = new HashMap<String, String>();
+		semanticTypeToCmisType = new HashMap<String, String>();
+		cmisTypeToSemanticType = new HashMap<String, String>();
+		leafMap = new HashMap<String, Boolean>();
 	}
 	
-	public void addObjectType(String repoType, String cmisType) {
-		repositoryTypeToCmisType.put(repoType, cmisType);
-		cmisTypeToRepositoryType.put(cmisType, repoType);
+	public void addObjectType(String semanticType, String cmisType, boolean leaf) {
+		semanticTypeToCmisType.put(semanticType, cmisType);
+		cmisTypeToSemanticType.put(cmisType, semanticType);
+		leafMap.put(semanticType, leaf);
 	}
 	
-	public String getRepositoryTypeFromCmisType(String cmisType) {
-		return cmisTypeToRepositoryType.get(cmisType);
+	public String getSemanticTypeFromCmisType(String cmisType) {
+		return cmisTypeToSemanticType.get(cmisType);
 	}
 	
-	public String getCmisTypeFromRepositoryType(String repoType) {
-		return repositoryTypeToCmisType.get(repoType);
+	public String getCmisTypeFromSemanticType(String repoType) {
+		return semanticTypeToCmisType.get(repoType);
 	}
 	
-	public Set<String> getAllRepositoryTypes() {
-		return repositoryTypeToCmisType.keySet();
+	public Set<String> getAllSemanticTypes() {
+		return semanticTypeToCmisType.keySet();
 	}
 	
 	public Set<String> getAllCmisTypes() {
-		return cmisTypeToRepositoryType.keySet();
+		return cmisTypeToSemanticType.keySet();
+	}
+	
+	public boolean isLeaf(String semanticType) {
+		return leafMap.get(semanticType);
 	}
 	
 	@Override
 	public String toString() {
-		return repositoryTypeToCmisType.toString();
+		return semanticTypeToCmisType.toString();
 	}
 }

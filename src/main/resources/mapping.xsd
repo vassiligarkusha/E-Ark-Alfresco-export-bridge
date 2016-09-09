@@ -26,6 +26,7 @@
 		<simpleContent>
 			<extension base="string">
 				<attribute name="id" type="string" use="required"/>
+				<attribute name="leaf" type="boolean" use="required"/>
 			</extension>
 		</simpleContent>
 	</complexType>
@@ -42,7 +43,7 @@
 		<sequence>
 			<element ref="map:hooks"/>
 			<element ref="map:ead"/>
-		</sequence>
+			</sequence>
 		<attribute name="id" type="string" use="required"/>
 	</complexType>
 	
@@ -70,5 +71,4 @@
 			<!-- element ref="ead:c01"/--> <!-- This is not working -->
 		</sequence>
 	</complexType>
-	
 </schema>

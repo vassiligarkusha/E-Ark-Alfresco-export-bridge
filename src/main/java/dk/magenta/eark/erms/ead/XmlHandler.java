@@ -1,9 +1,12 @@
 package dk.magenta.eark.erms.ead;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.jdom2.Document;
+import org.jdom2.Element;
 import org.jdom2.JDOMException;
+import org.jdom2.output.XMLOutputter;
 
 public interface XmlHandler {
 	
@@ -30,5 +33,19 @@ public interface XmlHandler {
 	 * @return
 	 */
 	public String getErrorMessage();
+	
+	/**
+	 * Write an XML element to System.out (for debugging)
+	 * @param e
+	 */
+	public static void writeXml(Element e) {
+		XMLOutputter outputter = new XMLOutputter();
+		try {
+			outputter.output(e, System.out);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+	}
+
 	
 }

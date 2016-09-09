@@ -15,7 +15,7 @@ import dk.magenta.eark.erms.ead.Hook;
 import dk.magenta.eark.erms.ead.MappingParser;
 import dk.magenta.eark.erms.ead.MetadataMapper;
 
-public class XPathTestDriver {
+public class MetadataMapperTestDriver {
 
 	public static void main(String[] args) {
 		InputStream in = MappingParser.class.getClassLoader().getResourceAsStream("mapping.xml");
@@ -35,7 +35,7 @@ public class XPathTestDriver {
 		
 		List<Hook> hooks = mp.getHooks().get("series");
 		MetadataMapper metadataMapper = new MetadataMapper();
-		Element e = metadataMapper.map(cmisObj, hooks, c);
+		Element e = metadataMapper.mapCElement(cmisObj, hooks, c);
 		Element clone = e.clone();
 		
 		
