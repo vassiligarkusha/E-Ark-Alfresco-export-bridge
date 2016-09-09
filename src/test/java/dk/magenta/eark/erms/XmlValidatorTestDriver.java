@@ -3,8 +3,8 @@ package dk.magenta.eark.erms;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
-import dk.magenta.eark.erms.parser.MappingParser;
-import dk.magenta.eark.erms.parser.XmlValidator;
+import dk.magenta.eark.erms.ead.MappingParser;
+import dk.magenta.eark.erms.ead.XmlValidator;
 
 public class XmlValidatorTestDriver {
 

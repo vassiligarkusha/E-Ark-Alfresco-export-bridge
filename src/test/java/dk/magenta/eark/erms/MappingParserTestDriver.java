@@ -5,11 +5,9 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-import org.jdom2.Document;
-
-import dk.magenta.eark.erms.parser.Hook;
-import dk.magenta.eark.erms.parser.MappingParser;
-import dk.magenta.eark.erms.parser.ObjectTypeMap;
+import dk.magenta.eark.erms.ead.Hook;
+import dk.magenta.eark.erms.ead.MappingParser;
+import dk.magenta.eark.erms.ead.ObjectTypeMap;
 
 public class MappingParserTestDriver {
 
@@ -22,13 +20,12 @@ public class MappingParserTestDriver {
 		
 		Map<String, List<Hook>> hooks = mp.getHooks();
 		for (String key : hooks.keySet()) {
-			System.out.println(hooks.get(key));
+			System.out.println(key + " " + hooks.get(key));
 		}		
 		
 		try {
 			in.close();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 

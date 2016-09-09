@@ -1,4 +1,4 @@
-package dk.magenta.eark.erms.parser;
+package dk.magenta.eark.erms.ead;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,6 +16,8 @@ import org.jdom2.filter.ElementFilter;
 import org.jdom2.filter.Filter;
 import org.jdom2.input.SAXBuilder;
 
+import dk.magenta.eark.erms.Constants;
+
 /**
  * 
  * @author andreas
@@ -23,85 +25,68 @@ import org.jdom2.input.SAXBuilder;
  */
 public class MappingParser {
 
-	private static final String mapNs = "http://www.magenta.dk/eark/erms/mapping/1.0";
-	private static final String eadNs = "http://ead3.archivists.org/schema/";
-
 	private String mappingId;
 	private ObjectTypeMap objectTypeMap;
 	private Map<String, List<Hook>> hooks;
 	private Map<String, Element> CElements;
 	private Namespace mappingNamespace;
-	private Namespace eadNamespace;
 	private Document mappingDocument;
+	private XmlHandler xmlHandler;
 
 	
 	public MappingParser(String mappingId, InputStream in) {
 		this.mappingId = mappingId;
-		mappingNamespace = Namespace.getNamespace(mapNs);
-		eadNamespace = Namespace.getNamespace(eadNs);
+		mappingNamespace = Namespace.getNamespace(Constants.MAPPING_NAMESPACE);
+		xmlHandler = new XmlHandlerImpl();
 		buildMappingDocument(in);
-		getObjectTypes(mappingDocument);
 	}
 
-	
+	/**
+	 * Build the JDOM mapping.xml Document from an input stream
+	 * (the mapping.xml has been validated earlier on)
+	 * @param in stream containing the mapping.xml
+	 * @return JDOM representation of the mapping.xml
+	 */
 	public Document buildMappingDocument(InputStream in) {
-		SAXBuilder builder = new SAXBuilder();
-		Document xml = null;
-		try {
-			xml = builder.build(in);
-		} catch (JDOMException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		mappingDocument = xml;
-		return xml;
+		mappingDocument = xmlHandler.readXml(in);
+		return mappingDocument;
 	}
 	
-	
+	/**
+	 * Extract the objectTypes from the mapping.xml and put these into an ObjectTypeMap
+	 * @return the ObjectTypeMap containing the datastructures
+	 */
 	public ObjectTypeMap getObjectTypes() {
-		return getObjectTypes(mappingDocument);
-	}
-
-	
-	public ObjectTypeMap getObjectTypes(Document doc) {
 		if (objectTypeMap != null) {
 			return objectTypeMap;
 		}
 		objectTypeMap = new ObjectTypeMap();
-		List<Element> objectTypes = extractElements(doc, "objectType", mappingNamespace);
+		List<Element> objectTypes = extractElements(mappingDocument, "objectType", mappingNamespace);
 		for (Element objectType : objectTypes) {
-			String repoType = objectType.getAttributeValue("id");
+			String semanticType = objectType.getAttributeValue("id");
+			boolean leaf = Boolean.parseBoolean(objectType.getAttributeValue("leaf").trim());
 			String cmisType = objectType.getTextTrim();
-			objectTypeMap.addObjectType(repoType, cmisType);
+			objectTypeMap.addObjectType(semanticType, cmisType, leaf);
 		}
 		return objectTypeMap;
 	}
 	
-	
+	/**
+	 * Gets map of hooks
+	 * @return map from semantic name to list of Hooks 
+	 */
 	public Map<String, List<Hook>> getHooks() {
-		return getHooks(mappingDocument);
-	}
-
-	
-	public Map<String, List<Hook>> getHooks(Document doc) {
 		if (hooks != null) {
 			return hooks;
 		}
 		hooks = new HashMap<String, List<Hook>>();
-		List<Element> templates = extractElements(doc, "template", mappingNamespace);
+		List<Element> templates = extractElements(mappingDocument, "template", mappingNamespace);
 		for (Element template : templates) {
 			Element hooksElement = extractElements(template, "hooks", mappingNamespace).get(0);
 			List<Element> hookElements = extractElements(hooksElement, "hook", mappingNamespace);
 			List<Hook> hookList = new LinkedList<Hook>();
 			for (Element hookElement : hookElements) {
-				Hook hook;
-				if (hookElement.getAttribute("attribute", mappingNamespace) == null) {
-					hook = new Hook(hookElement.getAttributeValue("path"), hookElement.getTextTrim());
-				} else {
-					hook = new Hook(hookElement.getAttributeValue("path"), hookElement.getTextTrim(),
-							hookElement.getAttributeValue("attribute"));
-				}
+				Hook hook = new Hook(hookElement.getAttributeValue("xpath"), hookElement.getTextTrim());
 				hookList.add(hook);
 			}
 			hooks.put(template.getAttributeValue("id"), hookList);
@@ -109,18 +94,33 @@ public class MappingParser {
 		return hooks;
 	}
 	
-	
-	public Map<String, Element> getCElements() {
-		return getCElements(mappingDocument);
+
+	public List<Hook> getHooksFromSemanticType(String semanticType) {
+		getHooks();
+		return hooks.get(semanticType);
 	}
 	
 	
-	public Map<String, Element> getCElements(Document doc) {
+	public List<Hook> getHooksFromCmisType(String cmisType) {
+		String semanticType = getObjectTypes().getSemanticTypeFromCmisType(cmisType);
+		return getHooksFromSemanticType(semanticType);
+	}
+	
+	
+	public String getSemanticTypeFromCmisType(String cmisType) {
+		return getObjectTypes().getSemanticTypeFromCmisType(cmisType);
+	}
+	
+	/**
+	 * Get map from semantic type to c element
+	 * @return map from semantic type to c element
+	 */
+	public Map<String, Element> getCElements() {
 		if (CElements != null) {
 			return CElements;
 		}
 		CElements = new HashMap<String, Element>();
-		List<Element> templates = extractElements(doc, "template", mappingNamespace);
+		List<Element> templates = extractElements(mappingDocument, "template", mappingNamespace);
 		for (Element template : templates) {
 			Element ead = extractElements(template, "ead", mappingNamespace).get(0);
 			Element c = ead.getChild("c", mappingNamespace);
@@ -129,16 +129,33 @@ public class MappingParser {
 		return CElements;
 	}
 
-	
-	public ObjectTypeMap getObjectTypeMap() {
-		return objectTypeMap;
+	public Element getCElementFromSemanticType(String semanticType) {
+		return getCElements().get(semanticType);
 	}
+	
+	public Element getCElementFromCmisType(String cmisType) {
+		String semanticType = getObjectTypes().getSemanticTypeFromCmisType(cmisType);
+		return getCElementFromSemanticType(semanticType);
+	}
+	
+//	public ObjectTypeMap getObjectTypeMap() {
+//		return objectTypeMap;
+//	}
 
 	
 	public String getMappingId() {
 		return mappingId;
 	}
 
+	
+	public Document getMappingDocument() {
+		return mappingDocument;
+	}
+	
+	public boolean isLeaf(String cmisType) {
+		String semanticType = getObjectTypes().getSemanticTypeFromCmisType(cmisType);
+		return getObjectTypes().isLeaf(semanticType);
+	}
 	
 	/**
 	 * Extracts all descending Elements from a Document or an Element

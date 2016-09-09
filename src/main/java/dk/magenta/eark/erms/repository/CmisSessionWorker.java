@@ -1,10 +1,20 @@
 package dk.magenta.eark.erms.repository;
 
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.commons.spi.*;
+import java.util.List;
 
 import javax.json.JsonObject;
-import java.util.List;
+
+import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.chemistry.opencmis.client.api.Session;
+import org.apache.chemistry.opencmis.commons.spi.AclService;
+import org.apache.chemistry.opencmis.commons.spi.DiscoveryService;
+import org.apache.chemistry.opencmis.commons.spi.MultiFilingService;
+import org.apache.chemistry.opencmis.commons.spi.NavigationService;
+import org.apache.chemistry.opencmis.commons.spi.ObjectService;
+import org.apache.chemistry.opencmis.commons.spi.PolicyService;
+import org.apache.chemistry.opencmis.commons.spi.RelationshipService;
+import org.apache.chemistry.opencmis.commons.spi.RepositoryService;
+import org.apache.chemistry.opencmis.commons.spi.VersioningService;
 
 /**
  * @author lanre.
@@ -109,4 +119,11 @@ public interface CmisSessionWorker {
      * @return
      */
     public JsonObject getRepositoryInfo();
+    
+    /**
+     * Get the CMIS session
+     * @return
+     */
+    public Session getSession();
+    
 }

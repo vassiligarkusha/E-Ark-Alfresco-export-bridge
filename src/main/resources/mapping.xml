@@ -5,17 +5,17 @@
 
 	<!-- Corresponding to the CMIS property ID "cmis:objectTypeId" -->
 	<objectTypes>
-		<objectType id="series">delta:series</objectType>
-		<objectType id="subseries">delta:subseries</objectType>
-		<objectType id="record">delta:record</objectType>
+		<objectType id="series" leaf="false">F:eark:series</objectType>
+ 		<objectType id="subseries" leaf="false">F:eark:subseries</objectType>
+ 		<objectType id="record" leaf="true">F:eark:record</objectType>
 	</objectTypes>
 
 	<eadTemplates>
 		<template id="series">
 			<hooks>
-				<hook path="c/did/unitdate">cmis:creationDate</hook>
-				<hook path="c/did/unittitle">cmis:name</hook>
-				<hook path="c/did/unitid">cmis:objectId</hook>
+				<hook xpath="child::ead:did/child::ead:unitdate">cmis:creationDate</hook>
+				<hook xpath="child::ead:did/child::ead:unittitle">cmis:name</hook>
+				<hook xpath="child::ead:did/child::ead:unitid">cmis:objectId</hook>
 			</hooks>
 			<ead>
 				<c level="series">
@@ -29,9 +29,9 @@
 		</template>
 		<template id="subseries">
 			<hooks>
-				<hook path="c/did/unitdate">cmis:creationDate</hook>
-				<hook path="c/did/unittitle">cmis:name</hook>
-				<hook path="c/did/unitid">cmis:objectId</hook>
+				<hook xpath="child::ead:did/child::ead:unitdate">cmis:creationDate</hook>
+				<hook xpath="child::ead:did/child::ead:unittitle">cmis:name</hook>
+				<hook xpath="child::ead:did/child::ead:unitid">cmis:objectId</hook>
 			</hooks>
 			<ead>
 				<c level="subseries">
@@ -45,9 +45,10 @@
 		</template>
 		<template id="record">
 			<hooks>
-				<hook path="c/did/unitdate">cmis:creationDate</hook>
-				<hook path="c/did/unittitle">cmis:name</hook>
-				<hook path="c/did/unitid">cmis:objectId</hook>
+				<hook xpath="child::ead:did/child::ead:unitdate">cmis:creationDate</hook>
+				<hook xpath="child::ead:did/child::ead:unittitle">cmis:name</hook>
+				<hook xpath="child::ead:did/child::ead:unitid">cmis:objectId</hook>
+				<hook xpath="child::ead:did/child::ead:dao/attribute::id">cmis:objectId</hook>
 			</hooks>
 			<ead>
 				<c level="file">
@@ -55,10 +56,14 @@
 						<ead:unitdate datechar="created"/>
 						<ead:unittitle/>
 						<ead:unitid localtype="system_id"/>
-						<ead:daoset label="Digital Object" coverage="whole">
+						
+						<!-- NOTE: only one dao element allowed here -->
+						<ead:dao id="to-be-filled-out-with-cmis-metadata" daotype="borndigital" href="path-to-file"/>
+						
+						<!-- ead:daoset label="Digital Object" coverage="whole">
 							<ead:dao daotype="unknown" />
 							<ead:dao daotype="unknown" />
-						</ead:daoset>
+						</ead:daoset-->
 					</ead:did>
 				</c>
 			</ead>

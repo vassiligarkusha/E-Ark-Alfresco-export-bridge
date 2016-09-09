@@ -67,7 +67,7 @@ public class Cmis1Connector {
                 throw new ErmsURLException(ge.getMessage());
             }
 
-            // No connection to Alfresco available, create a new one
+            // No connection to CMIS repo available, create a new one
             SessionFactory sessionFactory = SessionFactoryImpl.newInstance();
 
             Map<String, String> parameters = new HashMap<>();
@@ -96,14 +96,11 @@ public class Cmis1Connector {
                     logger.info("Found (" + repositories.size() + ") repositories");
                     cmisRepository = repositories.get(0);
 
-                    logger.info("Info about the first repo [ID=" + cmisRepository.getId() +
-                            "][name=" + cmisRepository.getName() +
-                            "][CMIS ver supported=" + cmisRepository.getCmisVersionSupported() + "]");
                 } else {
                     throw new CmisConnectionException("Could not connect to the cmis server, no repository found!");
                 }
 
-                // Create a new session with the Alfresco repository
+                // Create a new session with the cmis repository
                 session = cmisRepository.createSession();
                 session.getDefaultContext().setIncludeAllowableActions(false);
 

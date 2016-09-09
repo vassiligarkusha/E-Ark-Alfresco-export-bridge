@@ -40,8 +40,8 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
         this.objectFactory = session.getObjectFactory();
         this.operationContext = session.createOperationContext();
         //DELTA HACK
-        this.session.getDefaultContext().setIncludeAllowableActions(false);
-        this.operationContext.setIncludeAllowableActions(false);
+//        this.session.getDefaultContext().setIncludeAllowableActions(false);
+//        this.operationContext.setIncludeAllowableActions(false);
         this.session.setDefaultContext(this.operationContext);
     }
 
@@ -155,13 +155,11 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
             if (includeContentStream) {
                 documentBuilder.add("contentStream", IOUtils.readAllLines(document.getContentStream().getStream()));
             }
-
         } catch (Exception ge) {
             System.out.println("********** Stacktrace **********\n");
             ge.printStackTrace();
             throw new ErmsIOException("\nUnable to read document:\n" + ge.getMessage());
         }
-
         return documentBuilder.build();
     }
 
@@ -200,7 +198,6 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
         JsonObjectBuilder folderBuilder = Json.createObjectBuilder();
         if (!caps.isGetDescendantsSupported())
             throw new ErmsNotSupportedException("The operation requested is not supported by the repository");
-
         try {
             Folder folder = (Folder) this.session.getObject(folderObjectId);
             //Just to be sure
@@ -213,11 +210,9 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
             jsonRep.forEach(cb::add);
             folderBuilder.add("properties", tmp);
             folderBuilder.add("children", cb.build());
-
         } catch (Exception ge) {
             throw new ErmsIOException("Unable to read folder items for root folder:\n" + ge.getMessage());
         }
-
         return folderBuilder.build();
     }
 
@@ -250,7 +245,6 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
             System.out.println("\n******** End ********\n");
             throw new ErmsIOException("Unable to read folder items for root folder:\n" + ge.getMessage());
         }
-
         return rootFolder.build();
     }
 
@@ -262,11 +256,15 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
     @Override
     public JsonObject getRepositoryInfo() {
         RepositoryInfo repositoryInfo = this.session.getRepositoryInfo();
-
         InputStream tmp = new ByteArrayInputStream(JSONConverter.convert(repositoryInfo, null, null, true)
                 .toString().getBytes(StandardCharsets.UTF_8));
         JsonReader rdr = Json.createReader(tmp);
         return rdr.readObject();
+    }
+    
+    @Override
+    public Session getSession() {
+    	return session;
     }
 
     /**
@@ -278,7 +276,6 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
      */
     private JsonObject extractUsefulProperties(CmisObject cmisObject){
         JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
-
         switch (cmisObject.getBaseTypeId().value()){
             case "cmis:document" :
                 Document doc = (Document) cmisObject ;
@@ -308,7 +305,4 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
 
         return jsonBuilder.build();
     }
-
-
-
 }

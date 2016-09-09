@@ -4,6 +4,7 @@ import dk.magenta.eark.erms.*;
 import dk.magenta.eark.erms.db.DatabaseConnectionStrategy;
 import dk.magenta.eark.erms.db.JDBCConnectionStrategy;
 import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
+import dk.magenta.eark.erms.json.JsonUtils;
 import dk.magenta.eark.erms.repository.profiles.Profile;
 import dk.magenta.eark.erms.system.PropertiesHandlerImpl;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -26,16 +27,13 @@ import java.sql.SQLException;
 
 @Path("repository")
 public class RepositoryResource {
-
     public static final String FOLDER_OBJECT_ID = "folderObjectId";
     public static final String DOCUMENT_OBJECT_ID = "documentObjectId";
     public static final String MAP_NAME = "mapName";
-    public static final String REPO_ROOT = "repositoryRoot";
-    
-    private final Logger logger = LoggerFactory.getLogger(RepositoryResource.class);
 
+    private final Logger logger = LoggerFactory.getLogger(RepositoryResource.class);
     private Cmis1Connector cmis1Connector;
-    DatabaseConnectionStrategy dbConnectionStrategy;
+    private DatabaseConnectionStrategy dbConnectionStrategy;
 
     public RepositoryResource() {
 
@@ -57,7 +55,6 @@ public class RepositoryResource {
         if (json.containsKey(Profile.NAME) && json.containsKey(MAP_NAME) ) {
             String profileName = json.getString(Profile.NAME);
             String mapName = json.getString(MAP_NAME);
-            String repoRoot = json.getString(REPO_ROOT);
 
             try {
                 //Get a session worker
@@ -190,6 +187,51 @@ public class RepositoryResource {
         }
 
         return builder.build();
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("extract")
+    public JsonObject extract(JsonObject json) {
+        JsonObjectBuilder builder = Json.createObjectBuilder();
+
+        // TODO: the JsonUtils methods below should not take a builder as an
+        // argument...
+
+        // Check if the mandatory keys are in the request JSON
+        String[] mandatoryJsonKeys = { Profile.NAME, Constants.MAP_NAME, Constants.EXPORT_LIST,
+                Constants.EXCLUDE_LIST };
+        if (!JsonUtils.containsCorrectKeys(json, mandatoryJsonKeys)) {
+            JsonUtils.addKeyErrorMessage(builder, mandatoryJsonKeys);
+            return builder.build();
+        }
+
+        // Check that the profile name and the mapping name are not blank
+        if (!StringUtils.isNotBlank(json.getString(Profile.NAME))
+                || !StringUtils.isNotBlank(json.getString(Constants.MAP_NAME))) {
+            builder.add(Constants.SUCCESS, false);
+            builder.add(Constants.ERRORMSG, "Blank values are not allowed in the request JSON");
+            return builder.build();
+        }
+
+        // Check that the exportList is a none-empty array
+        if (!JsonUtils.isArrayNoneEmpty(json, Constants.EXPORT_LIST)) {
+            JsonUtils.addArrayErrorMessage(builder, Constants.EXPORT_LIST);
+            return builder.build();
+        }
+
+        // Check that the excludeList is an array
+        if (!JsonUtils.isArray(json, Constants.EXCLUDE_LIST)) {
+            JsonUtils.addArrayErrorMessage(builder, Constants.EXCLUDE_LIST);
+            return builder.build();
+        }
+
+        // Everything OK in the request JSON - begin extraction
+        String profileName = json.getString(Profile.NAME),  mapName = json.getString(Constants.MAP_NAME);
+        ExtractionWorker extractionWorker = new ExtractionWorker(json, getSessionWorker(profileName, mapName));
+
+        return extractionWorker.extract();
     }
 
     /**

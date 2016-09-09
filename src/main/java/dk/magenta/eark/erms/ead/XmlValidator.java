@@ -1,16 +1,15 @@
-package dk.magenta.eark.erms.parser;
+/**
+ * This class is deprecated - use the XmlHandler instead
+ */
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
+package dk.magenta.eark.erms.ead;
+
 import java.io.IOException;
 import java.io.InputStream;
 
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
-import org.apache.commons.io.IOUtils;
 import org.jdom2.JDOMException;
 import org.jdom2.input.SAXBuilder;
 import org.jdom2.input.sax.XMLReaderJDOMFactory;
