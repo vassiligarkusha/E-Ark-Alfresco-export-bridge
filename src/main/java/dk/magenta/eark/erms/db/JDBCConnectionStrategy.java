@@ -309,19 +309,24 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
      */
     @Override
     public Mapping getMapping(String mappingName) throws SQLException {
+        Mapping mapping;
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
-            Record mapping = db.select().from(Mappings.MAPPINGS)
-                    .where(Mappings.MAPPINGS.NAME.equalIgnoreCase(mappingName))
-                    .fetchOne();
-            return convertToMapping(mapping);
+            mapping = db.transactionResult(configuration -> {
+                Record r = DSL.using(configuration).select().from(Mappings.MAPPINGS)
+                        .where(Mappings.MAPPINGS.NAME.equalIgnoreCase(mappingName))
+                        .fetchOne();
+
+                return this.convertToMapping(r);
+            });
         }
         catch (Exception ge){
             ge.printStackTrace();
+            return Mapping.EMPTY_MAP;
         }
         finally {
             close();
         }
-        return Mapping.EMPTY_MAP;
+        return mapping;
     }
 
     /**
