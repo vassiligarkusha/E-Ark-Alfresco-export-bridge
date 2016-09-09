@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -111,11 +112,12 @@ public class ExtractionWorker {
 			// Get the CMIS types
 			String cmisType = cmisObject.getType().getId();
 			String semanticType = mappingParser.getSemanticTypeFromCmisType(cmisType);
-			
-			// Store the parent path for this current top-level node in the CmisPathHandler
-			
+
+			// Store the parent path for this current top-level node in the
+			// CmisPathHandler
+
 			// Get element for the current node in the exportList
-			Element c = metadataMapper.map(cmisObject, mappingParser.getHooksFromSemanticType(semanticType),
+			Element c = metadataMapper.mapCElement(cmisObject, mappingParser.getHooksFromSemanticType(semanticType),
 					mappingParser.getCElementFromSemanticType(semanticType));
 			eadBuilder.addCElement(c, eadBuilder.getTopLevelElement());
 			// write to EAD
@@ -147,7 +149,7 @@ public class ExtractionWorker {
 			String cmisType = node.getType().getId();
 
 			if (isObjectTypeInSematicStructure(cmisType)) {
-				Element c = metadataMapper.map(node, mappingParser.getHooksFromCmisType(cmisType),
+				Element c = metadataMapper.mapCElement(node, mappingParser.getHooksFromCmisType(cmisType),
 						mappingParser.getCElementFromCmisType(cmisType));
 				eadBuilder.addCElement(c, parent);
 				if (!mappingParser.isLeaf(cmisType)) {
@@ -155,18 +157,30 @@ public class ExtractionWorker {
 						handleNode(children, c);
 					}
 				} else {
-					// Flatten the folder/file structure below here and store the
+					// Flatten the folder/file structure below here and store
+					// the
 					// metadata in <dao> elements
-					
-					// If no children -> remove dao element
-					// Get CMIS path
-					// Make variable (hardcode) containing path to store EAD and files // TODO: fix this
-					
-					
+
+					// If no children -> remove dao element from c element
+					List<Tree<FileableCmisObject>> children = tree.getChildren();
+					if (children.isEmpty()) {
+						metadataMapper.removeDaoElements(c);
+					} else {
+						for (Tree<FileableCmisObject> child : children) {
+							handleLeafNodes(child, c);
+						}
+					}
+
+					// Get CMIS path (e.g. for the "record")
+					// Make variable (hardcode) containing path to store EAD and
+					// files // TODO: fix this
+					// traverse rest of cmis tree
+
 				}
 
 			}
 
+			
 			// Mapping mapping = null;
 			// try {
 			// mapping = dbConnectionStrategy.getMapping("LocalTest");
@@ -177,6 +191,11 @@ public class ExtractionWorker {
 			// System.out.println(mapping.getSyspath());
 		}
 	}
+	
+	private void handleLeafNodes(Tree<FileableCmisObject> tree, Element parent) {
+		
+	}
+
 
 	private boolean isObjectTypeInSematicStructure(String objectTypeId) {
 		Set<String> cmisObjectTypes = mappingParser.getObjectTypes().getAllCmisTypes();
