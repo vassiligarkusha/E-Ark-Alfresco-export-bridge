@@ -131,6 +131,7 @@ public class ExtractionWorker {
 			}
 		}
 
+		// For debugging
 		eadBuilder.writeXml("/tmp/ead.xml");
 
 		builder.add(Constants.SUCCESS, true);
