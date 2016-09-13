@@ -138,7 +138,6 @@ public class RepositoryResource {
 
             try {
                 CmisSessionWorker cmisSessionWorker = this.getSessionWorker(profileName, mapName);
-                String objTest =  objectSetToQueryString(mapObjectTypes.get(mapName));
 
                 //Build the json for the repository info
                 builder.add("folder", cmisSessionWorker.getFolder(folderObjectId, mapObjectTypes.get(mapName)));
@@ -264,25 +263,5 @@ public class RepositoryResource {
             logger.error("Unable to create session worker due to: " + ge.getMessage());
             throw new ErmsRuntimeException(ge.getMessage());
         }
-    }
-
-    /**
-     * Reduces the set of string to a single string to use in the CMIS query. So the resulting string looks like
-     * cmis:A, cmis:B, cmis:...., cmis:document
-     * @param objectSet
-     * @return
-     */
-    private String objectSetToQueryString(Set<String> objectSet){
-        String result ="";
-        result = objectSet.stream().map(t -> {
-            if (StringUtils.countMatches(t, ":") >= 2) {
-                /*StringBuilder tmp = new StringBuilder(t);
-                tmp.insert(StringUtils.indexOf(t,":"), "\\");*/
-                return StringUtils.substringAfter(t, ":");
-            } else return t;
-
-        }).reduce("", (acc, item) -> acc + "cmis:objectTypeId = \'" + item + "\' OR ");
-        result += "cmis:objectTypeId = \'cmis:folder\'";
-        return result;
     }
 }

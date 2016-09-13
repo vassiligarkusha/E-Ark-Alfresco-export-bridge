@@ -1,11 +1,10 @@
 package dk.magenta.eark.erms.ead;
 
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
+import dk.magenta.eark.erms.Constants;
+import dk.magenta.eark.erms.exceptions.ErmsIOException;
+import dk.magenta.eark.erms.mappings.MapWorker;
+import dk.magenta.eark.erms.mappings.MapWorkerImpl;
+import dk.magenta.eark.erms.mappings.Mapping;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
