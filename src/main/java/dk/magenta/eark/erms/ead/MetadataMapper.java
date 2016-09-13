@@ -33,6 +33,7 @@ public class MetadataMapper {
 
 			findXmlNodeAndInsertCmisData(xpath, value, clone);
 		}
+		clone.setNamespace(ead);
 		return clone;
 	}
 	
@@ -43,12 +44,12 @@ public class MetadataMapper {
 	 * @param c the leaf node that should contain the dao element
 	 * @return the CMIS data filled out dao element
 	 */
-	public Element mapDaoElement(CmisObject cmisObj, List<Hook> hooks, Element c, Path filePath) {
-		// The c element MUST contain a dao element
+	public Element mapDaoElement(CmisObject cmisObj, List<Hook> hooks, Element c, String filePath) {
+		// The c element MUST contain exactly one dao element
 		Element clone = c.clone();
 		for (Hook hook : hooks) {
 			String xpath = hook.getXpath();
-			// This may break if there is also daoset elements
+			// This may break if there are also daoset elements
 			if (xpath.contains("dao")) {
 				String cmisPropertyId = hook.getCmisPropertyId();
 				String value = cmisObj.getProperty(cmisPropertyId).getValueAsString();
@@ -57,8 +58,9 @@ public class MetadataMapper {
 			}
 		}
 		Element dao = MappingUtils.extractElements(clone, "dao", ead).get(0).clone();
+		dao.setAttribute("href", filePath);
 		
-		return dao;
+		return dao.clone();
 	}
 	
 	public void removeDaoElements(Element c) {

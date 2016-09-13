@@ -42,6 +42,11 @@ public class EadBuilder {
 		parent.addContent(c);
 	}
 	
+	public void addDaoElement(Element dao, Element parentCElement) {
+		Element did = parentCElement.getChild("did", eadNs);
+		did.addContent(dao);
+	}
+	
 	public Element getTopLevelElement() {
 		return topLevelElement;
 	}
