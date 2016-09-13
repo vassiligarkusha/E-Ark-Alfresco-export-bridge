@@ -26,12 +26,14 @@ public class MappingParser {
 	private Namespace mappingNamespace;
 	private Document mappingDocument;
 	private XmlHandler xmlHandler;
+	private List<String> viewTypes;
 
 	public MappingParser(String mappingId, InputStream in) {
 		this.mappingId = mappingId;
 		mappingNamespace = Namespace.getNamespace(Constants.MAPPING_NAMESPACE);
 		xmlHandler = new XmlHandlerImpl();
 		buildMappingDocument(in);
+		getViewTypes();
 	}
 
 	/**
@@ -66,6 +68,20 @@ public class MappingParser {
 			objectTypeMap.addObjectType(semanticType, cmisType, leaf);
 		}
 		return objectTypeMap;
+	}
+	
+	
+	public List<String> getViewTypes() {
+		if (this.viewTypes != null) {
+			return this.viewTypes;
+		}
+		this.viewTypes = new LinkedList<String>();
+		List<Element> viewTypes = MappingUtils.extractElements(mappingDocument, "viewType", mappingNamespace);
+		for (Element viewType : viewTypes) {
+			this.viewTypes.add(viewType.getTextTrim());
+		}
+		System.out.println(this.viewTypes);
+		return this.viewTypes;
 	}
 
 	/**

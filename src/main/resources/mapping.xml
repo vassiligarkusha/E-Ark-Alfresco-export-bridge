@@ -10,6 +10,14 @@
  		<objectType id="record" leaf="true">F:eark:record</objectType>
 	</objectTypes>
 
+	<!-- The viewTypes are the CMIS object types that should be reflected by the frontend viewer -->
+	<viewTypes>
+		<viewType>F:eark:series</viewType>
+		<viewType>F:eark:subseries</viewType>
+		<viewType>F:eark:record</viewType>
+		<viewType>cmis:document</viewType>
+	</viewTypes>
+
 	<eadTemplates>
 		<template id="series">
 			<hooks>

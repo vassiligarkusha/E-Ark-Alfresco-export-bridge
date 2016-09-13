@@ -10,6 +10,7 @@
 	<complexType name="mapping_type">
 		<sequence>
 			<element ref="map:objectTypes" />
+			<element ref="map:viewTypes" />
 			<element ref="map:eadTemplates" />
 		</sequence>
 	</complexType>
@@ -30,6 +31,15 @@
 			</extension>
 		</simpleContent>
 	</complexType>
+
+	<element name="viewTypes" type="map:view_types"/>
+	<complexType name="view_types">
+		<sequence>
+			<element ref="map:viewType" maxOccurs="unbounded"/>
+		</sequence>
+	</complexType>
+
+	<element name="viewType" type="string"/>
 
 	<element name="eadTemplates" type="map:eadtemplates_type" />
 	<complexType name="eadtemplates_type">
