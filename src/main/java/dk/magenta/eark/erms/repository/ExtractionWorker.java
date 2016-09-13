@@ -19,6 +19,7 @@ import org.apache.chemistry.opencmis.client.api.FileableCmisObject;
 import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.api.Tree;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 
@@ -193,8 +194,11 @@ public class ExtractionWorker {
 		}
 	}
 	
-	private void handleLeafNodes(Tree<FileableCmisObject> tree, Element parent) {
-		
+	private void handleLeafNodes(Tree<FileableCmisObject> tree, Element semanticLeaf) {
+		CmisObject cmisObject = tree.getItem();
+		if (cmisObject.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
+			// MetadataMapper.addDaoElement(CmisObject cmisObject, Element semanticLeaf);
+		}
 	}
 
 
