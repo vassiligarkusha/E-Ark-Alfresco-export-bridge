@@ -1,8 +1,9 @@
 package dk.magenta.eark.erms.repository;
 
-import dk.magenta.eark.erms.*;
+import dk.magenta.eark.erms.Constants;
 import dk.magenta.eark.erms.db.DatabaseConnectionStrategy;
 import dk.magenta.eark.erms.db.JDBCConnectionStrategy;
+import dk.magenta.eark.erms.ead.MappingParser;
 import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
 import dk.magenta.eark.erms.json.JsonUtils;
 import dk.magenta.eark.erms.repository.profiles.Profile;
@@ -19,6 +20,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.net.URLDecoder;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author lanre.
@@ -27,13 +31,14 @@ import java.sql.SQLException;
 
 @Path("repository")
 public class RepositoryResource {
+    private final Logger logger = LoggerFactory.getLogger(RepositoryResource.class);
+    private static Map<String, Set<String>> mapObjectTypes = new HashMap<>();
+    private Cmis1Connector cmis1Connector;
+    private DatabaseConnectionStrategy dbConnectionStrategy;
+
     public static final String FOLDER_OBJECT_ID = "folderObjectId";
     public static final String DOCUMENT_OBJECT_ID = "documentObjectId";
     public static final String MAP_NAME = "mapName";
-
-    private final Logger logger = LoggerFactory.getLogger(RepositoryResource.class);
-    private Cmis1Connector cmis1Connector;
-    private DatabaseConnectionStrategy dbConnectionStrategy;
 
     public RepositoryResource() {
 
@@ -133,9 +138,10 @@ public class RepositoryResource {
 
             try {
                 CmisSessionWorker cmisSessionWorker = this.getSessionWorker(profileName, mapName);
+                String objTest =  objectSetToQueryString(mapObjectTypes.get(mapName));
 
                 //Build the json for the repository info
-                builder.add("folder", cmisSessionWorker.getFolder(folderObjectId));
+                builder.add("folder", cmisSessionWorker.getFolder(folderObjectId, mapObjectTypes.get(mapName)));
 
             } catch (Exception e) {
                 builder.add(Constants.SUCCESS, false);
@@ -241,6 +247,12 @@ public class RepositoryResource {
      */
     private CmisSessionWorker getSessionWorker(String profileName, String mapName){
         try{
+            //First let's see if we have the cmis object types already saved in the set
+            if(!mapObjectTypes.containsKey(mapName)){
+                MappingParser mappingParser = new MappingParser(mapName);
+                mapObjectTypes.put(mapName,mappingParser.getObjectTypeFromMap());
+            }
+
             //Retrieve the connection profile
             Profile connProfile = this.dbConnectionStrategy.getProfile(profileName);
             //Get a CMIS session object
@@ -252,5 +264,25 @@ public class RepositoryResource {
             logger.error("Unable to create session worker due to: " + ge.getMessage());
             throw new ErmsRuntimeException(ge.getMessage());
         }
+    }
+
+    /**
+     * Reduces the set of string to a single string to use in the CMIS query. So the resulting string looks like
+     * cmis:A, cmis:B, cmis:...., cmis:document
+     * @param objectSet
+     * @return
+     */
+    private String objectSetToQueryString(Set<String> objectSet){
+        String result ="";
+        result = objectSet.stream().map(t -> {
+            if (StringUtils.countMatches(t, ":") >= 2) {
+                /*StringBuilder tmp = new StringBuilder(t);
+                tmp.insert(StringUtils.indexOf(t,":"), "\\");*/
+                return StringUtils.substringAfter(t, ":");
+            } else return t;
+
+        }).reduce("", (acc, item) -> acc + "cmis:objectTypeId = \'" + item + "\' OR ");
+        result += "cmis:objectTypeId = \'cmis:folder\'";
+        return result;
     }
 }

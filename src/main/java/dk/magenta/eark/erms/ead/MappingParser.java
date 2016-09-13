@@ -1,22 +1,21 @@
 package dk.magenta.eark.erms.ead;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
+import dk.magenta.eark.erms.Constants;
+import dk.magenta.eark.erms.exceptions.ErmsIOException;
+import dk.magenta.eark.erms.mappings.MapWorker;
+import dk.magenta.eark.erms.mappings.MapWorkerImpl;
+import dk.magenta.eark.erms.mappings.Mapping;
 import org.jdom2.Document;
 import org.jdom2.Element;
-import org.jdom2.JDOMException;
 import org.jdom2.Namespace;
 import org.jdom2.filter.ElementFilter;
 import org.jdom2.filter.Filter;
-import org.jdom2.input.SAXBuilder;
 
-import dk.magenta.eark.erms.Constants;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * 
@@ -33,7 +32,21 @@ public class MappingParser {
 	private Document mappingDocument;
 	private XmlHandler xmlHandler;
 
-	
+	public MappingParser(String mappingId) {
+		this.mappingId = mappingId;
+        MapWorker mapWorker = new MapWorkerImpl();
+        Mapping map = mapWorker.getMappingObject(mappingId);
+        mappingNamespace = Namespace.getNamespace(Constants.MAPPING_NAMESPACE);
+        xmlHandler = new XmlHandlerImpl();
+        try {
+            FileInputStream tmpFile = new FileInputStream(map.getSyspath());
+            buildMappingDocument(new BufferedInputStream(tmpFile));
+        }
+        catch(FileNotFoundException fnfe){
+            throw new ErmsIOException("Unable to find the mapping file. Check that: "+map.getSyspath() +" exists");
+        }
+	}
+
 	public MappingParser(String mappingId, InputStream in) {
 		this.mappingId = mappingId;
 		mappingNamespace = Namespace.getNamespace(Constants.MAPPING_NAMESPACE);
@@ -137,11 +150,14 @@ public class MappingParser {
 		String semanticType = getObjectTypes().getSemanticTypeFromCmisType(cmisType);
 		return getCElementFromSemanticType(semanticType);
 	}
-	
-//	public ObjectTypeMap getObjectTypeMap() {
-//		return objectTypeMap;
-//	}
 
+    /**
+     * Returns the set of all the cmis types defined in the mapping.xml document
+     * @return
+     */
+	public Set<String> getObjectTypeFromMap() {
+        return getObjectTypes().getAllCmisTypes();
+	}
 	
 	public String getMappingId() {
 		return mappingId;

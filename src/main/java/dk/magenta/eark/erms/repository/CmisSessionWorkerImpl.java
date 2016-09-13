@@ -6,26 +6,31 @@ import dk.magenta.eark.erms.exceptions.ErmsIOException;
 import dk.magenta.eark.erms.exceptions.ErmsNotSupportedException;
 import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
 import org.apache.chemistry.opencmis.client.api.*;
-import org.apache.chemistry.opencmis.commons.data.ObjectData;
-import org.apache.chemistry.opencmis.commons.data.ObjectInFolderData;
-import org.apache.chemistry.opencmis.commons.data.RepositoryCapabilities;
-import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
+import org.apache.chemistry.opencmis.commons.data.*;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
 import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
 import org.apache.chemistry.opencmis.commons.spi.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.json.*;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
  * @author lanre.
  */
 public class CmisSessionWorkerImpl implements CmisSessionWorker {
+    private final Logger logger = LoggerFactory.getLogger(CmisSessionWorkerImpl.class);
     private Session session;
     private ObjectFactory objectFactory;
     private OperationContext operationContext;
@@ -185,6 +190,76 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
     public CmisObject getFolderParent(String folderObjectId) {
         ObjectData parent_ = getNavigationService().getFolderParent(this.session.getRepositoryInfo().getId(),folderObjectId, null, null);
         return this.objectFactory.convertObject(parent_, this.operationContext);
+    }
+
+    /**
+     * Returns a filtered view of the folder by restricting the returned types to the list of types defined in the
+     * second parameter.
+     * @param folderObjectId The object id of the folder we're interested in
+     * @param typeList The list of types flattened to a string like "cmis:folder, cmis:document, custom:type"
+     * @return Json object that represents the folder
+     */
+    @Override
+    public JsonObject getFolder(String folderObjectId, Set<String> typeList) {
+        JsonObjectBuilder folderBuilder = Json.createObjectBuilder();
+        ExecutorService executorService = Executors.newSingleThreadExecutor();
+        try {
+            Folder folder = (Folder) this.session.getObject(folderObjectId);
+            List<CmisObject> children = new ArrayList<>();
+
+            //Thread 1 search for folders
+            executorService.submit(() -> {
+                String threadName = Thread.currentThread().getName();
+                System.out.println("Running thread for folders with name: " + threadName);
+                String queryStatement = "SELECT cmis:objectTypeId, cmis:objectId FROM cmis:folder WHERE IN_FOLDER ('"+ folderObjectId + "')";
+                ItemIterable<QueryResult> q = this.session.query(queryStatement, false);
+                //TODO refactor. This is an adapted copy of getFolder hacked to marshal the resulting query in children listqq
+                for(QueryResult qr : q){
+                    String typeData = qr.getPropertyByQueryName("cmis:objectTypeId").getFirstValue().toString();
+                    if(typeList.contains(typeData)) {
+                        String objectId = qr.getPropertyByQueryName("cmis:objectId").getFirstValue().toString();
+                        CmisObject obj = this.session.getObject(this.session.createObjectId(objectId));
+                        children.add(obj);
+                    }
+                }
+            });
+            //Thread 2 search for documents next
+            executorService.submit(() -> {
+                String threadName = Thread.currentThread().getName();
+                System.out.println("Running thread for documents with name: " + threadName);
+                String queryStatement = "SELECT cmis:objectTypeId, cmis:objectId FROM cmis:document " +
+                        "WHERE IN_FOLDER ('"+ folderObjectId + "')";
+                ItemIterable<QueryResult> q = this.session.query(queryStatement, false);
+                //TODO refactor. This is an adapted copy of getFolder hacked to marshal the resulting query in children listqq
+                for(QueryResult qr : q){
+                    String typeData = qr.getPropertyByQueryName("cmis:objectTypeId").getFirstValue().toString();
+                    if(typeList.contains(typeData)) {
+                        String objectId = qr.getPropertyByQueryName("cmis:objectId").getFirstValue().toString();
+                        CmisObject obj = this.session.getObject(this.session.createObjectId(objectId));
+                        children.add(obj);
+                    }
+                }
+            });
+
+            executorService.shutdown();
+            //Wait a reasonable amount of time for thread to finish
+            executorService.awaitTermination(20, TimeUnit.SECONDS);
+
+            List<JsonObject> jsonRep = children.stream().map(this::extractUsefulProperties).collect(Collectors.toList());
+            JsonArrayBuilder cb = Json.createArrayBuilder();
+            JsonObject tmp = this.extractUsefulProperties(folder);
+            jsonRep.forEach(cb::add);
+            folderBuilder.add("properties", tmp);
+            folderBuilder.add("children", cb.build());
+        } catch (InterruptedException e) {
+            System.err.println("Some threads took too long to complete when listing folder items");
+            logger.warn("=====> WARNING: prematurely terminated thread when attempting to list folder objects for " +
+                    "folder: "+folderObjectId);
+        }
+        finally {
+            executorService.shutdownNow();
+        }
+        return folderBuilder.build();
     }
 
     /**
