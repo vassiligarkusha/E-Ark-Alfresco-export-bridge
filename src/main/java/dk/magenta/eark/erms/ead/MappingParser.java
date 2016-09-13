@@ -33,7 +33,7 @@ public class MappingParser {
 		mappingNamespace = Namespace.getNamespace(Constants.MAPPING_NAMESPACE);
 		xmlHandler = new XmlHandlerImpl();
 		buildMappingDocument(in);
-		getViewTypes();
+	
 	}
 
 	/**
@@ -80,7 +80,6 @@ public class MappingParser {
 		for (Element viewType : viewTypes) {
 			this.viewTypes.add(viewType.getTextTrim());
 		}
-		System.out.println(this.viewTypes);
 		return this.viewTypes;
 	}
 
