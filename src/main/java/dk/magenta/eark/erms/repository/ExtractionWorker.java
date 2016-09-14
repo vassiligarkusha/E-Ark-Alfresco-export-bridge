@@ -211,14 +211,13 @@ public class ExtractionWorker {
 		
 		CmisObject cmisObject = tree.getItem();
 		String cmisType = cmisObject.getType().getId();
-		// System.out.println(cmisObject.getName() + " parentPath=" + parentPath);
 		
 		// Determine the path to the file...
 		String pathToParentFolder = cmisPathHandler.getRelativePath(parentPath);
-		String pathToNode = pathToParentFolder + "/" + cmisObject.getName();
-		System.out.println("parent=" + pathToParentFolder + " node=" + pathToNode);
 		
 		if (cmisObject.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
+
+			String pathToNode = pathToParentFolder + "/" + cmisObject.getName();
 
 			// Create <dao> element
 			Element dao = metadataMapper.mapDaoElement(cmisObject,
@@ -231,10 +230,9 @@ public class ExtractionWorker {
 				removeFirstDaoElement = false;
 			}
 			eadBuilder.addDaoElement(dao, semanticLeaf);
-			// System.out.println("cmis:document done");
 
 		} else if (cmisObject.getBaseTypeId().equals(BaseTypeId.CMIS_FOLDER)) {
-			System.out.println("CmisType FOLDER");
+			String pathToNode = ((Folder) cmisObject).getPath();
 			for (Tree<FileableCmisObject> child : tree.getChildren()) {
 				handleLeafNodes(child, semanticLeaf, semanticLeafCmisType, pathToNode);
 			}
