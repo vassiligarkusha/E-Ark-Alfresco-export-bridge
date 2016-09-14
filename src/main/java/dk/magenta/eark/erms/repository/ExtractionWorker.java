@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -37,6 +39,7 @@ public class ExtractionWorker {
 	private MappingParser mappingParser;
 	private MetadataMapper metadataMapper;
 	private EadBuilder eadBuilder;
+	private FileExtractor fileExtractor;
 	private Set<String> excludeList;
 	private CmisPathHandler cmisPathHandler;
 	private boolean removeFirstDaoElement;
@@ -84,6 +87,9 @@ public class ExtractionWorker {
 			this.excludeList.add(excludeList.getString(i));
 		}
 
+		// Get the exportPath and create the FileExtractor
+		fileExtractor = new FileExtractor(Paths.get(json.getString(Constants.EXPORT_PATH)), session);
+		
 		// Create EadBuilder
 		try {
 			// TODO: change this! - uploading of the EAD template should be
@@ -229,6 +235,16 @@ public class ExtractionWorker {
 					removeFirstDaoElement = false;
 				}
 				eadBuilder.addDaoElement(dao, semanticLeaf);
+				
+				// Extract the file contents
+//				Path filePath = Paths.get(pathToNode);
+//				try {
+//					fileExtractor.writeCmisDocument(filePath, cmisObjectTypeId);
+//				} catch (IOException e) {
+//					// TODO: create JSON
+//					e.printStackTrace();
+//				}
+								
 
 			} else if (node.getBaseTypeId().equals(BaseTypeId.CMIS_FOLDER)) {
 				String pathToNode = ((Folder) node).getPath();

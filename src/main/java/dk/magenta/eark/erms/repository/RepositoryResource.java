@@ -1,16 +1,12 @@
 package dk.magenta.eark.erms.repository;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.net.URLDecoder;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.Set;
-import java.util.TreeSet;
 
 import javax.json.Json;
-import javax.json.JsonArray;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import javax.ws.rs.Consumes;
@@ -21,11 +17,7 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.client.api.FileableCmisObject;
-import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.chemistry.opencmis.client.api.Tree;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +29,6 @@ import dk.magenta.eark.erms.ead.EadBuilder;
 import dk.magenta.eark.erms.ead.MappingParser;
 import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
 import dk.magenta.eark.erms.json.JsonUtils;
-import dk.magenta.eark.erms.mappings.Mapping;
 import dk.magenta.eark.erms.repository.profiles.Profile;
 import dk.magenta.eark.erms.system.PropertiesHandlerImpl;
 
@@ -227,16 +218,18 @@ public class RepositoryResource {
 		// argument...
 
 		// Check if the mandatory keys are in the request JSON
-		String[] mandatoryJsonKeys = { Profile.NAME, Constants.MAP_NAME, Constants.EXPORT_LIST,
-				Constants.EXCLUDE_LIST };
+		String[] mandatoryJsonKeys = { Profile.NAME, Constants.MAP_NAME, Constants.EXPORT_LIST, Constants.EXCLUDE_LIST,
+				Constants.EXPORT_PATH };
 		if (!JsonUtils.containsCorrectKeys(json, mandatoryJsonKeys)) {
 			JsonUtils.addKeyErrorMessage(builder, mandatoryJsonKeys);
 			return builder.build();
 		}
 
-		// Check that the profile name and the mapping name are not blank
+		// Check that the profile name, the mapping name and the export path are
+		// not blank
 		if (!StringUtils.isNotBlank(json.getString(Profile.NAME))
-				|| !StringUtils.isNotBlank(json.getString(Constants.MAP_NAME))) {
+				|| !StringUtils.isNotBlank(json.getString(Constants.MAP_NAME))
+				|| !StringUtils.isNotBlank(json.getString(Constants.EXPORT_PATH))) {
 			builder.add(Constants.SUCCESS, false);
 			builder.add(Constants.ERRORMSG, "Blank values are not allowed in the request JSON");
 			return builder.build();
@@ -253,6 +246,14 @@ public class RepositoryResource {
 			JsonUtils.addArrayErrorMessage(builder, Constants.EXCLUDE_LIST);
 			return builder.build();
 		}
+		
+		// Check if the exportPath is writeable
+		 java.nio.file.Path exportPath = Paths.get(json.getString(Constants.EXPORT_PATH));
+		 if (!Files.isWritable(exportPath)) {
+			 JsonUtils.addErrorMessage(builder, exportPath.toString() + " is not writeable");
+			 return builder.build();
+		 }
+		
 
 		// Everything OK in the request JSON - begin extraction
 
@@ -260,12 +261,7 @@ public class RepositoryResource {
 		JsonObject result = extractionWorker.extract();
 
 		return result;
-
-
-//		builder.add("foo", "bar");
-//		return builder.build();
 	}
-
 
 	/**
 	 * Returns a cmis session worker instance given a profile name
