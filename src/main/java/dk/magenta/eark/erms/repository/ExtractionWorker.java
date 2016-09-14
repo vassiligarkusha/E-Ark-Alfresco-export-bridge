@@ -120,7 +120,13 @@ public class ExtractionWorker {
 			// Store the parent path for this current top-level node in the
 			// CmisPathHandler
 			Folder cmisFolder = (Folder) cmisObject;
-			cmisPathHandler = new CmisPathHandler(cmisFolder.getPath());
+			String folderPath;
+			if (cmisFolder.isRootFolder()) {
+				folderPath = cmisFolder.getPath();
+			} else {
+				folderPath = cmisFolder.getFolderParent().getPath();
+			}
+			cmisPathHandler = new CmisPathHandler(folderPath);
 
 			// Get element for the current node in the exportList and write to
 			// EAD
@@ -202,17 +208,21 @@ public class ExtractionWorker {
 
 	private void handleLeafNodes(Tree<FileableCmisObject> tree, Element semanticLeaf, String semanticLeafCmisType,
 			String parentPath) {
+		
 		CmisObject cmisObject = tree.getItem();
 		String cmisType = cmisObject.getType().getId();
+		// System.out.println(cmisObject.getName() + " parentPath=" + parentPath);
+		
+		// Determine the path to the file...
+		String pathToParentFolder = cmisPathHandler.getRelativePath(parentPath);
+		String pathToNode = pathToParentFolder + "/" + cmisObject.getName();
+		System.out.println("parent=" + pathToParentFolder + " node=" + pathToNode);
+		
 		if (cmisObject.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
-
-			// Determine the path to the file...
-			String pathToParent = cmisPathHandler.getRelativePath(parentPath);
-			String pathToFile = pathToParent + "/" + cmisObject.getName();
 
 			// Create <dao> element
 			Element dao = metadataMapper.mapDaoElement(cmisObject,
-					mappingParser.getHooksFromCmisType(semanticLeafCmisType), semanticLeaf, pathToFile);
+					mappingParser.getHooksFromCmisType(semanticLeafCmisType), semanticLeaf, pathToNode);
 			// MappingUtils.printElement(dao);
 
 			// Insert <dao> element into <c> element
@@ -221,9 +231,13 @@ public class ExtractionWorker {
 				removeFirstDaoElement = false;
 			}
 			eadBuilder.addDaoElement(dao, semanticLeaf);
+			// System.out.println("cmis:document done");
 
 		} else if (cmisObject.getBaseTypeId().equals(BaseTypeId.CMIS_FOLDER)) {
-
+			System.out.println("CmisType FOLDER");
+			for (Tree<FileableCmisObject> child : tree.getChildren()) {
+				handleLeafNodes(child, semanticLeaf, semanticLeafCmisType, pathToNode);
+			}
 		} else {
 			// Not handled...
 		}
