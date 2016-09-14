@@ -207,33 +207,37 @@ public class ExtractionWorker {
 
 	private void handleLeafNodes(Tree<FileableCmisObject> tree, Element semanticLeaf, String semanticLeafCmisType,
 			String parentPath) {
-		
-		CmisObject cmisObject = tree.getItem();
-		
-		if (cmisObject.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
-			String pathToParentFolder = cmisPathHandler.getRelativePath(parentPath);
-			String pathToNode = pathToParentFolder + "/" + cmisObject.getName();
 
-			// Create <dao> element
-			Element dao = metadataMapper.mapDaoElement(cmisObject,
-					mappingParser.getHooksFromCmisType(semanticLeafCmisType), semanticLeaf, pathToNode);
-			// MappingUtils.printElement(dao);
+		CmisObject node = tree.getItem();
+		String cmisObjectTypeId = node.getId();
 
-			// Insert <dao> element into <c> element
-			if (removeFirstDaoElement) {
-				// The first <dao> element is the one from the template - must be removed
-				metadataMapper.removeDaoElements(semanticLeaf);
-				removeFirstDaoElement = false;
+		if (!excludeList.contains(cmisObjectTypeId)) {
+			if (node.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
+				String pathToParentFolder = cmisPathHandler.getRelativePath(parentPath);
+				String pathToNode = pathToParentFolder + "/" + node.getName();
+
+				// Create <dao> element
+				Element dao = metadataMapper.mapDaoElement(node,
+						mappingParser.getHooksFromCmisType(semanticLeafCmisType), semanticLeaf, pathToNode);
+				// MappingUtils.printElement(dao);
+
+				// Insert <dao> element into <c> element
+				if (removeFirstDaoElement) {
+					// The first <dao> element is the one from the template -
+					// must be removed
+					metadataMapper.removeDaoElements(semanticLeaf);
+					removeFirstDaoElement = false;
+				}
+				eadBuilder.addDaoElement(dao, semanticLeaf);
+
+			} else if (node.getBaseTypeId().equals(BaseTypeId.CMIS_FOLDER)) {
+				String pathToNode = ((Folder) node).getPath();
+				for (Tree<FileableCmisObject> child : tree.getChildren()) {
+					handleLeafNodes(child, semanticLeaf, semanticLeafCmisType, pathToNode);
+				}
+			} else {
+				// Not handled...
 			}
-			eadBuilder.addDaoElement(dao, semanticLeaf);
-
-		} else if (cmisObject.getBaseTypeId().equals(BaseTypeId.CMIS_FOLDER)) {
-			String pathToNode = ((Folder) cmisObject).getPath();
-			for (Tree<FileableCmisObject> child : tree.getChildren()) {
-				handleLeafNodes(child, semanticLeaf, semanticLeafCmisType, pathToNode);
-			}
-		} else {
-			// Not handled...
 		}
 	}
 
