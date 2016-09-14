@@ -26,7 +26,6 @@ import org.jdom2.JDOMException;
 import dk.magenta.eark.erms.Constants;
 import dk.magenta.eark.erms.ead.EadBuilder;
 import dk.magenta.eark.erms.ead.MappingParser;
-import dk.magenta.eark.erms.ead.MappingUtils;
 import dk.magenta.eark.erms.ead.MetadataMapper;
 import dk.magenta.eark.erms.json.JsonUtils;
 
@@ -210,13 +209,9 @@ public class ExtractionWorker {
 			String parentPath) {
 		
 		CmisObject cmisObject = tree.getItem();
-		String cmisType = cmisObject.getType().getId();
-		
-		// Determine the path to the file...
-		String pathToParentFolder = cmisPathHandler.getRelativePath(parentPath);
 		
 		if (cmisObject.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
-
+			String pathToParentFolder = cmisPathHandler.getRelativePath(parentPath);
 			String pathToNode = pathToParentFolder + "/" + cmisObject.getName();
 
 			// Create <dao> element
@@ -226,6 +221,7 @@ public class ExtractionWorker {
 
 			// Insert <dao> element into <c> element
 			if (removeFirstDaoElement) {
+				// The first <dao> element is the one from the template - must be removed
 				metadataMapper.removeDaoElements(semanticLeaf);
 				removeFirstDaoElement = false;
 			}
