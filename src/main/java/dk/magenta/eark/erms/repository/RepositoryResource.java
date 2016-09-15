@@ -1,14 +1,9 @@
 package dk.magenta.eark.erms.repository;
 
 import dk.magenta.eark.erms.Constants;
-import dk.magenta.eark.erms.db.DatabaseConnectionStrategy;
-import dk.magenta.eark.erms.db.JDBCConnectionStrategy;
-import dk.magenta.eark.erms.ead.MappingParser;
 import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
 import dk.magenta.eark.erms.json.JsonUtils;
 import dk.magenta.eark.erms.repository.profiles.Profile;
-import dk.magenta.eark.erms.system.PropertiesHandlerImpl;
-import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,10 +14,8 @@ import javax.json.JsonObjectBuilder;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.net.URLDecoder;
-import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author lanre.
@@ -32,23 +25,13 @@ import java.util.Set;
 @Path("repository")
 public class RepositoryResource {
     private final Logger logger = LoggerFactory.getLogger(RepositoryResource.class);
-    private static Map<String, Set<String>> mapObjectTypes = new HashMap<>();
-    private Cmis1Connector cmis1Connector;
-    private DatabaseConnectionStrategy dbConnectionStrategy;
+    private static Map<String, CmisSessionWorker> connectionPool = new HashMap<>();
 
     public static final String FOLDER_OBJECT_ID = "folderObjectId";
     public static final String DOCUMENT_OBJECT_ID = "documentObjectId";
     public static final String MAP_NAME = "mapName";
 
-    public RepositoryResource() {
-
-        try {
-            this.cmis1Connector = new Cmis1Connector();
-            this.dbConnectionStrategy = new JDBCConnectionStrategy(new PropertiesHandlerImpl("settings.properties"));
-        } catch (SQLException sqe) {
-            System.out.println("====> Error <====\nUnable to acquire db resource due to: " + sqe.getMessage());
-        }
-    }
+    public RepositoryResource() {}
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
@@ -63,7 +46,7 @@ public class RepositoryResource {
 
             try {
                 //Get a session worker
-                CmisSessionWorker sessionWorker =this.getSessionWorker(profileName, mapName);
+                CmisSessionWorker sessionWorker = this.getSessionWorker(profileName, mapName);
 
                 //Build the json for the repository info
                 response = sessionWorker.getRepositoryInfo();
@@ -140,7 +123,7 @@ public class RepositoryResource {
                 CmisSessionWorker cmisSessionWorker = this.getSessionWorker(profileName, mapName);
 
                 //Build the json for the repository info
-                builder.add("folder", cmisSessionWorker.getFolder(folderObjectId, mapObjectTypes.get(mapName)));
+                builder.add("folder", cmisSessionWorker.getFolder(folderObjectId));
 
             } catch (Exception e) {
                 builder.add(Constants.SUCCESS, false);
@@ -245,23 +228,15 @@ public class RepositoryResource {
      * @return
      */
     private CmisSessionWorker getSessionWorker(String profileName, String mapName){
+        String connectionKey = profileName +"_"+mapName;
         try{
-            //First let's see if we have the cmis object types already saved in the set
-            if(!mapObjectTypes.containsKey(mapName)){
-                MappingParser mappingParser = new MappingParser(mapName);
-                mapObjectTypes.put(mapName,mappingParser.getObjectTypeFromMap());
-            }
-
-            //Retrieve the connection profile
-            Profile connProfile = this.dbConnectionStrategy.getProfile(profileName);
-            //Get a CMIS session object
-            Session repoSession = this.cmis1Connector.getSession(connProfile);
-            //Instantiate a session worker
-            return new CmisSessionWorkerImpl(repoSession);
+            if(!connectionPool.containsKey(connectionKey))
+                connectionPool.put(connectionKey, new CmisSessionWorkerImpl(profileName, mapName));
         }
         catch(Exception ge){
             logger.error("Unable to create session worker due to: " + ge.getMessage());
             throw new ErmsRuntimeException(ge.getMessage());
         }
+        return connectionPool.get(connectionKey);
     }
 }

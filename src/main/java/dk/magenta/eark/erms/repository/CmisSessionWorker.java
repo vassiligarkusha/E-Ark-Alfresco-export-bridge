@@ -6,7 +6,6 @@ import org.apache.chemistry.opencmis.commons.spi.*;
 
 import javax.json.JsonObject;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author lanre.
@@ -104,25 +103,14 @@ public interface CmisSessionWorker {
     List<CmisObject> getFolderChildren(String folderObjectId);
 
     /**
-     * returns the properties of a folder and its children
-     *
+     * Returns a filtered view of the folder by restricting the returned types to the list of types defined in the mapping file.
+     * @param folderObjectId The object id of the folder we're interested in
      * @return Json object that represents the folder
      */
     JsonObject getFolder(String folderObjectId);
 
     /**
-     * Returns a filtered view of the folder by restricting the returned types to the list of types defined in the
-     * second parameter.
-     * @param folderObjectId The object id of the folder we're interested in
-     * @param typeList The list of types flattened to a string like "cmis:folder, cmis:document, custom:type"
-     * @return Json object that represents the folder
-     */
-    JsonObject getFolder(String folderObjectId, Set<String> typeList);
-//    JsonObject getFolder(String folderObjectId, String typeList);
-
-    /**
-     * returns the root folder
-     *
+     * Returns the root folder
      * @return
      */
     public JsonObject getRootFolder();

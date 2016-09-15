@@ -2,11 +2,19 @@ package dk.magenta.eark.erms.repository;
 
 import dk.magenta.eark.erms.ErmsBaseTypes;
 import dk.magenta.eark.erms.Utils;
+import dk.magenta.eark.erms.db.DatabaseConnectionStrategy;
+import dk.magenta.eark.erms.db.JDBCConnectionStrategy;
+import dk.magenta.eark.erms.ead.MappingParser;
+import dk.magenta.eark.erms.exceptions.ErmsDatabaseException;
 import dk.magenta.eark.erms.exceptions.ErmsIOException;
 import dk.magenta.eark.erms.exceptions.ErmsNotSupportedException;
-import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
+import dk.magenta.eark.erms.repository.profiles.Profile;
+import dk.magenta.eark.erms.system.PropertiesHandlerImpl;
 import org.apache.chemistry.opencmis.client.api.*;
-import org.apache.chemistry.opencmis.commons.data.*;
+import org.apache.chemistry.opencmis.commons.data.ObjectData;
+import org.apache.chemistry.opencmis.commons.data.ObjectInFolderData;
+import org.apache.chemistry.opencmis.commons.data.RepositoryCapabilities;
+import org.apache.chemistry.opencmis.commons.data.RepositoryInfo;
 import org.apache.chemistry.opencmis.commons.enums.IncludeRelationships;
 import org.apache.chemistry.opencmis.commons.impl.IOUtils;
 import org.apache.chemistry.opencmis.commons.impl.JSONConverter;
@@ -18,7 +26,9 @@ import javax.json.*;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
@@ -35,20 +45,38 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
     private ObjectFactory objectFactory;
     private OperationContext operationContext;
 
+    private Set<String> viewTypes;
+    private Set<String> exportableTypes;
+
     /**
-     * Constructor
      *
-     * @param session
+     * @param connectionProfile the connection profile which contains the wsdl location and the auth details for the user
+     * @param mapName the mapping for which we wish to apply for the session
      */
-    public CmisSessionWorkerImpl(Session session) {
-        this.session = session;
-        this.objectFactory = session.getObjectFactory();
-        this.operationContext = session.createOperationContext();
-        //DELTA HACK
-//        this.session.getDefaultContext().setIncludeAllowableActions(false);
-//        this.operationContext.setIncludeAllowableActions(false);
-        this.session.setDefaultContext(this.operationContext);
+    public CmisSessionWorkerImpl(String connectionProfile, String mapName) {
+
+        try {
+            DatabaseConnectionStrategy dbConnectionStrategy = new JDBCConnectionStrategy(new PropertiesHandlerImpl("settings.properties"));
+            Cmis1Connector cmis1Connector = new Cmis1Connector();
+            Profile connProfile = dbConnectionStrategy.getProfile(connectionProfile);
+            //Get a CMIS session object
+            this.session = cmis1Connector.getSession(connProfile);
+            this.operationContext = this.session.createOperationContext();
+            this.session.setDefaultContext(this.operationContext);
+            this.objectFactory = session.getObjectFactory();
+            //DELTA HACK
+            this.session.getDefaultContext().setIncludeAllowableActions(false);
+            this.operationContext.setIncludeAllowableActions(false);
+            //initialise the export and view types
+            initExportViewTypes(mapName);
+        }
+        catch (SQLException sqe) {
+            sqe.printStackTrace();
+            throw new ErmsDatabaseException("Unable to establish a session with the repository due to an issue with the " +
+                    "db: "+sqe.getMessage());
+        }
     }
+
 
     //<editor-fold desc="Webservices endpoints">
 
@@ -188,19 +216,17 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
      */
     @Override
     public CmisObject getFolderParent(String folderObjectId) {
-        ObjectData parent_ = getNavigationService().getFolderParent(this.session.getRepositoryInfo().getId(),folderObjectId, null, null);
+        ObjectData parent_ = getNavigationService().getFolderParent(this.session.getRepositoryInfo().getId(), folderObjectId, null, null);
         return this.objectFactory.convertObject(parent_, this.operationContext);
     }
 
     /**
-     * Returns a filtered view of the folder by restricting the returned types to the list of types defined in the
-     * second parameter.
+     * Returns a filtered view of the folder by restricting the returned types to the list of types defined in the mapping file.
      * @param folderObjectId The object id of the folder we're interested in
-     * @param typeList The list of types flattened to a string like "cmis:folder, cmis:document, custom:type"
      * @return Json object that represents the folder
      */
     @Override
-    public JsonObject getFolder(String folderObjectId, Set<String> typeList) {
+    public JsonObject getFolder(String folderObjectId) {
         JsonObjectBuilder folderBuilder = Json.createObjectBuilder();
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         try {
@@ -210,13 +236,13 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
             //Thread 1 search for folders
             executorService.submit(() -> {
                 String threadName = Thread.currentThread().getName();
-                System.out.println("Running thread for folders with name: " + threadName);
-                String queryStatement = "SELECT cmis:objectTypeId, cmis:objectId FROM cmis:folder WHERE IN_FOLDER ('"+ folderObjectId + "')";
+                logger.info("Running thread for folders with name: " + threadName);
+                String queryStatement = "SELECT cmis:objectTypeId, cmis:objectId FROM cmis:folder WHERE IN_FOLDER ('" + folderObjectId + "')";
                 ItemIterable<QueryResult> q = this.session.query(queryStatement, false);
                 //TODO refactor. This is an adapted copy of getFolder hacked to marshal the resulting query in children listqq
-                for(QueryResult qr : q){
+                for (QueryResult qr : q) {
                     String typeData = qr.getPropertyByQueryName("cmis:objectTypeId").getFirstValue().toString();
-                    if(typeList.contains(typeData)) {
+                    if (viewTypes.contains(typeData)) {
                         String objectId = qr.getPropertyByQueryName("cmis:objectId").getFirstValue().toString();
                         CmisObject obj = this.session.getObject(this.session.createObjectId(objectId));
                         children.add(obj);
@@ -226,14 +252,14 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
             //Thread 2 search for documents next
             executorService.submit(() -> {
                 String threadName = Thread.currentThread().getName();
-                System.out.println("Running thread for documents with name: " + threadName);
+                logger.info("Running thread for documents with name: " + threadName);
                 String queryStatement = "SELECT cmis:objectTypeId, cmis:objectId FROM cmis:document " +
-                        "WHERE IN_FOLDER ('"+ folderObjectId + "')";
+                        "WHERE IN_FOLDER ('" + folderObjectId + "')";
                 ItemIterable<QueryResult> q = this.session.query(queryStatement, false);
                 //TODO refactor. This is an adapted copy of getFolder hacked to marshal the resulting query in children listqq
-                for(QueryResult qr : q){
+                for (QueryResult qr : q) {
                     String typeData = qr.getPropertyByQueryName("cmis:objectTypeId").getFirstValue().toString();
-                    if(typeList.contains(typeData)) {
+                    if (viewTypes.contains(typeData)) {
                         String objectId = qr.getPropertyByQueryName("cmis:objectId").getFirstValue().toString();
                         CmisObject obj = this.session.getObject(this.session.createObjectId(objectId));
                         children.add(obj);
@@ -254,39 +280,9 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
         } catch (InterruptedException e) {
             System.err.println("Some threads took too long to complete when listing folder items");
             logger.warn("=====> WARNING: prematurely terminated thread when attempting to list folder objects for " +
-                    "folder: "+folderObjectId);
-        }
-        finally {
+                    "folder: " + folderObjectId);
+        } finally {
             executorService.shutdownNow();
-        }
-        return folderBuilder.build();
-    }
-
-    /**
-     * returns the properties of a folder and its children
-     *
-     * @return Json object that represents the folder
-     */
-    @Override
-    public JsonObject getFolder(String folderObjectId) {
-        RepositoryCapabilities caps = this.session.getRepositoryInfo().getCapabilities();
-        JsonObjectBuilder folderBuilder = Json.createObjectBuilder();
-        if (!caps.isGetDescendantsSupported())
-            throw new ErmsNotSupportedException("The operation requested is not supported by the repository");
-        try {
-            Folder folder = (Folder) this.session.getObject(folderObjectId);
-            //Just to be sure
-            if (!folder.getId().equalsIgnoreCase(folderObjectId))
-                throw new ErmsRuntimeException("Folder Id mismatch. Please contact system administrator to resolve the");
-            List<CmisObject> children = this.getFolderChildren(folder.getId());
-            List<JsonObject> jsonRep = children.stream().map(this::extractUsefulProperties).collect(Collectors.toList());
-            JsonArrayBuilder cb = Json.createArrayBuilder();
-            JsonObject tmp = this.extractUsefulProperties(folder);
-            jsonRep.forEach(cb::add);
-            folderBuilder.add("properties", tmp);
-            folderBuilder.add("children", cb.build());
-        } catch (Exception ge) {
-            throw new ErmsIOException("Unable to read folder items for root folder:\n" + ge.getMessage());
         }
         return folderBuilder.build();
     }
@@ -336,24 +332,27 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
         JsonReader rdr = Json.createReader(tmp);
         return rdr.readObject();
     }
-    
+
     @Override
     public Session getSession() {
-    	return session;
+        return session;
     }
 
     /**
      * Just to filter out the useful properties for UI consumption.
      * A CMIS capable repository can return too much metadata about an object, until we fix the mapping feature, we use
      * this to filter out useful generic properties for the UI
+     *
      * @param cmisObject
      * @return
      */
-    private JsonObject extractUsefulProperties(CmisObject cmisObject){
+    private JsonObject extractUsefulProperties(CmisObject cmisObject) {
         JsonObjectBuilder jsonBuilder = Json.createObjectBuilder();
-        switch (cmisObject.getBaseTypeId().value()){
-            case "cmis:document" :
-                Document doc = (Document) cmisObject ;
+        String objTypeId = cmisObject.getPropertyValue("cmis:objectTypeId");
+
+        switch (cmisObject.getBaseTypeId().value()) {
+            case "cmis:document":
+                Document doc = (Document) cmisObject;
                 jsonBuilder.add(ErmsBaseTypes.BASETYPE_ID, "document");
                 jsonBuilder.add(ErmsBaseTypes.LAST_MOD_DATE, Utils.convertToISO8601Date(cmisObject.getLastModificationDate()));
                 jsonBuilder.add(ErmsBaseTypes.CONTENT_SIZE, doc.getContentStreamLength());
@@ -364,20 +363,32 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
                 jsonBuilder.add(ErmsBaseTypes.PATH, doc.getPaths().get(0));
                 break;
             case "cmis:folder":
-                Folder folder = (Folder) cmisObject ;
+                Folder folder = (Folder) cmisObject;
                 jsonBuilder.add(ErmsBaseTypes.BASETYPE_ID, "folder");
                 jsonBuilder.add(ErmsBaseTypes.PATH, folder.getPath());
                 break;
-            default: Utils.getPropertyPostFixValue(cmisObject.getBaseTypeId().value());
+            default:
+                Utils.getPropertyPostFixValue(cmisObject.getBaseTypeId().value());
                 break;
         }
-        jsonBuilder.add(ErmsBaseTypes.OBJECT_ID, cmisObject.getId() );
+        jsonBuilder.add("exportable", this.exportableTypes.contains(objTypeId));
+        jsonBuilder.add(ErmsBaseTypes.OBJECT_ID, cmisObject.getId());
         jsonBuilder.add(ErmsBaseTypes.OBJECT_TYPE_ID, cmisObject.getType().getId());
-        jsonBuilder.add(ErmsBaseTypes.NAME, cmisObject.getName() );
-        jsonBuilder.add(ErmsBaseTypes.CREATION_DATE, Utils.convertToISO8601Date(cmisObject.getCreationDate()) );
-        jsonBuilder.add(ErmsBaseTypes.CREATED_BY, cmisObject.getCreatedBy() );
-        jsonBuilder.add(ErmsBaseTypes.LAST_MODIFIED, cmisObject.getLastModifiedBy() );
+        jsonBuilder.add(ErmsBaseTypes.NAME, cmisObject.getName());
+        jsonBuilder.add(ErmsBaseTypes.CREATION_DATE, Utils.convertToISO8601Date(cmisObject.getCreationDate()));
+        jsonBuilder.add(ErmsBaseTypes.CREATED_BY, cmisObject.getCreatedBy());
+        jsonBuilder.add(ErmsBaseTypes.LAST_MODIFIED, cmisObject.getLastModifiedBy());
 
         return jsonBuilder.build();
+    }
+
+    private void initExportViewTypes(String mapName){
+        MappingParser mappingParser = new MappingParser(mapName);
+        if(!mappingParser.getViewTypes().isEmpty() )
+            this.viewTypes = new HashSet<>(mappingParser.getViewTypes());
+        else
+            this.viewTypes = new HashSet<>(mappingParser.getObjectTypeFromMap());
+
+        this.exportableTypes = new HashSet<>(mappingParser.getObjectTypeFromMap());
     }
 }
