@@ -1,13 +1,5 @@
 package dk.magenta.eark.erms;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
 import javax.json.Json;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
@@ -16,6 +8,13 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * Root resource (exposed at "myresource" path)
@@ -79,15 +78,13 @@ public class ExtractionResource {
     public String getIt() {
         return "Got it YES sir hut hurra...Ihh jep igen kkjubiiiii kk nnnn mmmm!";
     }
-    
-    @GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("test")
-    public JsonObject test() {
-    	JsonObject json = Json.createObjectBuilder()
-    			.add("success", false)
-    			.build();
-    	return json;
-    }
+
+
+
+	@GET
+	@Path("test")
+	public String test() {
+		return "It's working!";
+	}
     
 }

@@ -1,14 +1,14 @@
-package dk.magenta.eark.erms;
+package dk.magenta.eark.erms.system;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class CmisPropertiesHandler implements PropertiesHandler {
+public class PropertiesHandlerImpl implements PropertiesHandler {
 
 	private Properties properties;
 	
-	public CmisPropertiesHandler(String pathToPropertiesFile) {
+	public PropertiesHandlerImpl(String pathToPropertiesFile) {
 		
 		InputStream in = getClass().getClassLoader().getResourceAsStream(pathToPropertiesFile);
 		
