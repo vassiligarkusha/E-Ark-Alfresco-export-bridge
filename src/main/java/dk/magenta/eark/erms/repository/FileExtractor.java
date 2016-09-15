@@ -34,15 +34,21 @@ public class FileExtractor {
 	public void writeCmisDocument(Path path, String objectId) throws IOException {
 		Document cmisDocument = (Document) session.getObject(objectId);
 		ContentStream contentStream = cmisDocument.getContentStream();
-		
+
+		Path filePath = rootExtractionPath.resolve(getDataFilePath()).resolve(path);
+		Path folderPath = filePath.getParent();
+		if (!Files.isDirectory(folderPath)) {
+			Files.createDirectories(folderPath);
+		}
+		System.out.println(filePath);
+
 		if (contentStream != null) {
 			BufferedInputStream in = new BufferedInputStream(contentStream.getStream());
-			// Path p = rootExtractionPath.resolve(getDataFilePath()).resolve(path);
-			// Files.copy(in, rootExtractionPath.resolve(getDataFilePath()).resolve(path));
-			Files.copy(in, rootExtractionPath.resolve(path));
+			Files.copy(in, filePath);
 			in.close();
 		} else {
 			// Create empty file
+			Files.createFile(filePath);
 		}
 	}
 	

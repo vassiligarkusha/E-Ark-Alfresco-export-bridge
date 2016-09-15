@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
@@ -133,7 +134,7 @@ public class ExtractionWorker {
 			}
 			cmisPathHandler = new CmisPathHandler(folderPath);
 
-			// Get element for the current node in the exportList and write to
+			// Get element for the current node in the exportList and add to
 			// EAD
 			Element c = metadataMapper.mapCElement(cmisObject, mappingParser.getHooksFromSemanticType(semanticType),
 					mappingParser.getCElementFromSemanticType(semanticType));
@@ -142,7 +143,6 @@ public class ExtractionWorker {
 			// This way of traversing the CMIS tree follows the example given in
 			// the official documentation - see
 			// http://chemistry.apache.org/java/developing/guide.html
-
 			
 			for (Tree<FileableCmisObject> tree : cmisFolder.getDescendants(-1)) {
 				if (mappingParser.isLeaf(cmisType)) {
@@ -242,13 +242,14 @@ public class ExtractionWorker {
 				eadBuilder.addDaoElement(dao, semanticLeaf);
 				
 				// Extract the file contents
-//				Path filePath = Paths.get(pathToNode);
-//				try {
-//					fileExtractor.writeCmisDocument(filePath, cmisObjectTypeId);
-//				} catch (IOException e) {
-//					// TODO: create JSON
-//					e.printStackTrace();
-//				}
+				Path filePath = Paths.get(pathToNode);
+				System.out.println(filePath);
+				try {
+					fileExtractor.writeCmisDocument(filePath, cmisObjectTypeId);
+				} catch (IOException e) {
+					// TODO: create JSON
+					e.printStackTrace();
+				}
 								
 
 			} else if (node.getBaseTypeId().equals(BaseTypeId.CMIS_FOLDER)) {
