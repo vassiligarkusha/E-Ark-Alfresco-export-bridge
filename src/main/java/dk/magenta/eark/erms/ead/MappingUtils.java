@@ -4,13 +4,14 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.jdom2.Attribute;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
 import org.jdom2.filter.ElementFilter;
 import org.jdom2.filter.Filter;
 
-class MappingUtils {
+public class MappingUtils {
 
 	/**
 	 * Extracts all descending Elements from a Document or an Element
@@ -36,5 +37,19 @@ class MappingUtils {
 			elements.add(iterator.next());
 		}
 		return elements;
+	}
+	
+	/**
+	 * For debugging - prints out a JDOM element (which does not contain other elements)
+	 * @param e
+	 */
+	public static void printElement(Element e) {
+		StringBuilder builder = new StringBuilder("<").append(e.getName()).append(" ");
+		List<Attribute> attributes = e.getAttributes();
+		for (Attribute a : attributes) {
+			builder.append(a.getName()).append("=").append(a.getValue()).append(" ");
+		}
+		builder.append(">").append(e.getText()).append("</").append(e.getName()).append(">");
+		System.out.println(builder.toString());
 	}
 }

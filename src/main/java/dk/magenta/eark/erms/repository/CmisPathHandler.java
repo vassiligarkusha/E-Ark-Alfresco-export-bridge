@@ -20,9 +20,9 @@ public class CmisPathHandler {
 	 * @param cmisFolderPath
 	 * @return the relative path
 	 */
-	public Path getRelativePath(String cmisFolderPath) {
+	public String getRelativePath(String cmisFolderPath) {
 		Path path = Paths.get(cmisFolderPath);
 		Path relativePath = topLevelCmisPath.relativize(path);
-		return relativePath;
+		return relativePath.toString();
 	}
 }
