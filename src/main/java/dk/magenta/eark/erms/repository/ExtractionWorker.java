@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
@@ -48,6 +47,7 @@ public class ExtractionWorker {
 		this.json = json;
 		session = cmisSessionWorker.getSession();
 		metadataMapper = new MetadataMapper();
+		removeFirstDaoElement = true;
 	}
 
 	/**
@@ -143,8 +143,13 @@ public class ExtractionWorker {
 			// the official documentation - see
 			// http://chemistry.apache.org/java/developing/guide.html
 
+			
 			for (Tree<FileableCmisObject> tree : cmisFolder.getDescendants(-1)) {
-				handleNode(tree, c);
+				if (mappingParser.isLeaf(cmisType)) {
+					handleLeafNodes(tree, c, cmisType, cmisFolder.getPath());
+				} else {
+					handleNode(tree, c);
+				}
 			}
 		}
 
@@ -213,7 +218,7 @@ public class ExtractionWorker {
 
 	private void handleLeafNodes(Tree<FileableCmisObject> tree, Element semanticLeaf, String semanticLeafCmisType,
 			String parentPath) {
-
+		
 		CmisObject node = tree.getItem();
 		String cmisObjectTypeId = node.getId();
 
