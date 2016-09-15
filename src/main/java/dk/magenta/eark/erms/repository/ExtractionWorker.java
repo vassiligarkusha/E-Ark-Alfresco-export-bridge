@@ -30,6 +30,7 @@ import dk.magenta.eark.erms.ead.EadBuilder;
 import dk.magenta.eark.erms.ead.MappingParser;
 import dk.magenta.eark.erms.ead.MetadataMapper;
 import dk.magenta.eark.erms.ead.XmlHandler;
+import dk.magenta.eark.erms.ead.XmlHandlerImpl;
 import dk.magenta.eark.erms.json.JsonUtils;
 
 // Let's not make this an interface for now
@@ -40,6 +41,7 @@ public class ExtractionWorker {
 	private MappingParser mappingParser;
 	private MetadataMapper metadataMapper;
 	private EadBuilder eadBuilder;
+	private XmlHandler xmlHandler;
 	private FileExtractor fileExtractor;
 	private Set<String> excludeList;
 	private CmisPathHandler cmisPathHandler;
@@ -50,6 +52,7 @@ public class ExtractionWorker {
 		session = cmisSessionWorker.getSession();
 		metadataMapper = new MetadataMapper();
 		removeFirstDaoElement = true;
+		xmlHandler = new XmlHandlerImpl();
 	}
 
 	/**
@@ -97,7 +100,7 @@ public class ExtractionWorker {
 			// TODO: change this! - uploading of the EAD template should be
 			// handled elsewhere
 			InputStream eadInputStream = new FileInputStream(new File("/home/andreas/.erms/mappings/ead_template.xml"));
-			eadBuilder = new EadBuilder(eadInputStream);
+			eadBuilder = new EadBuilder(eadInputStream, xmlHandler);
 			eadInputStream.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -157,6 +160,9 @@ public class ExtractionWorker {
 		// For debugging
 		XmlHandler.writeXml(eadBuilder.getEad(), "/tmp/ead.xml");
 
+		// Validate EAD
+		System.out.println(xmlHandler.isXmlValid(eadBuilder.getEad(), null));
+		
 		builder.add(Constants.SUCCESS, true);
 		return builder.build();
 	}

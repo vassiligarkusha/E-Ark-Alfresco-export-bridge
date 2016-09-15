@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.commons.io.FileUtils;
 
 public class FileExtractor {
 
@@ -23,6 +24,14 @@ public class FileExtractor {
 	public FileExtractor(Path rootExtractionPath, Session session) {
 		this.rootExtractionPath = rootExtractionPath;
 		this.session = session;
+		
+		// TODO: for now we just delete an already existing representations folder
+		try {
+			FileUtils.deleteDirectory(rootExtractionPath.resolve("representations").toFile());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	/**

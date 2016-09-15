@@ -1,6 +1,5 @@
 package dk.magenta.eark.erms.ead;
 
-import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
@@ -16,6 +15,8 @@ import dk.magenta.eark.erms.Constants;
 
 public class MetadataMapper {
 
+	private static final String DAO = "dao";
+	
 	private Namespace ead;
 	private XPathFactory factory;
 	
@@ -23,25 +24,32 @@ public class MetadataMapper {
 		ead = Namespace.getNamespace("ead", Constants.EAD_NAMESPACE);
 		factory = XPathFactory.instance();
 	}
-	
+
 	public Element mapCElement(CmisObject cmisObj, List<Hook> hooks, Element c) {
 		Element clone = c.clone();
 		for (Hook hook : hooks) {
-			String cmisPropertyId = hook.getCmisPropertyId();
 			String xpath = hook.getXpath();
-			String value = cmisObj.getProperty(cmisPropertyId).getValueAsString();
+			if (!xpath.contains(DAO)) {
+				String cmisPropertyId = hook.getCmisPropertyId();
+				String value = cmisObj.getProperty(cmisPropertyId).getValueAsString();
+				value = value.replace(":", "x").replace("/", "x");
+				System.out.println((cmisPropertyId + " " + value));
 
-			findXmlNodeAndInsertCmisData(xpath, value, clone);
+				findXmlNodeAndInsertCmisData(xpath, value, clone);
+			}
 		}
 		clone.setNamespace(ead);
 		return clone;
 	}
-	
+
 	/**
-	 * Create a dao element to be used in the EAD for a semantic leaf node 
-	 * @param cmisObj the current sub-leaf node
+	 * Create a dao element to be used in the EAD for a semantic leaf node
+	 * 
+	 * @param cmisObj
+	 *            the current sub-leaf node
 	 * @param hooks
-	 * @param c the leaf node that should contain the dao element
+	 * @param c
+	 *            the leaf node that should contain the dao element
 	 * @return the CMIS data filled out dao element
 	 */
 	public Element mapDaoElement(CmisObject cmisObj, List<Hook> hooks, Element c, String filePath) {
@@ -50,28 +58,29 @@ public class MetadataMapper {
 		for (Hook hook : hooks) {
 			String xpath = hook.getXpath();
 			// This may break if there are also daoset elements
-			if (xpath.contains("dao")) {
+			if (xpath.contains(DAO)) {
 				String cmisPropertyId = hook.getCmisPropertyId();
 				String value = cmisObj.getProperty(cmisPropertyId).getValueAsString();
-
+				value = value.replace(":", "x").replace("/", "x");
+								
 				findXmlNodeAndInsertCmisData(xpath, value, clone);
 			}
 		}
 		Element dao = MappingUtils.extractElements(clone, "dao", ead).get(0).clone();
 		dao.setAttribute("href", filePath);
-		
+
 		return dao.clone();
 	}
-	
+
 	public void removeDaoElements(Element c) {
 		Element did = c.getChild("did", ead);
-		
+
 		ElementFilter filter = new ElementFilter("dao", ead);
 		did.removeContent(filter);
 		filter = new ElementFilter("daoset", ead);
 		did.removeContent(filter);
 	}
-	
+
 	private void findXmlNodeAndInsertCmisData(String xpath, String value, Element cClone) {
 		if (xpath.contains("attribute")) {
 			XPathExpression<Attribute> expression = factory.compile(xpath, Filters.attribute(), null, ead);
@@ -82,6 +91,6 @@ public class MetadataMapper {
 			Element target = expression.evaluate(cClone).get(0);
 			target.setText(value);
 		}
-		
+
 	}
 }

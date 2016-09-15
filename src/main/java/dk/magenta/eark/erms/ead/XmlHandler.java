@@ -1,8 +1,10 @@
 package dk.magenta.eark.erms.ead;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -36,6 +38,14 @@ public interface XmlHandler {
 	public String getErrorMessage();
 	
 	/**
+	 * Validates a JDOM document
+	 * @param document
+	 * @param schemaLocation path to the XML schema in the resources folder
+	 * @return true if the document is valid and false otherwise
+	 */
+	public boolean isXmlValid(Document document, String schemaLocation);
+	
+	/**
 	 * Write an XML element to System.out (for debugging)
 	 * @param e
 	 */
@@ -56,6 +66,8 @@ public interface XmlHandler {
 	 */
 	public static void writeXml(Document document, String filename) {
 		try {
+			File f = new File(filename);
+			f.delete();
 			FileWriter writer = new FileWriter(filename);
 			XMLOutputter outputter = new XMLOutputter();
 			outputter.output(document, writer);
@@ -65,7 +77,10 @@ public interface XmlHandler {
 		}
 	}
 	
-
+	
+	public static void writeXml(Document document, Path path) {
+		writeXml(document, path.toString());
+	}
 
 	
 }

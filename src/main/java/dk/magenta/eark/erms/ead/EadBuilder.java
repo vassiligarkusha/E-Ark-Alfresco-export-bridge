@@ -1,14 +1,11 @@
 package dk.magenta.eark.erms.ead;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.Namespace;
-import org.jdom2.output.XMLOutputter;
 
 import dk.magenta.eark.erms.Constants;
 
@@ -21,19 +18,19 @@ public class EadBuilder {
 	private Element topLevelElement;
 	
 	/**
-	 * 
-	 * @param in
-	 * @throws JDOMException Throws exception if the provided ead.xml is not valid
+	 * Constructor
+	 * @param in the EAD template
+	 * @throws JDOMException Throws exception if the provided ead template is not valid
 	 */
-	public EadBuilder(InputStream in) throws JDOMException {
-		xmlHandler = new XmlHandlerImpl();
-		ead = xmlHandler.readAndValidateXml(in, "ead3.xsd");
+	public EadBuilder(InputStream in, XmlHandler xmlHandler) throws JDOMException {
+		this.xmlHandler = xmlHandler;
+		ead = xmlHandler.readAndValidateXml(in, "ead3.xsd"); // This responsibility should be moved away from the EadBuilder
 		
 		// Put into own method
 		Element root = ead.getRootElement();
 		Element archdesc = root.getChild("archdesc", eadNs);
 		Element dsc = new Element("dsc", eadNs);
-		dsc.setAttribute("desctype", "combined");
+		dsc.setAttribute("dsctype", "combined");
 		archdesc.addContent(dsc);
 		topLevelElement = dsc;
 	}

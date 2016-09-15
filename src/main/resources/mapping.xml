@@ -56,7 +56,7 @@
 				<hook xpath="child::ead:did/child::ead:unitdate">cmis:creationDate</hook>
 				<hook xpath="child::ead:did/child::ead:unittitle">cmis:name</hook>
 				<hook xpath="child::ead:did/child::ead:unitid">cmis:objectId</hook>
-				<hook xpath="child::ead:did/child::ead:dao/attribute::id">cmis:objectId</hook>
+				<hook xpath="child::ead:did/child::ead:dao/attribute::id">cmis:versionSeriesId</hook>
 			</hooks>
 			<ead>
 				<c level="file">
