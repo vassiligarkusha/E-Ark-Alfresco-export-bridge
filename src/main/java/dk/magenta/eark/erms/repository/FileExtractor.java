@@ -40,7 +40,6 @@ public class FileExtractor {
 		if (!Files.isDirectory(folderPath)) {
 			Files.createDirectories(folderPath);
 		}
-		System.out.println(filePath);
 
 		if (contentStream != null) {
 			BufferedInputStream in = new BufferedInputStream(contentStream.getStream());

@@ -29,6 +29,7 @@ import dk.magenta.eark.erms.Constants;
 import dk.magenta.eark.erms.ead.EadBuilder;
 import dk.magenta.eark.erms.ead.MappingParser;
 import dk.magenta.eark.erms.ead.MetadataMapper;
+import dk.magenta.eark.erms.ead.XmlHandler;
 import dk.magenta.eark.erms.json.JsonUtils;
 
 // Let's not make this an interface for now
@@ -154,7 +155,7 @@ public class ExtractionWorker {
 		}
 
 		// For debugging
-		eadBuilder.writeXml("/tmp/ead.xml");
+		XmlHandler.writeXml(eadBuilder.getEad(), "/tmp/ead.xml");
 
 		builder.add(Constants.SUCCESS, true);
 		return builder.build();
@@ -243,7 +244,6 @@ public class ExtractionWorker {
 				
 				// Extract the file contents
 				Path filePath = Paths.get(pathToNode);
-				System.out.println(filePath);
 				try {
 					fileExtractor.writeCmisDocument(filePath, cmisObjectTypeId);
 				} catch (IOException e) {

@@ -51,18 +51,8 @@ public class EadBuilder {
 		return topLevelElement;
 	}
 	
-	/**
-	 * For testing... TODO: move to XmlHandler
-	 */
-	public void writeXml(String filename) {
-		try {
-			FileWriter writer = new FileWriter(filename);
-			XMLOutputter outputter = new XMLOutputter();
-			outputter.output(ead, writer);
-			writer.close();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	public Document getEad() {
+		return ead;
 	}
 	
 	public String getValidationErrorMessage() {

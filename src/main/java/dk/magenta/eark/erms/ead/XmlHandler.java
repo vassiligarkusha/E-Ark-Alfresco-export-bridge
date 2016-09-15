@@ -1,5 +1,6 @@
 package dk.magenta.eark.erms.ead;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -46,6 +47,25 @@ public interface XmlHandler {
 			e1.printStackTrace();
 		}
 	}
+	
+
+	/**
+	 * Write a JDOM document as an XML file (no validation)
+	 * @param document
+	 * @param filename
+	 */
+	public static void writeXml(Document document, String filename) {
+		try {
+			FileWriter writer = new FileWriter(filename);
+			XMLOutputter outputter = new XMLOutputter();
+			outputter.output(document, writer);
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+
 
 	
 }
