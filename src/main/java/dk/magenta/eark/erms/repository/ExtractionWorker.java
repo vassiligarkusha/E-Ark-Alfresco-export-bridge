@@ -161,7 +161,11 @@ public class ExtractionWorker {
 		XmlHandler.writeXml(eadBuilder.getEad(), "/tmp/ead.xml");
 
 		// Validate EAD
-		System.out.println(xmlHandler.isXmlValid(eadBuilder.getEad(), null));
+		if (!xmlHandler.isXmlValid(eadBuilder.getEad(), "ead3.xsd")) {
+			// TODO: Put schema location into constant
+			JsonUtils.addErrorMessage(builder, "Generated EAD not valid: " + xmlHandler.getErrorMessage());
+			return builder.build();
+		}
 		
 		builder.add(Constants.SUCCESS, true);
 		return builder.build();

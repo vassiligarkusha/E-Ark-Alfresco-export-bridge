@@ -68,14 +68,14 @@ public class XmlHandlerImpl implements XmlHandler {
 		boolean success = true;
 		try {
 			InputStream in = new FileInputStream(tmp.toFile());
-			readAndValidateXml(in, "ead3.xsd"); // TODO: Put schema location into constant
+			readAndValidateXml(in, schemaLocation);
 			in.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		} catch (JDOMException e) {
-			e.printStackTrace();
+			errorMessage = e.getMessage();
 			success = false;
 		}
 		return success;
