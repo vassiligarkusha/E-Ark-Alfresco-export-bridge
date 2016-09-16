@@ -111,7 +111,18 @@ public class MappingParser {
 			List<Element> hookElements = MappingUtils.extractElements(hooksElement, "hook", mappingNamespace);
 			List<Hook> hookList = new LinkedList<Hook>();
 			for (Element hookElement : hookElements) {
-				Hook hook = new Hook(hookElement.getAttributeValue("xpath"), hookElement.getTextTrim());
+				String xpath = hookElement.getChildTextTrim("xpath", mappingNamespace);
+				String cmisObjectId = hookElement.getChildTextTrim("cmisPropertyId", mappingNamespace);
+				Hook hook = new Hook(xpath, cmisObjectId);
+				
+				Element escapes = hookElement.getChild("cmisEscapes", mappingNamespace);
+				if (escapes != null) {
+					for (Element escape : escapes.getChildren("escape", mappingNamespace)) {
+						hook.addEscapeHook(escape.getAttributeValue("regex"), escape.getAttributeValue("replacement"));
+					}
+					
+				}
+
 				hookList.add(hook);
 			}
 			hooks.put(template.getAttributeValue("id"), hookList);
