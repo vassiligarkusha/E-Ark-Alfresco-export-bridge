@@ -26,6 +26,13 @@ public interface MapWorker {
     JsonObject getMapping(String mappingName);
 
     /**
+     * Returns a mapping Object. Not advisable for use in JAX-RS resources
+     * @param mapName
+     * @return a Map object or a Map.EMPTY object if it can not find a mapping object from the db
+     */
+    Mapping getMappingObject(String mapName);
+
+    /**
      * Return a list of mappings on the system
      * @return
      */
