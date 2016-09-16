@@ -66,10 +66,32 @@
 	
 	<element name="hook" type="map:hook_type"/>
 	<complexType name="hook_type">
-		<simpleContent>
+		<sequence>
+			<element name="xpath" type="string"/>
+			<element name="cmisPropertyId" type="string"/>
+			<element ref="map:cmisEscapes" minOccurs="0"/>
+		</sequence>
+		<!-- simpleContent>
 			<extension base="string">
 				<attribute name="xpath" type="string" use="required"/>
 				<attribute name="attribute" type="string" use="optional"/>
+			</extension>
+		</simpleContent -->
+	</complexType>
+	
+	<element name="cmisEscapes" type="map:cmis_escapes_type"/>
+	<complexType name="cmis_escapes_type">
+		<sequence>
+			<element ref="map:escape" maxOccurs="unbounded"/>
+		</sequence>
+	</complexType>
+	
+	<element name="escape" type="map:escape_type"/>
+	<complexType name="escape_type">
+		<simpleContent>
+			<extension base="string">
+				<attribute name="regex" type="string" use="required"/>
+				<attribute name="replacement" type="string" use="required"/>
 			</extension>
 		</simpleContent>
 	</complexType>
