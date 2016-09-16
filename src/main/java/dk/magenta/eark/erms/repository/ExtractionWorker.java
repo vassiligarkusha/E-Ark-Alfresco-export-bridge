@@ -165,6 +165,8 @@ public class ExtractionWorker {
 			// TODO: Put schema location into constant
 			JsonUtils.addErrorMessage(builder, "Generated EAD not valid: " + xmlHandler.getErrorMessage());
 			return builder.build();
+		} else {
+			// Copy EAD to correct location
 		}
 		
 		builder.add(Constants.SUCCESS, true);

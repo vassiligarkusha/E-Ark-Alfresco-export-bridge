@@ -61,7 +61,7 @@ public class MetadataMapper {
 			if (xpath.contains(DAO)) {
 				String cmisPropertyId = hook.getCmisPropertyId();
 				String value = cmisObj.getProperty(cmisPropertyId).getValueAsString();
-				// value = value.replace(":", "x").replace("/", "x");
+				value = value.replace(":", "x").replace("/", "x");
 								
 				findXmlNodeAndInsertCmisData(xpath, value, clone);
 			}
