@@ -3,6 +3,7 @@ package dk.magenta.eark.erms.ead;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
+import org.apache.commons.lang3.tuple.Pair;
 import org.jdom2.Attribute;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
@@ -32,9 +33,8 @@ public class MetadataMapper {
 			if (!xpath.contains(DAO)) {
 				String cmisPropertyId = hook.getCmisPropertyId();
 				String value = cmisObj.getProperty(cmisPropertyId).getValueAsString();
-				value = value.replace(":", "x").replace("/", "x");
-				System.out.println((cmisPropertyId + " " + value));
-
+				value = escapeCmisValue(value, hook.getEscapes());
+				
 				findXmlNodeAndInsertCmisData(xpath, value, clone);
 			}
 		}
@@ -61,7 +61,7 @@ public class MetadataMapper {
 			if (xpath.contains(DAO)) {
 				String cmisPropertyId = hook.getCmisPropertyId();
 				String value = cmisObj.getProperty(cmisPropertyId).getValueAsString();
-				value = value.replace(":", "x").replace("/", "x");
+				value = escapeCmisValue(value, hook.getEscapes());
 								
 				findXmlNodeAndInsertCmisData(xpath, value, clone);
 			}
@@ -91,6 +91,15 @@ public class MetadataMapper {
 			Element target = expression.evaluate(cClone).get(0);
 			target.setText(value);
 		}
-
+	}
+	
+	private String escapeCmisValue(String value, List<Pair<String, String>> escapes) {
+		if (escapes == null) {
+			return value;
+		}
+		for (Pair<String, String> escape : escapes) {
+			value = value.replaceAll(escape.getLeft(), escape.getRight());
+		}
+		return value;
 	}
 }

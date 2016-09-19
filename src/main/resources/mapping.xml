@@ -34,7 +34,7 @@
 					<xpath>child::ead:did/child::ead:unitid</xpath>
 					<cmisPropertyId>cmis:objectId</cmisPropertyId>
 					<cmisEscapes>
-						<escape regex="workspace://SpacesStore/" replacement=""/>
+						<escape regex="workspace://SpacesStore/" replacement="ID-"/>
 					</cmisEscapes>
 				</hook>
 			</hooks>
@@ -62,7 +62,7 @@
 					<xpath>child::ead:did/child::ead:unitid</xpath>
 					<cmisPropertyId>cmis:objectId</cmisPropertyId>
 					<cmisEscapes>
-						<escape regex="workspace://SpacesStore/" replacement=""/>
+						<escape regex="workspace://SpacesStore/" replacement="ID-"/>
 					</cmisEscapes>
 				</hook>
 			</hooks>
@@ -90,12 +90,15 @@
 					<xpath>child::ead:did/child::ead:unitid</xpath>
 					<cmisPropertyId>cmis:objectId</cmisPropertyId>
 					<cmisEscapes>
-						<escape regex="workspace://SpacesStore/" replacement=""/>
+						<escape regex="workspace://SpacesStore/" replacement="ID-"/>
 					</cmisEscapes>
 				</hook>
 				<hook>
 					<xpath>child::ead:did/child::ead:dao/attribute::id</xpath>
 					<cmisPropertyId>cmis:versionSeriesId</cmisPropertyId>
+					<cmisEscapes>
+						<escape regex="workspace://SpacesStore/" replacement="ID-"/>
+					</cmisEscapes>
 				</hook>
 			</hooks>
 			<ead>
