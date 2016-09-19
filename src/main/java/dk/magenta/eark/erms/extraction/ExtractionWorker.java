@@ -1,4 +1,4 @@
-package dk.magenta.eark.erms.repository;
+package dk.magenta.eark.erms.extraction;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,9 +32,11 @@ import dk.magenta.eark.erms.ead.MetadataMapper;
 import dk.magenta.eark.erms.ead.XmlHandler;
 import dk.magenta.eark.erms.ead.XmlHandlerImpl;
 import dk.magenta.eark.erms.json.JsonUtils;
+import dk.magenta.eark.erms.repository.CmisPathHandler;
+import dk.magenta.eark.erms.repository.CmisSessionWorker;
 
 // Let's not make this an interface for now
-public class ExtractionWorker {
+public class ExtractionWorker implements Runnable {
 
 	private JsonObject json;
 	private Session session;
@@ -46,6 +48,7 @@ public class ExtractionWorker {
 	private Set<String> excludeList;
 	private CmisPathHandler cmisPathHandler;
 	private boolean removeFirstDaoElement;
+	private JsonObject response;
 
 	public ExtractionWorker(JsonObject json, CmisSessionWorker cmisSessionWorker) {
 		this.json = json;
@@ -63,8 +66,12 @@ public class ExtractionWorker {
 	 * @param cmisSessionWorker
 	 * @return JSON object describing the result
 	 */
-	JsonObject extract() {
+	public void run() {
 
+		Dummy d = new Dummy();
+		d.run();
+		return;
+		/*
 		JsonObjectBuilder builder = Json.createObjectBuilder();
 
 		// Get the mapping
@@ -78,10 +85,12 @@ public class ExtractionWorker {
 			mappingInputStream.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-			return JsonUtils.addErrorMessage(builder, "Mapping file not found!").build();
+			response = JsonUtils.addErrorMessage(builder, "Mapping file not found!").build();
+			return;
 		} catch (java.io.IOException e) {
 			e.printStackTrace();
-			return JsonUtils.addErrorMessage(builder, "An I/O error occured while handling the mapping file!").build();
+			response = JsonUtils.addErrorMessage(builder, "An I/O error occured while handling the mapping file!").build();
+			return;
 		}
 
 		// Load the excludeList into a TreeSet in order to make searching the
@@ -104,14 +113,17 @@ public class ExtractionWorker {
 			eadInputStream.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-			return JsonUtils.addErrorMessage(builder, "EAD template file not found!").build();
+			response = JsonUtils.addErrorMessage(builder, "EAD template file not found!").build();
+			return;
 		} catch (JDOMException e) {
 			builder.add("validationError", eadBuilder.getValidationErrorMessage());
-			return JsonUtils.addErrorMessage(builder, "EAD template file not valid according to ead3.xsd").build();
+			response = JsonUtils.addErrorMessage(builder, "EAD template file not valid according to ead3.xsd").build();
+			return;
 		} catch (IOException e) {
 			e.printStackTrace();
-			return JsonUtils.addErrorMessage(builder, "An I/O error occured while handling the EAD template file!")
+			response = JsonUtils.addErrorMessage(builder, "An I/O error occured while handling the EAD template file!")
 					.build();
+			return;
 		}
 
 		// Start traversing the CMIS tree
@@ -164,13 +176,20 @@ public class ExtractionWorker {
 		if (!xmlHandler.isXmlValid(eadBuilder.getEad(), "ead3.xsd")) {
 			// TODO: Put schema location into constant
 			JsonUtils.addErrorMessage(builder, "Generated EAD not valid: " + xmlHandler.getErrorMessage());
-			return builder.build();
+			response =  builder.build();
+			return;
 		} else {
 			// Copy EAD to correct location
 		}
 		
 		builder.add(Constants.SUCCESS, true);
-		return builder.build();
+		response = builder.build();
+		return;
+		*/
+	}
+	
+	public JsonObject getResponse() {
+		return response;
 	}
 
 	private void handleNode(Tree<FileableCmisObject> tree, Element parent) {

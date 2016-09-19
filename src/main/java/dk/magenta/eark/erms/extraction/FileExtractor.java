@@ -1,4 +1,4 @@
-package dk.magenta.eark.erms.repository;
+package dk.magenta.eark.erms.extraction;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;

@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import dk.magenta.eark.erms.Constants;
 import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
+import dk.magenta.eark.erms.extraction.ExtractionWorker;
 import dk.magenta.eark.erms.json.JsonUtils;
 import dk.magenta.eark.erms.repository.profiles.Profile;
 
@@ -187,70 +188,6 @@ public class RepositoryResource {
 
         return builder.build();
     }
-
-	@POST
-	@Consumes(MediaType.APPLICATION_JSON)
-	@Produces(MediaType.APPLICATION_JSON)
-	@Path("extract")
-	public JsonObject extract(JsonObject json) {
-		JsonObjectBuilder builder = Json.createObjectBuilder();
-
-		// TODO: the JsonUtils methods below should not take a builder as an
-		// argument...
-
-		// Check if the mandatory keys are in the request JSON
-		String[] mandatoryJsonKeys = { Profile.NAME, Constants.MAP_NAME, Constants.EXPORT_LIST, Constants.EXCLUDE_LIST,
-				Constants.EXPORT_PATH };
-		if (!JsonUtils.containsCorrectKeys(json, mandatoryJsonKeys)) {
-			JsonUtils.addKeyErrorMessage(builder, mandatoryJsonKeys);
-			return builder.build();
-		}
-
-		// Check that the profile name, the mapping name and the export path are
-		// not blank
-		if (!StringUtils.isNotBlank(json.getString(Profile.NAME))
-				|| !StringUtils.isNotBlank(json.getString(Constants.MAP_NAME))
-				|| !StringUtils.isNotBlank(json.getString(Constants.EXPORT_PATH))) {
-			builder.add(Constants.SUCCESS, false);
-			builder.add(Constants.ERRORMSG, "Blank values are not allowed in the request JSON");
-			return builder.build();
-		}
-
-		// Check that the exportList is a none-empty array
-		if (!JsonUtils.isArrayNoneEmpty(json, Constants.EXPORT_LIST)) {
-			JsonUtils.addArrayErrorMessage(builder, Constants.EXPORT_LIST);
-			return builder.build();
-		}
-
-		// Check that the excludeList is an array
-		if (!JsonUtils.isArray(json, Constants.EXCLUDE_LIST)) {
-			JsonUtils.addArrayErrorMessage(builder, Constants.EXCLUDE_LIST);
-			return builder.build();
-		}
-		
-		// Check if the exportPath is writeable
-		 java.nio.file.Path exportPath = Paths.get(json.getString(Constants.EXPORT_PATH));
-		 if (Files.notExists(exportPath)) {
-			 try {
-				 Files.createDirectories(exportPath);
-			 } catch (IOException e) {
-				 JsonUtils.addErrorMessage(builder, "Could not create the folder " + exportPath.toString());
-				 return builder.build();
-			 }
-		 }
-		 if (!Files.isWritable(exportPath)) {
-			 JsonUtils.addErrorMessage(builder, exportPath.toString() + " is not writeable");
-			 return builder.build();
-		 }
-		
-
-		// Everything OK in the request JSON - begin extraction
-
-		ExtractionWorker extractionWorker = new ExtractionWorker(json, getSessionWorker(json.getString(Profile.NAME), json.getString(Constants.MAP_NAME)));
-		JsonObject result = extractionWorker.extract();
-
-		return result;
-	}
 
 
     /**
