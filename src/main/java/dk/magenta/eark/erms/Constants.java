@@ -12,7 +12,8 @@ public class Constants {
 	public static final String EXPORT_LIST = "exportList";
 	public static final String EXCLUDE_LIST = "excludeList";
 	public static final String MAP_NAME = "mapName";
-			
+	public static final String EXPORT_PATH = "exportPath";
+	
 	// File paths
 	public static final String SETTINGS = "settings.properties";
 	public static final String CMIS_SETTINGS_PATH = "cmis.properties";

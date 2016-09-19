@@ -21,12 +21,15 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLDecoder;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.HashMap;
 import java.util.Map;
+
 
 /**
  * @author lanre.
@@ -192,58 +195,77 @@ public class RepositoryResource {
         return builder.build();
     }
 
-    @POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("extract")
-    public JsonObject extract(JsonObject json) {
-        JsonObjectBuilder builder = Json.createObjectBuilder();
+	@POST
+	@Consumes(MediaType.APPLICATION_JSON)
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("extract")
+	public JsonObject extract(JsonObject json) {
+		JsonObjectBuilder builder = Json.createObjectBuilder();
 
-        // TODO: the JsonUtils methods below should not take a builder as an
-        // argument...
+		// TODO: the JsonUtils methods below should not take a builder as an
+		// argument...
 
-        // Check if the mandatory keys are in the request JSON
-        String[] mandatoryJsonKeys = { Profile.NAME, Constants.MAP_NAME, Constants.EXPORT_LIST,
-                Constants.EXCLUDE_LIST };
-        if (!JsonUtils.containsCorrectKeys(json, mandatoryJsonKeys)) {
-            JsonUtils.addKeyErrorMessage(builder, mandatoryJsonKeys);
-            return builder.build();
-        }
+		// Check if the mandatory keys are in the request JSON
+		String[] mandatoryJsonKeys = { Profile.NAME, Constants.MAP_NAME, Constants.EXPORT_LIST, Constants.EXCLUDE_LIST,
+				Constants.EXPORT_PATH };
+		if (!JsonUtils.containsCorrectKeys(json, mandatoryJsonKeys)) {
+			JsonUtils.addKeyErrorMessage(builder, mandatoryJsonKeys);
+			return builder.build();
+		}
 
-        // Check that the profile name and the mapping name are not blank
-        if (!StringUtils.isNotBlank(json.getString(Profile.NAME))
-                || !StringUtils.isNotBlank(json.getString(Constants.MAP_NAME))) {
-            builder.add(Constants.SUCCESS, false);
-            builder.add(Constants.ERRORMSG, "Blank values are not allowed in the request JSON");
-            return builder.build();
-        }
+		// Check that the profile name, the mapping name and the export path are
+		// not blank
+		if (!StringUtils.isNotBlank(json.getString(Profile.NAME))
+				|| !StringUtils.isNotBlank(json.getString(Constants.MAP_NAME))
+				|| !StringUtils.isNotBlank(json.getString(Constants.EXPORT_PATH))) {
+			builder.add(Constants.SUCCESS, false);
+			builder.add(Constants.ERRORMSG, "Blank values are not allowed in the request JSON");
+			return builder.build();
+		}
 
-        // Check that the exportList is a none-empty array
-        if (!JsonUtils.isArrayNoneEmpty(json, Constants.EXPORT_LIST)) {
-            JsonUtils.addArrayErrorMessage(builder, Constants.EXPORT_LIST);
-            return builder.build();
-        }
+		// Check that the exportList is a none-empty array
+		if (!JsonUtils.isArrayNoneEmpty(json, Constants.EXPORT_LIST)) {
+			JsonUtils.addArrayErrorMessage(builder, Constants.EXPORT_LIST);
+			return builder.build();
+		}
 
-        // Check that the excludeList is an array
-        if (!JsonUtils.isArray(json, Constants.EXCLUDE_LIST)) {
-            JsonUtils.addArrayErrorMessage(builder, Constants.EXCLUDE_LIST);
-            return builder.build();
-        }
+		// Check that the excludeList is an array
+		if (!JsonUtils.isArray(json, Constants.EXCLUDE_LIST)) {
+			JsonUtils.addArrayErrorMessage(builder, Constants.EXCLUDE_LIST);
+			return builder.build();
+		}
+		
+		// Check if the exportPath is writeable
+		 java.nio.file.Path exportPath = Paths.get(json.getString(Constants.EXPORT_PATH));
+		 if (Files.notExists(exportPath)) {
+			 try {
+				 Files.createDirectories(exportPath);
+			 } catch (IOException e) {
+				 JsonUtils.addErrorMessage(builder, "Could not create the folder " + exportPath.toString());
+				 return builder.build();
+			 }
+		 }
+		 if (!Files.isWritable(exportPath)) {
+			 JsonUtils.addErrorMessage(builder, exportPath.toString() + " is not writeable");
+			 return builder.build();
+		 }
+		
 
-        // Everything OK in the request JSON - begin extraction
-        String profileName = json.getString(Profile.NAME),  mapName = json.getString(Constants.MAP_NAME);
-        ExtractionWorker extractionWorker = new ExtractionWorker(json, getSessionWorker(profileName, mapName));
+		// Everything OK in the request JSON - begin extraction
 
-        return extractionWorker.extract();
-    }
+		ExtractionWorker extractionWorker = new ExtractionWorker(json, getSessionWorker(json.getString(Profile.NAME), json.getString(Constants.MAP_NAME)));
+		JsonObject result = extractionWorker.extract();
+
+		return result;
+	}
 
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     @Path("/ead/upload")
     public JsonObject uploadEad(@FormDataParam("eadFile") String eadFileName,
-                                    @FormDataParam("file") InputStream fileInputStream,
-                                    @FormDataParam("file") FormDataContentDisposition fileMetaData) {
+                                @FormDataParam("file") InputStream fileInputStream,
+                                @FormDataParam("file") FormDataContentDisposition fileMetaData) {
         JsonObjectBuilder builder = Json.createObjectBuilder();
         if (StringUtils.isNotBlank(eadFileName) && fileInputStream != null) {
             try {
@@ -305,4 +327,5 @@ public class RepositoryResource {
         }
         return connectionPool.get(connectionKey);
     }
+
 }

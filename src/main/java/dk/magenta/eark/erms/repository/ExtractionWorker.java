@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -26,8 +28,9 @@ import org.jdom2.JDOMException;
 import dk.magenta.eark.erms.Constants;
 import dk.magenta.eark.erms.ead.EadBuilder;
 import dk.magenta.eark.erms.ead.MappingParser;
-import dk.magenta.eark.erms.ead.MappingUtils;
 import dk.magenta.eark.erms.ead.MetadataMapper;
+import dk.magenta.eark.erms.ead.XmlHandler;
+import dk.magenta.eark.erms.ead.XmlHandlerImpl;
 import dk.magenta.eark.erms.json.JsonUtils;
 
 // Let's not make this an interface for now
@@ -38,6 +41,8 @@ public class ExtractionWorker {
 	private MappingParser mappingParser;
 	private MetadataMapper metadataMapper;
 	private EadBuilder eadBuilder;
+	private XmlHandler xmlHandler;
+	private FileExtractor fileExtractor;
 	private Set<String> excludeList;
 	private CmisPathHandler cmisPathHandler;
 	private boolean removeFirstDaoElement;
@@ -46,6 +51,8 @@ public class ExtractionWorker {
 		this.json = json;
 		session = cmisSessionWorker.getSession();
 		metadataMapper = new MetadataMapper();
+		removeFirstDaoElement = true;
+		xmlHandler = new XmlHandlerImpl();
 	}
 
 	/**
@@ -85,12 +92,15 @@ public class ExtractionWorker {
 			this.excludeList.add(excludeList.getString(i));
 		}
 
+		// Get the exportPath and create the FileExtractor
+		fileExtractor = new FileExtractor(Paths.get(json.getString(Constants.EXPORT_PATH)), session);
+		
 		// Create EadBuilder
 		try {
 			// TODO: change this! - uploading of the EAD template should be
 			// handled elsewhere
 			InputStream eadInputStream = new FileInputStream(new File("/home/andreas/.erms/mappings/ead_template.xml"));
-			eadBuilder = new EadBuilder(eadInputStream);
+			eadBuilder = new EadBuilder(eadInputStream, xmlHandler);
 			eadInputStream.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
@@ -120,9 +130,15 @@ public class ExtractionWorker {
 			// Store the parent path for this current top-level node in the
 			// CmisPathHandler
 			Folder cmisFolder = (Folder) cmisObject;
-			cmisPathHandler = new CmisPathHandler(cmisFolder.getPath());
+			String folderPath;
+			if (cmisFolder.isRootFolder()) {
+				folderPath = cmisFolder.getPath();
+			} else {
+				folderPath = cmisFolder.getFolderParent().getPath();
+			}
+			cmisPathHandler = new CmisPathHandler(folderPath);
 
-			// Get element for the current node in the exportList and write to
+			// Get element for the current node in the exportList and add to
 			// EAD
 			Element c = metadataMapper.mapCElement(cmisObject, mappingParser.getHooksFromSemanticType(semanticType),
 					mappingParser.getCElementFromSemanticType(semanticType));
@@ -131,15 +147,28 @@ public class ExtractionWorker {
 			// This way of traversing the CMIS tree follows the example given in
 			// the official documentation - see
 			// http://chemistry.apache.org/java/developing/guide.html
-
+			
 			for (Tree<FileableCmisObject> tree : cmisFolder.getDescendants(-1)) {
-				handleNode(tree, c);
+				if (mappingParser.isLeaf(cmisType)) {
+					handleLeafNodes(tree, c, cmisType, cmisFolder.getPath());
+				} else {
+					handleNode(tree, c);
+				}
 			}
 		}
 
 		// For debugging
-		eadBuilder.writeXml("/tmp/ead.xml");
+		XmlHandler.writeXml(eadBuilder.getEad(), "/tmp/ead.xml");
 
+		// Validate EAD
+		if (!xmlHandler.isXmlValid(eadBuilder.getEad(), "ead3.xsd")) {
+			// TODO: Put schema location into constant
+			JsonUtils.addErrorMessage(builder, "Generated EAD not valid: " + xmlHandler.getErrorMessage());
+			return builder.build();
+		} else {
+			// Copy EAD to correct location
+		}
+		
 		builder.add(Constants.SUCCESS, true);
 		return builder.build();
 	}
@@ -183,8 +212,6 @@ public class ExtractionWorker {
 
 					// Make variable (hardcode) containing path to store EAD and
 					// files // TODO: fix this
-					// traverse rest of cmis tree
-
 				}
 
 			}
@@ -202,30 +229,49 @@ public class ExtractionWorker {
 
 	private void handleLeafNodes(Tree<FileableCmisObject> tree, Element semanticLeaf, String semanticLeafCmisType,
 			String parentPath) {
-		CmisObject cmisObject = tree.getItem();
-		String cmisType = cmisObject.getType().getId();
-		if (cmisObject.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
+		
+		CmisObject node = tree.getItem();
+		String cmisObjectTypeId = node.getId();
 
-			// Determine the path to the file...
-			String pathToParent = cmisPathHandler.getRelativePath(parentPath);
-			String pathToFile = pathToParent + "/" + cmisObject.getName();
+		if (!excludeList.contains(cmisObjectTypeId)) {
+			if (node.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
+				String pathToParentFolder = cmisPathHandler.getRelativePath(parentPath);
+				String pathToNode = pathToParentFolder + "/" + node.getName();
+				Path filePath = Paths.get(pathToNode);
+				
+				// Create <dao> element
+				
+				Element dao = metadataMapper.mapDaoElement(node,
+						mappingParser.getHooksFromCmisType(semanticLeafCmisType), semanticLeaf, fileExtractor.getDataFilePath().resolve(filePath));
+				// MappingUtils.printElement(dao);
 
-			// Create <dao> element
-			Element dao = metadataMapper.mapDaoElement(cmisObject,
-					mappingParser.getHooksFromCmisType(semanticLeafCmisType), semanticLeaf, pathToFile);
-			// MappingUtils.printElement(dao);
+				// Insert <dao> element into <c> element
+				if (removeFirstDaoElement) {
+					// The first <dao> element is the one from the template -
+					// must be removed
+					metadataMapper.removeDaoElements(semanticLeaf);
+					removeFirstDaoElement = false;
+				}
+				eadBuilder.addDaoElement(dao, semanticLeaf);
+				
+				// Extract the file contents
+				
+				try {
+					fileExtractor.writeCmisDocument(filePath, cmisObjectTypeId);
+				} catch (IOException e) {
+					// TODO: create JSON
+					e.printStackTrace();
+				}
+								
 
-			// Insert <dao> element into <c> element
-			if (removeFirstDaoElement) {
-				metadataMapper.removeDaoElements(semanticLeaf);
-				removeFirstDaoElement = false;
+			} else if (node.getBaseTypeId().equals(BaseTypeId.CMIS_FOLDER)) {
+				String pathToNode = ((Folder) node).getPath();
+				for (Tree<FileableCmisObject> child : tree.getChildren()) {
+					handleLeafNodes(child, semanticLeaf, semanticLeafCmisType, pathToNode);
+				}
+			} else {
+				// Not handled...
 			}
-			eadBuilder.addDaoElement(dao, semanticLeaf);
-
-		} else if (cmisObject.getBaseTypeId().equals(BaseTypeId.CMIS_FOLDER)) {
-
-		} else {
-			// Not handled...
 		}
 	}
 

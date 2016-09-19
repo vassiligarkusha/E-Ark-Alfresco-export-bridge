@@ -5,8 +5,11 @@ import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.output.XMLOutputter;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 
 public interface XmlHandler {
 	
@@ -35,6 +38,14 @@ public interface XmlHandler {
 	String getErrorMessage();
 	
 	/**
+	 * Validates a JDOM document
+	 * @param document
+	 * @param schemaLocation path to the XML schema in the resources folder
+	 * @return true if the document is valid and false otherwise
+	 */
+	boolean isXmlValid(Document document, String schemaLocation);
+	
+	/**
 	 * Write an XML element to System.out (for debugging)
 	 * @param e
 	 */
@@ -45,6 +56,30 @@ public interface XmlHandler {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
+	}
+	
+
+	/**
+	 * Write a JDOM document as an XML file (no validation)
+	 * @param document
+	 * @param filename
+	 */
+	static void writeXml(Document document, String filename) {
+		try {
+			File f = new File(filename);
+			f.delete();
+			FileWriter writer = new FileWriter(filename);
+			XMLOutputter outputter = new XMLOutputter();
+			outputter.output(document, writer);
+			writer.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	static void writeXml(Document document, Path path) {
+		writeXml(document, path.toString());
 	}
 
 	
