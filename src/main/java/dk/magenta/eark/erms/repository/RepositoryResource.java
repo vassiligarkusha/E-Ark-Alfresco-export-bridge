@@ -30,6 +30,7 @@ public class RepositoryResource {
     public static final String FOLDER_OBJECT_ID = "folderObjectId";
     public static final String DOCUMENT_OBJECT_ID = "documentObjectId";
     public static final String MAP_NAME = "mapName";
+    public static final String SELECTED = "selected";
 
     public RepositoryResource() {}
 
@@ -136,6 +137,9 @@ public class RepositoryResource {
             builder.add(Constants.SUCCESS, false);
             builder.add(Constants.ERRORMSG, "The connection profile does not have a name!");
         }
+
+        if (json.containsKey(SELECTED) )
+            builder.add("selected", json.getBoolean("selected"));
 
         return builder.build();
     }
