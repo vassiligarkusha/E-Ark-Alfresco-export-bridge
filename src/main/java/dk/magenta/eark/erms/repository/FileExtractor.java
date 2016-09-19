@@ -60,7 +60,7 @@ public class FileExtractor {
 		}
 	}
 	
-	private Path getDataFilePath() {
+	Path getDataFilePath() {
 		if (dataFilePath != null) {
 			return dataFilePath;
 		}

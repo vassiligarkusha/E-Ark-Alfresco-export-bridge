@@ -212,8 +212,6 @@ public class ExtractionWorker {
 
 					// Make variable (hardcode) containing path to store EAD and
 					// files // TODO: fix this
-					// traverse rest of cmis tree
-
 				}
 
 			}
@@ -239,10 +237,12 @@ public class ExtractionWorker {
 			if (node.getBaseTypeId().equals(BaseTypeId.CMIS_DOCUMENT)) {
 				String pathToParentFolder = cmisPathHandler.getRelativePath(parentPath);
 				String pathToNode = pathToParentFolder + "/" + node.getName();
-
+				Path filePath = Paths.get(pathToNode);
+				
 				// Create <dao> element
+				
 				Element dao = metadataMapper.mapDaoElement(node,
-						mappingParser.getHooksFromCmisType(semanticLeafCmisType), semanticLeaf, pathToNode);
+						mappingParser.getHooksFromCmisType(semanticLeafCmisType), semanticLeaf, fileExtractor.getDataFilePath().resolve(filePath));
 				// MappingUtils.printElement(dao);
 
 				// Insert <dao> element into <c> element
@@ -255,7 +255,7 @@ public class ExtractionWorker {
 				eadBuilder.addDaoElement(dao, semanticLeaf);
 				
 				// Extract the file contents
-				Path filePath = Paths.get(pathToNode);
+				
 				try {
 					fileExtractor.writeCmisDocument(filePath, cmisObjectTypeId);
 				} catch (IOException e) {

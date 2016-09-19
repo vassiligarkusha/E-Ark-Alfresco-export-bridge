@@ -1,5 +1,6 @@
 package dk.magenta.eark.erms.ead;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.client.api.CmisObject;
@@ -52,7 +53,7 @@ public class MetadataMapper {
 	 *            the leaf node that should contain the dao element
 	 * @return the CMIS data filled out dao element
 	 */
-	public Element mapDaoElement(CmisObject cmisObj, List<Hook> hooks, Element c, String filePath) {
+	public Element mapDaoElement(CmisObject cmisObj, List<Hook> hooks, Element c, Path filePath) {
 		// The c element MUST contain exactly one dao element
 		Element clone = c.clone();
 		for (Hook hook : hooks) {
@@ -67,7 +68,7 @@ public class MetadataMapper {
 			}
 		}
 		Element dao = MappingUtils.extractElements(clone, "dao", ead).get(0).clone();
-		dao.setAttribute("href", filePath);
+		dao.setAttribute("href", filePath.toString());
 
 		return dao.clone();
 	}
