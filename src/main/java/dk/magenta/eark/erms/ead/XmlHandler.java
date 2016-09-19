@@ -1,12 +1,12 @@
 package dk.magenta.eark.erms.ead;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
 import org.jdom2.output.XMLOutputter;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 public interface XmlHandler {
 	
@@ -15,7 +15,7 @@ public interface XmlHandler {
 	 * @param in
 	 * @return
 	 */
-	public Document readXml(InputStream in);
+	Document readXml(InputStream in);
 	
 	/**
 	 * Generates JDOM document from an XML input stream. Validation is performed according 
@@ -26,19 +26,19 @@ public interface XmlHandler {
 	 * @return
 	 * @throws JDOMException
 	 */
-	public Document readAndValidateXml(InputStream in, String... schemas) throws JDOMException;
+	Document readAndValidateXml(InputStream in, String... schemas) throws JDOMException;
 
 	/**
 	 * Gets the latest JDOM error message (e.g. a validation error message)
 	 * @return
 	 */
-	public String getErrorMessage();
+	String getErrorMessage();
 	
 	/**
 	 * Write an XML element to System.out (for debugging)
 	 * @param e
 	 */
-	public static void writeXml(Element e) {
+	static void writeXml(Element e) {
 		XMLOutputter outputter = new XMLOutputter();
 		try {
 			outputter.output(e, System.out);
