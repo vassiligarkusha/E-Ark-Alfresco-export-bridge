@@ -1,5 +1,6 @@
 package dk.magenta.eark.erms.repository;
 
+import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -229,6 +230,14 @@ public class RepositoryResource {
 		
 		// Check if the exportPath is writeable
 		 java.nio.file.Path exportPath = Paths.get(json.getString(Constants.EXPORT_PATH));
+		 if (Files.notExists(exportPath)) {
+			 try {
+				 Files.createDirectories(exportPath);
+			 } catch (IOException e) {
+				 JsonUtils.addErrorMessage(builder, "Could not create the folder " + exportPath.toString());
+				 return builder.build();
+			 }
+		 }
 		 if (!Files.isWritable(exportPath)) {
 			 JsonUtils.addErrorMessage(builder, exportPath.toString() + " is not writeable");
 			 return builder.build();
