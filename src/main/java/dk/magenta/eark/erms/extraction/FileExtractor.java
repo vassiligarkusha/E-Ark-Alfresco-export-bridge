@@ -64,7 +64,12 @@ public class FileExtractor {
 		if (dataFilePath != null) {
 			return dataFilePath;
 		}
-		return Paths.get("representations", "rep1", "data");
+		dataFilePath = Paths.get("representations", "rep1", "data");
+		return dataFilePath;
+	}
+	
+	Path getMetadataFilePath() {
+		return Paths.get("metadata", "descriptive");
 	}
 	
 }

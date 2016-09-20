@@ -68,10 +68,10 @@ public class ExtractionWorker implements Runnable {
 	 */
 	public void run() {
 
-		Dummy d = new Dummy();
-		d.run();
-		return;
-		/*
+//		Dummy d = new Dummy();
+//		d.run();
+//		return;
+
 		JsonObjectBuilder builder = Json.createObjectBuilder();
 
 		// Get the mapping
@@ -180,12 +180,12 @@ public class ExtractionWorker implements Runnable {
 			return;
 		} else {
 			// Copy EAD to correct location
+			// XmlHandler.writeXml(eadBuilder.getEad(), path);
 		}
 		
 		builder.add(Constants.SUCCESS, true);
 		response = builder.build();
 		return;
-		*/
 	}
 	
 	public JsonObject getResponse() {

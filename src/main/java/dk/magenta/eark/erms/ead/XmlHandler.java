@@ -38,6 +38,12 @@ public interface XmlHandler {
 	public String getErrorMessage();
 	
 	/**
+	 * Get the location of the generated EAD which have passed validation
+	 * @return the {@link}Path to the generated and valid EAD 
+	 */
+	public Path getCandidateEad();
+	
+	/**
 	 * Validates a JDOM document
 	 * @param document
 	 * @param schemaLocation path to the XML schema in the resources folder
