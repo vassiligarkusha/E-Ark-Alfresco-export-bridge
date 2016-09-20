@@ -138,6 +138,7 @@ public class ExtractionResource {
 				builder.add(Constants.MESSAGE, "Processes already done");
 			} else {
 				executorService.shutdownNow();
+				future = null;
 				builder.add(Constants.SUCCESS, true);
 				builder.add(Constants.MESSAGE, "Process terminated");
 			}
