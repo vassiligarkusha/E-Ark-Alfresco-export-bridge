@@ -103,29 +103,27 @@ public class ExtractionResource {
 
 		// Everything OK in the request JSON - begin extraction in new thread
 
-		if (executorService == null) {
+		String status = checkStatus();
+		if (status.equals(DONE) || status.equals(NOT_RUNNING)) {
 			executorService = Executors.newFixedThreadPool(1);
-		}
-
-		if (!executorService.isShutdown()) {
 			extractionWorker = new ExtractionWorker(json,
 					getSessionWorker(json.getString(Profile.NAME), json.getString(Constants.MAP_NAME)));
 			future = executorService.submit(extractionWorker);
 			executorService.shutdown();
 			builder.add(Constants.SUCCESS, true);
 			builder.add(Constants.MESSAGE, "Extraction initiated");
-			return builder.build();
+		} else if (status.equals(RUNNING)) {
+			builder.add(Constants.SUCCESS, false);
+			builder.add(Constants.MESSAGE, "Process already running");
 		} else {
-			if (future.isDone()) {
-				
-			} else {
-				builder.add(Constants.SUCCESS, false);
-				builder.add(Constants.MESSAGE, "An extraction process is currently running...");
-				return builder.build();
-			}
+			// May be needed later
+			// return null;
 		}
+		
+		return builder.build();
 	}
 
+	
 	@GET
 	@Path("terminate")
 	@Produces(MediaType.APPLICATION_JSON)
@@ -151,21 +149,24 @@ public class ExtractionResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("status")
 	public JsonObject status() {
-
 		JsonObjectBuilder builder = Json.createObjectBuilder();
-
 		builder.add(Constants.SUCCESS, true);
+		builder.add(Constants.STATUS, checkStatus());
+		return builder.build();
+	}
+	
+	private String checkStatus() {
+		String status;
 		if (future == null) {
-			builder.add(Constants.STATUS, NOT_RUNNING);
+			status = NOT_RUNNING;
 		} else {
 			if (future.isDone()) {
-				builder.add(Constants.STATUS, DONE);
-
+				status = DONE;
 			} else {
-				builder.add(Constants.STATUS, RUNNING);
+				status = RUNNING;
 			}
 		}
-		return builder.build();
+		return status;
 	}
 
 	// TODO: refactor - this method is also used in the RepositoryResource
