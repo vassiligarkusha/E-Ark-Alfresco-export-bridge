@@ -57,7 +57,8 @@ public class ExtractionResource {
 		// argument...
 
 		// Check if the mandatory keys are in the request JSON
-		String[] mandatoryJsonKeys = { Profile.NAME, Constants.MAP_NAME, Constants.EXPORT_LIST, Constants.EXCLUDE_LIST};
+		String[] mandatoryJsonKeys = { Profile.NAME, Constants.MAP_NAME, Constants.EXPORT_LIST,
+				Constants.EXCLUDE_LIST };
 		if (!JsonUtils.containsCorrectKeys(json, mandatoryJsonKeys)) {
 			JsonUtils.addKeyErrorMessage(builder, mandatoryJsonKeys);
 			return builder.build();
@@ -102,11 +103,10 @@ public class ExtractionResource {
 			// May be needed later
 			// return null;
 		}
-		
+
 		return builder.build();
 	}
 
-	
 	// TODO: refactor - use checkStatus() instead
 	@GET
 	@Path("terminate")
@@ -137,9 +137,14 @@ public class ExtractionResource {
 		JsonObjectBuilder builder = Json.createObjectBuilder();
 		builder.add(Constants.SUCCESS, true);
 		builder.add(Constants.STATUS, checkStatus());
+		if (extractionWorker != null) {
+			if (extractionWorker.getResponse() != null) {
+				builder.add("extractionStatus", extractionWorker.getResponse());
+			}
+		}
 		return builder.build();
 	}
-	
+
 	private String checkStatus() {
 		String status;
 		if (future == null) {

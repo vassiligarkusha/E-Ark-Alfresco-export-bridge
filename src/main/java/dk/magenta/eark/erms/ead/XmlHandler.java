@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -71,21 +73,25 @@ public interface XmlHandler {
 	 * @param filename
 	 */
 	public static void writeXml(Document document, String filename) {
+		writeXml(document, Paths.get(filename));
+	}
+	
+	
+	public static void writeXml(Document document, Path filePath) {
 		try {
-			File f = new File(filename);
+			Path folderPath = filePath.getParent();
+			if (!Files.isDirectory(folderPath)) {
+				Files.createDirectories(folderPath);
+			}
+			File f = filePath.toFile();
 			f.delete();
-			FileWriter writer = new FileWriter(filename);
+			FileWriter writer = new FileWriter(f);
 			XMLOutputter outputter = new XMLOutputter();
 			outputter.output(document, writer);
 			writer.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	
-	public static void writeXml(Document document, Path path) {
-		writeXml(document, path.toString());
 	}
 
 	

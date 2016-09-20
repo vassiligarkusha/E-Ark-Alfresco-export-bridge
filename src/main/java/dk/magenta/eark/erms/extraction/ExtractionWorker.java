@@ -45,20 +45,26 @@ public class ExtractionWorker implements Runnable {
 	private MetadataMapper metadataMapper;
 	private EadBuilder eadBuilder;
 	private XmlHandler xmlHandler;
-	private FileExtractor fileExtractor;
+	private IOHandler fileExtractor;
 	private Set<String> excludeList;
 	private CmisPathHandler cmisPathHandler;
 	private boolean removeFirstDaoElement;
-	private JsonObject response;
-	private PropertiesHandler propertiesHandler;
-
+	private JsonObjectBuilder response;
+	private Path exportPath;
+	
 	public ExtractionWorker(JsonObject json, CmisSessionWorker cmisSessionWorker) {
 		this.json = json;
 		session = cmisSessionWorker.getSession();
 		metadataMapper = new MetadataMapper();
 		removeFirstDaoElement = true;
 		xmlHandler = new XmlHandlerImpl();
-		propertiesHandler = new PropertiesHandlerImpl("settings.properties");
+		
+		// Get the export path
+		PropertiesHandler propertiesHandler = new PropertiesHandlerImpl("settings.properties");
+		exportPath = Paths.get(propertiesHandler.getProperty("exportPath"));
+		
+//		response = Json.createObjectBuilder();
+//		response.add("foo", "bar");
 	}
 
 	/**
@@ -88,11 +94,11 @@ public class ExtractionWorker implements Runnable {
 			mappingInputStream.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-			response = JsonUtils.addErrorMessage(builder, "Mapping file not found!").build();
+			response = JsonUtils.addErrorMessage(builder, "Mapping file not found!");
 			return;
 		} catch (java.io.IOException e) {
 			e.printStackTrace();
-			response = JsonUtils.addErrorMessage(builder, "An I/O error occured while handling the mapping file!").build();
+			response = JsonUtils.addErrorMessage(builder, "An I/O error occured while handling the mapping file!");
 			return;
 		}
 
@@ -105,7 +111,7 @@ public class ExtractionWorker implements Runnable {
 		}
 
 		// Get the exportPath and create the FileExtractor
-		fileExtractor = new FileExtractor(Paths.get(propertiesHandler.getProperty("exportPath")), session);
+		fileExtractor = new IOHandler(exportPath, session);
 		
 		// Create EadBuilder
 		try {
@@ -116,16 +122,15 @@ public class ExtractionWorker implements Runnable {
 			eadInputStream.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-			response = JsonUtils.addErrorMessage(builder, "EAD template file not found!").build();
+			response = JsonUtils.addErrorMessage(builder, "EAD template file not found!");
 			return;
 		} catch (JDOMException e) {
 			builder.add("validationError", eadBuilder.getValidationErrorMessage());
-			response = JsonUtils.addErrorMessage(builder, "EAD template file not valid according to ead3.xsd").build();
+			response = JsonUtils.addErrorMessage(builder, "EAD template file not valid according to ead3.xsd");
 			return;
 		} catch (IOException e) {
 			e.printStackTrace();
-			response = JsonUtils.addErrorMessage(builder, "An I/O error occured while handling the EAD template file!")
-					.build();
+			response = JsonUtils.addErrorMessage(builder, "An I/O error occured while handling the EAD template file!");
 			return;
 		}
 
@@ -179,19 +184,21 @@ public class ExtractionWorker implements Runnable {
 		if (!xmlHandler.isXmlValid(eadBuilder.getEad(), "ead3.xsd")) {
 			// TODO: Put schema location into constant
 			JsonUtils.addErrorMessage(builder, "Generated EAD not valid: " + xmlHandler.getErrorMessage());
-			response =  builder.build();
+			response =  builder;
 			return;
 		} else {
+			System.out.println("hurra");
 			// Copy EAD to correct location
-			// XmlHandler.writeXml(eadBuilder.getEad(), path);
+			Path pathToValidEad = exportPath.resolve(fileExtractor.getMetadataFilePath().resolve("ead.xml"));
+			XmlHandler.writeXml(eadBuilder.getEad(), pathToValidEad);
 		}
 		
 		builder.add(Constants.SUCCESS, true);
-		response = builder.build();
+		response = builder;
 		return;
 	}
 	
-	public JsonObject getResponse() {
+	public JsonObjectBuilder getResponse() {
 		return response;
 	}
 
