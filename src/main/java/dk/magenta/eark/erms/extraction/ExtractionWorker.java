@@ -32,8 +32,9 @@ import dk.magenta.eark.erms.ead.MetadataMapper;
 import dk.magenta.eark.erms.ead.XmlHandler;
 import dk.magenta.eark.erms.ead.XmlHandlerImpl;
 import dk.magenta.eark.erms.json.JsonUtils;
-import dk.magenta.eark.erms.repository.CmisPathHandler;
 import dk.magenta.eark.erms.repository.CmisSessionWorker;
+import dk.magenta.eark.erms.system.PropertiesHandler;
+import dk.magenta.eark.erms.system.PropertiesHandlerImpl;
 
 // Let's not make this an interface for now
 public class ExtractionWorker implements Runnable {
@@ -49,6 +50,7 @@ public class ExtractionWorker implements Runnable {
 	private CmisPathHandler cmisPathHandler;
 	private boolean removeFirstDaoElement;
 	private JsonObject response;
+	private PropertiesHandler propertiesHandler;
 
 	public ExtractionWorker(JsonObject json, CmisSessionWorker cmisSessionWorker) {
 		this.json = json;
@@ -56,6 +58,7 @@ public class ExtractionWorker implements Runnable {
 		metadataMapper = new MetadataMapper();
 		removeFirstDaoElement = true;
 		xmlHandler = new XmlHandlerImpl();
+		propertiesHandler = new PropertiesHandlerImpl("settings.properties");
 	}
 
 	/**
@@ -102,7 +105,7 @@ public class ExtractionWorker implements Runnable {
 		}
 
 		// Get the exportPath and create the FileExtractor
-		fileExtractor = new FileExtractor(Paths.get(json.getString(Constants.EXPORT_PATH)), session);
+		fileExtractor = new FileExtractor(Paths.get(propertiesHandler.getProperty("exportPath")), session);
 		
 		// Create EadBuilder
 		try {

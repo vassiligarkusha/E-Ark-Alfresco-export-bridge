@@ -4,7 +4,7 @@ import static org.junit.Assert.*;
 
 import org.junit.Test;
 
-import dk.magenta.eark.erms.repository.CmisPathHandler;
+import dk.magenta.eark.erms.extraction.CmisPathHandler;
 
 public class TestCmisPathHandler {
 

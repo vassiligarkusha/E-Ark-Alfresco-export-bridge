@@ -57,8 +57,7 @@ public class ExtractionResource {
 		// argument...
 
 		// Check if the mandatory keys are in the request JSON
-		String[] mandatoryJsonKeys = { Profile.NAME, Constants.MAP_NAME, Constants.EXPORT_LIST, Constants.EXCLUDE_LIST,
-				Constants.EXPORT_PATH };
+		String[] mandatoryJsonKeys = { Profile.NAME, Constants.MAP_NAME, Constants.EXPORT_LIST, Constants.EXCLUDE_LIST};
 		if (!JsonUtils.containsCorrectKeys(json, mandatoryJsonKeys)) {
 			JsonUtils.addKeyErrorMessage(builder, mandatoryJsonKeys);
 			return builder.build();
@@ -67,8 +66,7 @@ public class ExtractionResource {
 		// Check that the profile name, the mapping name and the export path are
 		// not blank
 		if (!StringUtils.isNotBlank(json.getString(Profile.NAME))
-				|| !StringUtils.isNotBlank(json.getString(Constants.MAP_NAME))
-				|| !StringUtils.isNotBlank(json.getString(Constants.EXPORT_PATH))) {
+				|| !StringUtils.isNotBlank(json.getString(Constants.MAP_NAME))) {
 			builder.add(Constants.SUCCESS, false);
 			builder.add(Constants.ERRORMSG, "Blank values are not allowed in the request JSON");
 			return builder.build();
@@ -83,21 +81,6 @@ public class ExtractionResource {
 		// Check that the excludeList is an array
 		if (!JsonUtils.isArray(json, Constants.EXCLUDE_LIST)) {
 			JsonUtils.addArrayErrorMessage(builder, Constants.EXCLUDE_LIST);
-			return builder.build();
-		}
-
-		// Check if the exportPath is writeable
-		java.nio.file.Path exportPath = Paths.get(json.getString(Constants.EXPORT_PATH));
-		if (Files.notExists(exportPath)) {
-			try {
-				Files.createDirectories(exportPath);
-			} catch (IOException e) {
-				JsonUtils.addErrorMessage(builder, "Could not create the folder " + exportPath.toString());
-				return builder.build();
-			}
-		}
-		if (!Files.isWritable(exportPath)) {
-			JsonUtils.addErrorMessage(builder, exportPath.toString() + " is not writeable");
 			return builder.build();
 		}
 
@@ -124,6 +107,7 @@ public class ExtractionResource {
 	}
 
 	
+	// TODO: refactor - use checkStatus() instead
 	@GET
 	@Path("terminate")
 	@Produces(MediaType.APPLICATION_JSON)

@@ -1,4 +1,4 @@
-package dk.magenta.eark.erms.repository;
+package dk.magenta.eark.erms.extraction;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
