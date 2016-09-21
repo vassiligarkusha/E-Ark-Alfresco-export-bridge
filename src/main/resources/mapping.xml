@@ -107,11 +107,7 @@
 						<ead:unitdate datechar="created" />
 						<ead:unittitle />
 						<ead:unitid localtype="system_id" />
-
-						<!-- NOTE: only one dao element allowed here -->
-						<ead:dao id="to-be-filled-out-with-cmis-metadata" daotype="borndigital"
-							href="path-to-file" />
-
+						<ead:dao id="to-be-filled-out-with-cmis-metadata" daotype="borndigital"	href="path-to-file" />
 					</ead:did>
 				</c>
 			</ead>

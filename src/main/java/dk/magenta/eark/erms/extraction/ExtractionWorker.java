@@ -49,7 +49,7 @@ public class ExtractionWorker implements Runnable {
 	private Set<String> excludeList;
 	private CmisPathHandler cmisPathHandler;
 	private boolean removeFirstDaoElement;
-	private JsonObjectBuilder builder;
+	private JsonObject response;
 	private Path exportPath;
 	
 	public ExtractionWorker(JsonObject json, CmisSessionWorker cmisSessionWorker) {
@@ -74,12 +74,7 @@ public class ExtractionWorker implements Runnable {
 	 */
 	public void run() {
 
-		// For debugging - starts a process that runs for 10 sec
-//		Dummy d = new Dummy();
-//		d.run();
-//		return;
-
-		builder = Json.createObjectBuilder();
+		JsonObjectBuilder builder = Json.createObjectBuilder();
 
 		// Get the mapping
 		String mapName = json.getString(Constants.MAP_NAME);
@@ -92,11 +87,11 @@ public class ExtractionWorker implements Runnable {
 			mappingInputStream.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-			JsonUtils.addErrorMessage(builder, "Mapping file not found!");
+			response = JsonUtils.addErrorMessage(builder, "Mapping file not found!").build();
 			return;
 		} catch (java.io.IOException e) {
 			e.printStackTrace();
-			JsonUtils.addErrorMessage(builder, "An I/O error occured while handling the mapping file!");
+			response = JsonUtils.addErrorMessage(builder, "An I/O error occured while handling the mapping file!").build();
 			return;
 		}
 
@@ -120,15 +115,15 @@ public class ExtractionWorker implements Runnable {
 			eadInputStream.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
-			JsonUtils.addErrorMessage(builder, "EAD template file not found!");
+			response = JsonUtils.addErrorMessage(builder, "EAD template file not found!").build();
 			return;
 		} catch (JDOMException e) {
 			builder.add("validationError", eadBuilder.getValidationErrorMessage());
-			JsonUtils.addErrorMessage(builder, "EAD template file not valid according to ead3.xsd");
+			response = JsonUtils.addErrorMessage(builder, "EAD template file not valid according to ead3.xsd").build();
 			return;
 		} catch (IOException e) {
 			e.printStackTrace();
-			JsonUtils.addErrorMessage(builder, "An I/O error occured while handling the EAD template file!");
+			response = JsonUtils.addErrorMessage(builder, "An I/O error occured while handling the EAD template file!").build();
 			return;
 		}
 
@@ -178,7 +173,7 @@ public class ExtractionWorker implements Runnable {
 		// Validate EAD
 		if (!xmlHandler.isXmlValid(eadBuilder.getEad(), "ead3.xsd")) {
 			// TODO: Put schema location into constant
-			JsonUtils.addErrorMessage(builder, "Generated EAD not valid: " + xmlHandler.getErrorMessage());
+			response = JsonUtils.addErrorMessage(builder, "Generated EAD not valid: " + xmlHandler.getErrorMessage()).build();
 			return;
 		} else {
 			// Copy EAD to correct location
@@ -187,12 +182,13 @@ public class ExtractionWorker implements Runnable {
 		}
 		
 		builder.add(Constants.SUCCESS, true);
-		builder.add(Constants.STATUS, "DONE");
+		builder.add(Constants.STATUS, ExtractionResource.DONE);
+		response = builder.build();
 		return;
 	}
 	
-	public JsonObjectBuilder getResponse() {
-		return builder;
+	public JsonObject getResponse() {
+		return response;
 	}
 
 	private void handleNode(Tree<FileableCmisObject> tree, Element parent) {

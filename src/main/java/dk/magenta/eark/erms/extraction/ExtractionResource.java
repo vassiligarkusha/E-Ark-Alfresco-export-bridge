@@ -1,8 +1,5 @@
 package dk.magenta.eark.erms.extraction;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -41,9 +38,9 @@ public class ExtractionResource {
 	private static Future future;
 	private static ExtractionWorker extractionWorker;
 
-	private static final String NOT_RUNNING = "NOT_RUNNING";
-	private static final String RUNNING = "RUNNING";
-	private static final String DONE = "DONE";
+	static final String NOT_RUNNING = "NOT_RUNNING";
+	static final String RUNNING = "RUNNING";
+	static final String DONE = "DONE";
 
 	@POST
 	@Consumes(MediaType.APPLICATION_JSON)
@@ -95,7 +92,7 @@ public class ExtractionResource {
 			future = executorService.submit(extractionWorker);
 			executorService.shutdown();
 			builder.add(Constants.SUCCESS, true);
-			builder.add(Constants.MESSAGE, "Extraction initiated");
+			builder.add(Constants.MESSAGE, "Extraction initiated - check /status for error messages");
 		} else if (status.equals(RUNNING)) {
 			builder.add(Constants.SUCCESS, false);
 			builder.add(Constants.MESSAGE, "Process already running");
@@ -107,6 +104,7 @@ public class ExtractionResource {
 		return builder.build();
 	}
 
+	
 	// TODO: refactor - use checkStatus() instead
 	@GET
 	@Path("terminate")
@@ -130,21 +128,23 @@ public class ExtractionResource {
 		return builder.build();
 	}
 
+	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("status")
 	public JsonObject status() {
-		JsonObjectBuilder builder = Json.createObjectBuilder();
-		builder.add(Constants.SUCCESS, true);
-		builder.add(Constants.STATUS, checkStatus());
-		if (extractionWorker != null) {
-			if (extractionWorker.getResponse() != null) {
-				builder.add("extractionStatus", extractionWorker.getResponse());
-			}
+		String status = checkStatus();
+		if (status.equals(DONE)) {
+			return extractionWorker.getResponse();
+		} else {
+			JsonObjectBuilder builder = Json.createObjectBuilder();
+			builder.add(Constants.SUCCESS, true);
+			builder.add(Constants.STATUS, status);
+			return builder.build();
 		}
-		return builder.build();
 	}
 
+	
 	private String checkStatus() {
 		String status;
 		if (future == null) {
