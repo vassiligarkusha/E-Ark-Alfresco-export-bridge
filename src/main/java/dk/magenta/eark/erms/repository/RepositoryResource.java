@@ -221,15 +221,14 @@ public class RepositoryResource {
                 InputStream xmlInputStream = new FileInputStream(tempFile);
                 XmlHandler xmlHandler = new XmlHandlerImpl();
                 try {
-                    // NOTE: the order of the last two arguments in the method below is significant!
                     xmlHandler.readAndValidateXml(xmlInputStream, "ead3.xsd");
 
                     builder.add(Constants.SUCCESS, true);
-                    builder.add(Constants.MESSAGE, "Mapping validated and successfully saved");
+                    builder.add(Constants.MESSAGE, "EAD template validated and successfully saved");
 
                 } catch (JDOMException e) {
                     builder.add(Constants.SUCCESS, false);
-                    builder.add(Constants.MESSAGE, "The uploaded XML mapping is not valid according to mapping.xsd");
+                    builder.add(Constants.MESSAGE, "The uploaded EAD template is not valid according to ead.xsd");
                     builder.add("validationError", xmlHandler.getErrorMessage());
                 }
                 xmlInputStream.close();
