@@ -30,7 +30,6 @@ public class IOHandler {
 			FileUtils.deleteDirectory(rootExtractionPath.resolve("representations").toFile());
 			FileUtils.deleteDirectory(rootExtractionPath.resolve("metadata").toFile());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

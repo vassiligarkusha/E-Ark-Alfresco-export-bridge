@@ -2,7 +2,7 @@
  * This class is deprecated - use the XmlHandler instead
  */
 
-package dk.magenta.eark.erms.ead;
+package dk.magenta.eark.erms.xml;
 
 import java.io.IOException;
 import java.io.InputStream;

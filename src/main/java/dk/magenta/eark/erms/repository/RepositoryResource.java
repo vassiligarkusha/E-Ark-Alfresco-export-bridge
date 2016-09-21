@@ -1,11 +1,12 @@
 package dk.magenta.eark.erms.repository;
 
 import dk.magenta.eark.erms.Constants;
-import dk.magenta.eark.erms.ead.XmlHandler;
-import dk.magenta.eark.erms.ead.XmlHandlerImpl;
 import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
 import dk.magenta.eark.erms.json.JsonUtils;
 import dk.magenta.eark.erms.repository.profiles.Profile;
+import dk.magenta.eark.erms.xml.XmlHandler;
+import dk.magenta.eark.erms.xml.XmlHandlerImpl;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;

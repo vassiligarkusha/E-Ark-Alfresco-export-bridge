@@ -30,14 +30,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import dk.magenta.eark.erms.Constants;
-import dk.magenta.eark.erms.ead.XmlHandler;
-import dk.magenta.eark.erms.ead.XmlHandlerImpl;
 import dk.magenta.eark.erms.exceptions.ErmsRuntimeException;
 import dk.magenta.eark.erms.json.JsonUtils;
 import dk.magenta.eark.erms.repository.CmisSessionWorker;
 import dk.magenta.eark.erms.repository.CmisSessionWorkerImpl;
 import dk.magenta.eark.erms.repository.RepositoryResource;
 import dk.magenta.eark.erms.repository.profiles.Profile;
+import dk.magenta.eark.erms.xml.XmlHandler;
+import dk.magenta.eark.erms.xml.XmlHandlerImpl;
 
 @Path("extraction")
 public class ExtractionResource {
@@ -192,7 +192,7 @@ public class ExtractionResource {
                     xmlHandler.readAndValidateXml(xmlInputStream, "ead3.xsd");
 
                     builder.add(Constants.SUCCESS, true);
-                    builder.add(Constants.MESSAGE, "EAD template validated and successfully saved");
+                    builder.add(Constants.MESSAGE, "EAD template uploaded");
 
                 } catch (JDOMException e) {
                     builder.add(Constants.SUCCESS, false);

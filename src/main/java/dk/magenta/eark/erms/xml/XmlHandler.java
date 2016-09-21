@@ -1,4 +1,4 @@
-package dk.magenta.eark.erms.ead;
+package dk.magenta.eark.erms.xml;
 
 import java.io.File;
 import java.io.FileWriter;

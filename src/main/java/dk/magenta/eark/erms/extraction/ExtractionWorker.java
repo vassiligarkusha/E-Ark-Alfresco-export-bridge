@@ -32,13 +32,13 @@ import dk.magenta.eark.erms.db.JDBCConnectionStrategy;
 import dk.magenta.eark.erms.ead.EadBuilder;
 import dk.magenta.eark.erms.ead.MappingParser;
 import dk.magenta.eark.erms.ead.MetadataMapper;
-import dk.magenta.eark.erms.ead.XmlHandler;
-import dk.magenta.eark.erms.ead.XmlHandlerImpl;
 import dk.magenta.eark.erms.json.JsonUtils;
 import dk.magenta.eark.erms.mappings.Mapping;
 import dk.magenta.eark.erms.repository.CmisSessionWorker;
 import dk.magenta.eark.erms.system.PropertiesHandler;
 import dk.magenta.eark.erms.system.PropertiesHandlerImpl;
+import dk.magenta.eark.erms.xml.XmlHandler;
+import dk.magenta.eark.erms.xml.XmlHandlerImpl;
 
 // Let's not make this an interface for now
 public class ExtractionWorker implements Runnable {
@@ -243,21 +243,8 @@ public class ExtractionWorker implements Runnable {
 							handleLeafNodes(child, c, cmisType, cmisPath);
 						}
 					}
-
-					// Make variable (hardcode) containing path to store EAD and
-					// files // TODO: fix this
 				}
-
 			}
-
-			// Mapping mapping = null;
-			// try {
-			// mapping = dbConnectionStrategy.getMapping("LocalTest");
-			// } catch (SQLException e) {
-			// // TODO Auto-generated catch block
-			// e.printStackTrace();
-			// }
-			// System.out.println(mapping.getSyspath());
 		}
 	}
 
@@ -316,16 +303,4 @@ public class ExtractionWorker implements Runnable {
 		}
 		return false;
 	}
-
-	// TODO: we will need something like the below later one
-	// Observer design pattern etc...
-
-	// /**
-	// * Gets the status of the extraction process
-	// * @return
-	// */
-	// public JsonObject getStatus() {
-	// return null;
-	// }
-
 }
