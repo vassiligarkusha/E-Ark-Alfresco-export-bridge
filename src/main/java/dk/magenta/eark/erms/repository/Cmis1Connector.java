@@ -67,7 +67,7 @@ public class Cmis1Connector {
                 throw new ErmsURLException(ge.getMessage());
             }
 
-            // No connection to Alfresco available, create a new one
+            // No connection to CMIS repo available, create a new one
             SessionFactory sessionFactory = SessionFactoryImpl.newInstance();
 
             Map<String, String> parameters = new HashMap<>();

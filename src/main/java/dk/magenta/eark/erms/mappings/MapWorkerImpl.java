@@ -89,6 +89,23 @@ public class MapWorkerImpl implements MapWorker {
     }
 
     /**
+     * Returns a mapping Object. Not advisable for use in JAX-RS resources
+     *
+     * @param mapName
+     * @return a Map object or a Map.EMPTY object if it can not find a mapping object from the db
+     */
+    @Override
+    public Mapping getMappingObject(String mapName) {
+        try {
+            return this.dbConnectionStrategy.getMapping(mapName);
+        }
+        catch (Exception ge){
+            ge.printStackTrace();
+            return Mapping.EMPTY_MAP;
+        }
+    }
+
+    /**
      * Return a list of mappings on the system
      *
      * @return

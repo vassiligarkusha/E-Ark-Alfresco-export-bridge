@@ -1,16 +1,22 @@
 package dk.magenta.eark.erms.ead;
 
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import dk.magenta.eark.erms.Constants;
+import dk.magenta.eark.erms.exceptions.ErmsIOException;
+import dk.magenta.eark.erms.mappings.MapWorker;
+import dk.magenta.eark.erms.mappings.MapWorkerImpl;
+import dk.magenta.eark.erms.mappings.Mapping;
+import dk.magenta.eark.erms.xml.XmlHandler;
+import dk.magenta.eark.erms.xml.XmlHandlerImpl;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
 
-import dk.magenta.eark.erms.Constants;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.*;
 
 /**
  * 
@@ -28,31 +34,41 @@ public class MappingParser {
 	private XmlHandler xmlHandler;
 	private List<String> viewTypes;
 
+	public MappingParser(String mappingId) {
+		this.mappingId = mappingId;
+        MapWorker mapWorker = new MapWorkerImpl();
+        Mapping map = mapWorker.getMappingObject(mappingId);
+        mappingNamespace = Namespace.getNamespace(Constants.MAPPING_NAMESPACE);
+        xmlHandler = new XmlHandlerImpl();
+        try {
+            FileInputStream tmpFile = new FileInputStream(map.getSyspath());
+            buildMappingDocument(new BufferedInputStream(tmpFile));
+        }
+        catch(FileNotFoundException fnfe){
+            throw new ErmsIOException("Unable to find the mapping file. Check that: "+map.getSyspath() +" exists");
+        }
+	}
+
 	public MappingParser(String mappingId, InputStream in) {
 		this.mappingId = mappingId;
 		mappingNamespace = Namespace.getNamespace(Constants.MAPPING_NAMESPACE);
 		xmlHandler = new XmlHandlerImpl();
 		buildMappingDocument(in);
-	
 	}
 
 	/**
-	 * Build the JDOM mapping.xml Document from an input stream (the mapping.xml
-	 * has been validated earlier on)
-	 * 
-	 * @param in
-	 *            stream containing the mapping.xml
+	 * Build the JDOM mapping.xml Document from an input stream
+	 * (the mapping.xml has been validated earlier on)
+	 * @param in stream containing the mapping.xml
 	 * @return JDOM representation of the mapping.xml
 	 */
 	public Document buildMappingDocument(InputStream in) {
 		mappingDocument = xmlHandler.readXml(in);
 		return mappingDocument;
 	}
-
+	
 	/**
-	 * Extract the objectTypes from the mapping.xml and put these into an
-	 * ObjectTypeMap
-	 * 
+	 * Extract the objectTypes from the mapping.xml and put these into an ObjectTypeMap
 	 * @return the ObjectTypeMap containing the datastructures
 	 */
 	public ObjectTypeMap getObjectTypes() {
@@ -85,8 +101,7 @@ public class MappingParser {
 
 	/**
 	 * Gets map of hooks
-	 * 
-	 * @return map from semantic name to list of Hooks
+	 * @return map from semantic name to list of Hooks 
 	 */
 	public Map<String, List<Hook>> getHooks() {
 		if (hooks != null) {
@@ -99,7 +114,18 @@ public class MappingParser {
 			List<Element> hookElements = MappingUtils.extractElements(hooksElement, "hook", mappingNamespace);
 			List<Hook> hookList = new LinkedList<Hook>();
 			for (Element hookElement : hookElements) {
-				Hook hook = new Hook(hookElement.getAttributeValue("xpath"), hookElement.getTextTrim());
+				String xpath = hookElement.getChildTextTrim("xpath", mappingNamespace);
+				String cmisObjectId = hookElement.getChildTextTrim("cmisPropertyId", mappingNamespace);
+				Hook hook = new Hook(xpath, cmisObjectId);
+				
+				Element escapes = hookElement.getChild("cmisEscapes", mappingNamespace);
+				if (escapes != null) {
+					for (Element escape : escapes.getChildren("escape", mappingNamespace)) {
+						hook.addEscapeHook(escape.getAttributeValue("regex"), escape.getAttributeValue("replacement"));
+					}
+					
+				}
+
 				hookList.add(hook);
 			}
 			hooks.put(template.getAttributeValue("id"), hookList);
@@ -123,7 +149,6 @@ public class MappingParser {
 
 	/**
 	 * Get map from semantic type to c element
-	 * 
 	 * @return map from semantic type to c element
 	 */
 	public Map<String, Element> getCElements() {
@@ -148,7 +173,16 @@ public class MappingParser {
 		String semanticType = getObjectTypes().getSemanticTypeFromCmisType(cmisType);
 		return getCElementFromSemanticType(semanticType);
 	}
+	
 
+    /**
+     * Returns the set of all the cmis types defined in the mapping.xml document
+     * @return
+     */
+	public Set<String> getObjectTypeFromMap() {
+        return getObjectTypes().getAllCmisTypes();
+	}
+	
 	public String getMappingId() {
 		return mappingId;
 	}
