@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -26,12 +27,15 @@ import org.jdom2.Element;
 import org.jdom2.JDOMException;
 
 import dk.magenta.eark.erms.Constants;
+import dk.magenta.eark.erms.db.DatabaseConnectionStrategy;
+import dk.magenta.eark.erms.db.JDBCConnectionStrategy;
 import dk.magenta.eark.erms.ead.EadBuilder;
 import dk.magenta.eark.erms.ead.MappingParser;
 import dk.magenta.eark.erms.ead.MetadataMapper;
 import dk.magenta.eark.erms.ead.XmlHandler;
 import dk.magenta.eark.erms.ead.XmlHandlerImpl;
 import dk.magenta.eark.erms.json.JsonUtils;
+import dk.magenta.eark.erms.mappings.Mapping;
 import dk.magenta.eark.erms.repository.CmisSessionWorker;
 import dk.magenta.eark.erms.system.PropertiesHandler;
 import dk.magenta.eark.erms.system.PropertiesHandlerImpl;
@@ -51,6 +55,7 @@ public class ExtractionWorker implements Runnable {
 	private boolean removeFirstDaoElement;
 	private JsonObject response;
 	private Path exportPath;
+	private DatabaseConnectionStrategy dbConnectionStrategy;
 	
 	public ExtractionWorker(JsonObject json, CmisSessionWorker cmisSessionWorker) {
 		this.json = json;
@@ -58,10 +63,16 @@ public class ExtractionWorker implements Runnable {
 		metadataMapper = new MetadataMapper();
 		removeFirstDaoElement = true;
 		xmlHandler = new XmlHandlerImpl();
-		
+				
 		// Get the export path
 		PropertiesHandler propertiesHandler = new PropertiesHandlerImpl("settings.properties");
 		exportPath = Paths.get(propertiesHandler.getProperty("exportPath"));
+		
+		try {
+			dbConnectionStrategy = new JDBCConnectionStrategy(propertiesHandler);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
@@ -77,12 +88,12 @@ public class ExtractionWorker implements Runnable {
 		JsonObjectBuilder builder = Json.createObjectBuilder();
 
 		// Get the mapping
+		
 		String mapName = json.getString(Constants.MAP_NAME);
 		try {
-			InputStream mappingInputStream = new FileInputStream(
-					new File("/home/andreas/eark/E-Ark-Alfresco-export-bridge/src/main/resources/mapping.xml")); // TODO:
-			// Change
-			// this!
+			Mapping	mapping = dbConnectionStrategy.getMapping(mapName);
+			String mappingFile = mapping.getSyspath();
+			InputStream mappingInputStream = new FileInputStream(new File(mappingFile));
 			mappingParser = new MappingParser(mapName, mappingInputStream);
 			mappingInputStream.close();
 		} catch (FileNotFoundException e) {
@@ -92,6 +103,10 @@ public class ExtractionWorker implements Runnable {
 		} catch (java.io.IOException e) {
 			e.printStackTrace();
 			response = JsonUtils.addErrorMessage(builder, "An I/O error occured while handling the mapping file!").build();
+			return;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			response = JsonUtils.addErrorMessage(builder, "The was a problem getting the mapping profile from the DB!").build();
 			return;
 		}
 
