@@ -196,56 +196,6 @@ public class RepositoryResource {
     }
 
 
-    @POST
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.APPLICATION_JSON)
-    @Path("/ead/upload")
-    public JsonObject uploadEad(@FormDataParam("eadFile") String eadFileName,
-                                @FormDataParam("file") InputStream fileInputStream,
-                                @FormDataParam("file") FormDataContentDisposition fileMetaData) {
-        JsonObjectBuilder builder = Json.createObjectBuilder();
-        if (StringUtils.isNotBlank(eadFileName) && fileInputStream != null) {
-            try {
-                //Read the file into a temp file
-
-                /*Create a temp file we might need to use this for pre-processing before storing. e.g. validation */
-                File tempFile = File.createTempFile("ead", ".xml");
-
-                //Read the content into the temp file the java 8 way
-                int rd  = (int) Files.copy(fileInputStream, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                IOUtils.closeQuietly(fileInputStream);
-
-                System.out.print("\n The number of bytes read - "+ rd +" to "+tempFile.getAbsolutePath()+"\n");
-
-                // Validate the uploaded mapping XML file
-                InputStream xmlInputStream = new FileInputStream(tempFile);
-                XmlHandler xmlHandler = new XmlHandlerImpl();
-                try {
-                    xmlHandler.readAndValidateXml(xmlInputStream, "ead3.xsd");
-
-                    builder.add(Constants.SUCCESS, true);
-                    builder.add(Constants.MESSAGE, "EAD template validated and successfully saved");
-
-                } catch (JDOMException e) {
-                    builder.add(Constants.SUCCESS, false);
-                    builder.add(Constants.MESSAGE, "The uploaded EAD template is not valid according to ead.xsd");
-                    builder.add("validationError", xmlHandler.getErrorMessage());
-                }
-                xmlInputStream.close();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                builder.add(Constants.SUCCESS, false);
-                builder.add(Constants.ERRORMSG, e.getMessage());
-            }
-        } else {
-            builder.add(Constants.SUCCESS, false);
-            builder.add(Constants.ERRORMSG, "Unable to persist uploaded mapping. Check system logs for details!");
-        }
-
-        return builder.build();
-    }
-
     /**
      * Returns a cmis session worker instance given a profile name
      * @param profileName

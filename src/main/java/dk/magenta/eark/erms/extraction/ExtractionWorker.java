@@ -56,9 +56,11 @@ public class ExtractionWorker implements Runnable {
 	private JsonObject response;
 	private Path exportPath;
 	private DatabaseConnectionStrategy dbConnectionStrategy;
+	private String pathToEadTemplate;
 	
-	public ExtractionWorker(JsonObject json, CmisSessionWorker cmisSessionWorker) {
+	public ExtractionWorker(JsonObject json, CmisSessionWorker cmisSessionWorker, String pathToEadTemplate) {
 		this.json = json;
+		this.pathToEadTemplate = pathToEadTemplate;
 		session = cmisSessionWorker.getSession();
 		metadataMapper = new MetadataMapper();
 		removeFirstDaoElement = true;
@@ -68,6 +70,7 @@ public class ExtractionWorker implements Runnable {
 		PropertiesHandler propertiesHandler = new PropertiesHandlerImpl("settings.properties");
 		exportPath = Paths.get(propertiesHandler.getProperty("exportPath"));
 		
+		// DB connection
 		try {
 			dbConnectionStrategy = new JDBCConnectionStrategy(propertiesHandler);
 		} catch (SQLException e) {
@@ -123,9 +126,7 @@ public class ExtractionWorker implements Runnable {
 		
 		// Create EadBuilder
 		try {
-			// TODO: change this! - uploading of the EAD template should be
-			// handled elsewhere
-			InputStream eadInputStream = new FileInputStream(new File("/home/andreas/.erms/mappings/ead_template.xml"));
+			InputStream eadInputStream = new FileInputStream(new File(pathToEadTemplate));
 			eadBuilder = new EadBuilder(eadInputStream, xmlHandler);
 			eadInputStream.close();
 		} catch (FileNotFoundException e) {
@@ -145,7 +146,7 @@ public class ExtractionWorker implements Runnable {
 		// Start traversing the CMIS tree
 		JsonArray exportList = json.getJsonArray(Constants.EXPORT_LIST);
 		for (int i = 0; i < exportList.size(); i++) {
-			// We know (assume) that the values in the exportList are strings
+			// We know (assume!) that the values in the exportList are strings
 
 			// Get the CMIS object
 			String objectId = exportList.getString(i);
