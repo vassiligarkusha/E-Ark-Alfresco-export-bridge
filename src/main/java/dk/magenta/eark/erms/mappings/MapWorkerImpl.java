@@ -146,7 +146,7 @@ public class MapWorkerImpl implements MapWorker {
                 }
             }
             else{
-                jsonObjectBuilder.add(Constants.ERRORMSG, "Unable to instantiate mapping object before deletion");
+                jsonObjectBuilder.add(Constants.ERRORMSG, "Unable to find mapping before attempting deletion");
                 jsonObjectBuilder.add(Constants.SUCCESS, false);
             }
         }

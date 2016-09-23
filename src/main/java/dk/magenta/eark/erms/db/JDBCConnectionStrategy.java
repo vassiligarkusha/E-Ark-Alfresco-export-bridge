@@ -112,7 +112,7 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
         finally {
             close();
         }
-        return result <= 1;
+        return result >= 1;
     }
 
     /**
