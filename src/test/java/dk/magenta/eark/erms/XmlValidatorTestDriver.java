@@ -4,7 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import dk.magenta.eark.erms.ead.MappingParser;
-import dk.magenta.eark.erms.ead.XmlValidator;
+import dk.magenta.eark.erms.xml.XmlValidator;
 
 public class XmlValidatorTestDriver {
 

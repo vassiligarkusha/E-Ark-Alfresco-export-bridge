@@ -1,23 +1,9 @@
 package dk.magenta.eark.erms.mappings;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-
+import dk.magenta.eark.erms.Constants;
+import dk.magenta.eark.erms.json.JsonUtils;
+import dk.magenta.eark.erms.xml.XmlHandler;
+import dk.magenta.eark.erms.xml.XmlHandlerImpl;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -26,10 +12,19 @@ import org.jdom2.JDOMException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import dk.magenta.eark.erms.Constants;
-import dk.magenta.eark.erms.ead.XmlHandler;
-import dk.magenta.eark.erms.ead.XmlHandlerImpl;
-import dk.magenta.eark.erms.ead.XmlValidator;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.sql.SQLException;
 
 /**
  * @author lanre, andreas.
@@ -52,6 +47,8 @@ public class MappingResource {
             try {
                 //Read the file into a temp file
 
+            	// TODO: refactor the tempfile creation into separate class to avoid responsibility erosion
+            	
                 /*Create a temp file we might need to use this for pre-processing before storing. e.g. validation */
                 File tempFile = File.createTempFile("mapping", ".xml");
 
@@ -68,10 +65,22 @@ public class MappingResource {
                 	// NOTE: the order of the last two arguments in the method below is significant!
                 	xmlHandler.readAndValidateXml(xmlInputStream, "ead3.xsd", "mapping.xsd");
 
+                	try {
+	                    MapWorker mapWorker = new MapWorkerImpl();
+	                    mapWorker.saveMapping(mapName, tempFile, fileMetaData);
+                	} catch (FileAlreadyExistsException e) {
+                		JsonUtils.addErrorMessage(builder, "The uploaded mapping file already exist");
+                		return builder.build();
+                	} catch (IOException e) {
+                		JsonUtils.addErrorMessage(builder, "An I/O error occured while saving the mapping file");
+                		return builder.build();
+					} catch (SQLException e) {
+						// This should never happen
+						JsonUtils.addErrorMessage(builder, "An error occured while writing the mapping data to the database!!");
+					}
+                    
                 	builder.add(Constants.SUCCESS, true);
                     builder.add(Constants.MESSAGE, "Mapping validated and successfully saved");
-                    MapWorker mapWorker = new MapWorkerImpl();
-                    mapWorker.saveMapping(mapName, tempFile, fileMetaData);
                     
                 } catch (JDOMException e) {
                 	builder.add(Constants.SUCCESS, false);

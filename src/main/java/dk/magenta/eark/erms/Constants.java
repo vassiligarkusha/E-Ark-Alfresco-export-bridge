@@ -7,6 +7,7 @@ public class Constants {
 
 	// JSON keys
 	public static final String SUCCESS = "success";
+	public static final String STATUS = "status";
 	public static final String MESSAGE = "message";
 	public static final String ERRORMSG = "error";
 	public static final String EXPORT_LIST = "exportList";

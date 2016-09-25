@@ -1,15 +1,17 @@
-package dk.magenta.eark.erms.ead;
-
-import org.jdom2.Document;
-import org.jdom2.Element;
-import org.jdom2.JDOMException;
-import org.jdom2.output.XMLOutputter;
+package dk.magenta.eark.erms.xml;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.output.XMLOutputter;
 
 public interface XmlHandler {
 	
@@ -18,7 +20,7 @@ public interface XmlHandler {
 	 * @param in
 	 * @return
 	 */
-	Document readXml(InputStream in);
+	public Document readXml(InputStream in);
 	
 	/**
 	 * Generates JDOM document from an XML input stream. Validation is performed according 
@@ -29,13 +31,19 @@ public interface XmlHandler {
 	 * @return
 	 * @throws JDOMException
 	 */
-	Document readAndValidateXml(InputStream in, String... schemas) throws JDOMException;
+	public Document readAndValidateXml(InputStream in, String... schemas) throws JDOMException;
 
 	/**
 	 * Gets the latest JDOM error message (e.g. a validation error message)
 	 * @return
 	 */
-	String getErrorMessage();
+	public String getErrorMessage();
+	
+	/**
+	 * Get the location of the generated EAD which have passed validation
+	 * @return the {@link}Path to the generated and valid EAD 
+	 */
+	public Path getCandidateEad();
 	
 	/**
 	 * Validates a JDOM document
@@ -43,13 +51,13 @@ public interface XmlHandler {
 	 * @param schemaLocation path to the XML schema in the resources folder
 	 * @return true if the document is valid and false otherwise
 	 */
-	boolean isXmlValid(Document document, String schemaLocation);
+	public boolean isXmlValid(Document document, String schemaLocation);
 	
 	/**
 	 * Write an XML element to System.out (for debugging)
 	 * @param e
 	 */
-	static void writeXml(Element e) {
+	public static void writeXml(Element e) {
 		XMLOutputter outputter = new XMLOutputter();
 		try {
 			outputter.output(e, System.out);
@@ -64,22 +72,26 @@ public interface XmlHandler {
 	 * @param document
 	 * @param filename
 	 */
-	static void writeXml(Document document, String filename) {
+	public static void writeXml(Document document, String filename) {
+		writeXml(document, Paths.get(filename));
+	}
+	
+	
+	public static void writeXml(Document document, Path filePath) {
 		try {
-			File f = new File(filename);
+			Path folderPath = filePath.getParent();
+			if (!Files.isDirectory(folderPath)) {
+				Files.createDirectories(folderPath);
+			}
+			File f = filePath.toFile();
 			f.delete();
-			FileWriter writer = new FileWriter(filename);
+			FileWriter writer = new FileWriter(f);
 			XMLOutputter outputter = new XMLOutputter();
 			outputter.output(document, writer);
 			writer.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-	
-	
-	static void writeXml(Document document, Path path) {
-		writeXml(document, path.toString());
 	}
 
 	

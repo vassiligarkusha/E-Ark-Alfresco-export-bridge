@@ -1,4 +1,4 @@
-package dk.magenta.eark.erms.repository;
+package dk.magenta.eark.erms.extraction;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -11,7 +11,7 @@ import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.commons.io.FileUtils;
 
-public class FileExtractor {
+public class IOHandler {
 
 	private Path rootExtractionPath;
 	private Path dataFilePath;
@@ -21,15 +21,15 @@ public class FileExtractor {
 	 * Constructor
 	 * @param rootExtractionPath the OS root path for storing the entire extraction
 	 */
-	public FileExtractor(Path rootExtractionPath, Session session) {
+	public IOHandler(Path rootExtractionPath, Session session) {
 		this.rootExtractionPath = rootExtractionPath;
 		this.session = session;
 		
-		// TODO: for now we just delete an already existing representations folder
+		// TODO: for now we just delete an already existing extraction
 		try {
 			FileUtils.deleteDirectory(rootExtractionPath.resolve("representations").toFile());
+			FileUtils.deleteDirectory(rootExtractionPath.resolve("metadata").toFile());
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -64,7 +64,12 @@ public class FileExtractor {
 		if (dataFilePath != null) {
 			return dataFilePath;
 		}
-		return Paths.get("representations", "rep1", "data");
+		dataFilePath = Paths.get("representations", "rep1", "data");
+		return dataFilePath;
+	}
+	
+	Path getMetadataFilePath() {
+		return Paths.get("metadata", "descriptive");
 	}
 	
 }

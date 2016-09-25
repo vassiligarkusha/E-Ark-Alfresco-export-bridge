@@ -1,9 +1,9 @@
 package dk.magenta.eark.erms.mappings;
 
-import dk.magenta.eark.erms.*;
+import dk.magenta.eark.erms.Constants;
+import dk.magenta.eark.erms.Utils;
 import dk.magenta.eark.erms.db.DatabaseConnectionStrategy;
 import dk.magenta.eark.erms.db.JDBCConnectionStrategy;
-import dk.magenta.eark.erms.exceptions.ErmsIOException;
 import dk.magenta.eark.erms.system.PropertiesHandler;
 import dk.magenta.eark.erms.system.PropertiesHandlerImpl;
 import org.apache.commons.lang3.StringUtils;
@@ -16,6 +16,12 @@ import javax.json.JsonArrayBuilder;
 import javax.json.JsonObject;
 import javax.json.JsonObjectBuilder;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.List;
 
 /**
@@ -32,7 +38,7 @@ public class MapWorkerImpl implements MapWorker {
             this.dbConnectionStrategy = new JDBCConnectionStrategy(propertiesHandler);
             this.mapRoot = replaceTokens(propertiesHandler.getProperty("mapping.root"));
             Utils.checkDirExists(this.mapRoot, true);
-            System.out.print("Map root located at: "+ mapRoot);
+            System.out.print("Map root located at: " + mapRoot);
         } catch (Exception sqe) {
             System.out.println("====> Error <====\nUnable to initialise mapping worker due to: " + sqe.getMessage());
             logger.error("====> Error <====\nUnable to initialise mapping worker due to: " + sqe.getMessage());
@@ -40,35 +46,29 @@ public class MapWorkerImpl implements MapWorker {
     }
 
     @Override
-    public void saveMapping(String mappingName, File mapFile, FormDataContentDisposition fileMetadata){
-        try{
-            System.out.println();
-            //TODO: Must check for existence of an already existing mapping with the same name and return an error msg
-            try {
-                final String finalPath = mapRoot + "/" + fileMetadata.getFileName();
-                //Are we able to move the file?
-                if (mapFile.renameTo( new File(finalPath) ) ) {
-                    //After moving let's store details that allow us to retrieve it later to the db
-                    if (!dbConnectionStrategy.saveMapping(mappingName, finalPath, fileMetadata)) {
-                        //if we didn't manage to save the information then remove the file
-                        mapFile.delete();
-                        throw new ErmsIOException("Unable to persist file details in the db.");
-                    }
-                }
-                else throw new NullPointerException("Internal system error: Unable to move the temp file to mapping root");
-            }
-            catch(Exception ge){
-                ge.printStackTrace();
-                logger.error("Unable to save file due to: \n" + ge.getMessage());
-            }
-        }
-        catch(Exception ge){
-            ge.printStackTrace();
+    public void saveMapping(String mappingName, File mapFile, FormDataContentDisposition fileMetadata) throws FileAlreadyExistsException, IOException, SQLException {
+
+        // Move the uploaded mapping XML file from the temp dir to the final destination
+        Path source = mapFile.toPath();
+        Path target = Paths.get(mapRoot, fileMetadata.getFileName());
+        Files.move(source, target);
+
+        // After moving let's store details that allow us to retrieve it
+        // later to the db
+        try {
+            dbConnectionStrategy.saveMapping(mappingName, target.toString(), fileMetadata);
+        } catch (SQLException e) {
+            // if we didn't manage to save the information then remove
+            // the file
+            Files.delete(target);
+            e.printStackTrace();
+            throw e;
         }
     }
 
     /**
      * Gets the Json object representing the requested mapping from the db
+     *
      * @param mappingName
      * @return
      */
@@ -81,8 +81,7 @@ public class MapWorkerImpl implements MapWorker {
                 jsonObjectBuilder.add("mapping", mp.toJsonObject());
                 jsonObjectBuilder.add(Constants.SUCCESS, true);
             }
-        }
-        catch (Exception ge){
+        } catch (Exception ge) {
             ge.printStackTrace();
         }
         return jsonObjectBuilder.build();
@@ -92,14 +91,14 @@ public class MapWorkerImpl implements MapWorker {
      * Returns a mapping Object. Not advisable for use in JAX-RS resources
      *
      * @param mapName
-     * @return a Map object or a Map.EMPTY object if it can not find a mapping object from the db
+     * @return a Map object or a Map.EMPTY object if it can not find a mapping
+     * object from the db
      */
     @Override
     public Mapping getMappingObject(String mapName) {
         try {
             return this.dbConnectionStrategy.getMapping(mapName);
-        }
-        catch (Exception ge){
+        } catch (Exception ge) {
             ge.printStackTrace();
             return Mapping.EMPTY_MAP;
         }
@@ -116,13 +115,12 @@ public class MapWorkerImpl implements MapWorker {
         JsonArrayBuilder jsonArrayBuilder = Json.createArrayBuilder();
         try {
             List<Mapping> mappings = this.dbConnectionStrategy.getMappings();
-            if(mappings.size() > 0){
+            if (mappings.size() > 0) {
                 mappings.forEach(t -> jsonArrayBuilder.add(t.toJsonObject()));
                 jsonObjectBuilder.add("mappings", jsonArrayBuilder);
                 jsonObjectBuilder.add(Constants.SUCCESS, true);
             }
-        }
-        catch (Exception ge){
+        } catch (Exception ge) {
             ge.printStackTrace();
         }
         return jsonObjectBuilder.build();
@@ -138,19 +136,18 @@ public class MapWorkerImpl implements MapWorker {
                 if (res) {
                     jsonObjectBuilder.add("dbEntryDeleted", true);
                 }
-                //TODO: clean up orphaned files
-                //Not a critical error though we would need to be able to clean up "orphaned" files at some point
+                // TODO: clean up orphaned files
+                // Not a critical error though we would need to be able to clean
+                // up "orphaned" files at some point
                 File mappingFile = new File(mp.getSyspath());
-                if(mappingFile.exists() && mappingFile.delete()){
+                if (mappingFile.exists() && mappingFile.delete()) {
                     jsonObjectBuilder.add("fileDeleted", true);
                 }
-            }
-            else{
-                jsonObjectBuilder.add(Constants.ERRORMSG, "Unable to find mapping before attempting deletion");
+            } else {
+                jsonObjectBuilder.add(Constants.ERRORMSG, "Unable to instantiate mapping object before deletion");
                 jsonObjectBuilder.add(Constants.SUCCESS, false);
             }
-        }
-        catch(Exception ge){
+        } catch (Exception ge) {
             ge.printStackTrace();
             jsonObjectBuilder.add(Constants.ERRORMSG, "Unable to delet mapping");
             jsonObjectBuilder.add(Constants.SUCCESS, false);
@@ -158,9 +155,9 @@ public class MapWorkerImpl implements MapWorker {
         return jsonObjectBuilder.build();
     }
 
-    private String replaceTokens(String token){
+    private String replaceTokens(String token) {
         String tmp = StringUtils.substringAfterLast(token, "}");
-        String tokenStr =  System.getProperty(StringUtils.substringBetween(token, "${", "}"));
+        String tokenStr = System.getProperty(StringUtils.substringBetween(token, "${", "}"));
         return tokenStr + tmp;
     }
 }

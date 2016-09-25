@@ -1,4 +1,4 @@
-package dk.magenta.eark.erms.ead;
+package dk.magenta.eark.erms.xml;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -21,6 +21,7 @@ import org.jdom2.input.sax.XMLReaderXSDFactory;
 public class XmlHandlerImpl implements XmlHandler {
 
 	private String errorMessage;
+	private Path candidateEad;
 	
 	@Override
 	public Document readXml(InputStream in) {
@@ -70,6 +71,7 @@ public class XmlHandlerImpl implements XmlHandler {
 			InputStream in = new FileInputStream(tmp.toFile());
 			readAndValidateXml(in, schemaLocation);
 			in.close();
+			candidateEad = tmp;
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -84,5 +86,10 @@ public class XmlHandlerImpl implements XmlHandler {
 	@Override
 	public String getErrorMessage() {
 		return errorMessage;
+	}
+	
+	@Override
+	public Path getCandidateEad() {
+		return candidateEad;
 	}
 }

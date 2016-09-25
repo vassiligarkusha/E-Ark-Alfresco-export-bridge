@@ -8,6 +8,7 @@ import org.jdom2.JDOMException;
 import org.jdom2.Namespace;
 
 import dk.magenta.eark.erms.Constants;
+import dk.magenta.eark.erms.xml.XmlHandler;
 
 public class EadBuilder {
 	

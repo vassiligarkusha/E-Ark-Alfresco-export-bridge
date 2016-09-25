@@ -30,16 +30,6 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
 
     public JDBCConnectionStrategy(PropertiesHandler propertiesHandler) throws SQLException{
         this.propertiesHandler = propertiesHandler;
-        try {
-            Class.forName("com.mysql.jdbc.Driver").newInstance();
-            String host = propertiesHandler.getProperty("host");
-            String userName = propertiesHandler.getProperty("userName");
-            String password = propertiesHandler.getProperty("password");
-            //Create a connection
-            this.connection = DriverManager.getConnection(host, userName, password);
-        } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
     }
 
     //TODO: Switch several of the statements to use transactions and handle transaction errors properly
@@ -50,8 +40,9 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
      * @throws SQLException
      */
     public List<Profile> getProfiles() throws SQLException {
-        try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
-            return db.select().from(Profiles.PROFILES)
+    	getConnection();
+    	try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
+        	return db.select().from(Profiles.PROFILES)
                     .fetch()
                     .stream()
                     .map(this::convertToProfile)
@@ -75,7 +66,7 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
      */
     @Override
     public boolean createProfile(Profile profile) throws SQLException {
-
+    	getConnection();
         int result;
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
             List<Query> queries = new ArrayList<>();
@@ -123,6 +114,7 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
      */
     @Override
     public boolean deleteProfile(String profileName) throws SQLException {
+    	getConnection();
         int result;
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
             result = db.transactionResult( configuration -> {
@@ -157,6 +149,7 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
      */
     @Override
     public boolean updateProfile(Profile profile) throws SQLException {
+    	getConnection();
         int result;
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
             result = db.transactionResult( configuration -> {
@@ -191,7 +184,8 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
      * @throws SQLException
      */
     @Override
-    public Profile getProfile(String profileName) throws SQLException{
+    public Profile getProfile(String profileName) throws SQLException {
+    	getConnection();
         Profile prf = new Profile();
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
             //Written just to understand how to chain the result from Jooq to a J8 stream. Actually does nothing
@@ -219,6 +213,7 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
      */
     @Override
     public boolean repositoryRootExists(String profileName, String repositoryRoot) throws SQLException{
+    	getConnection();
         boolean exists = false;
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
             //Written just to understand how to chain the result from Jooq to a J8 stream. Actually does nothing
@@ -249,6 +244,7 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
      */
     @Override
     public boolean addRepoRoot(String profileName, String repositoryRoot) throws SQLException {
+    	getConnection();
         boolean created = false;
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
             //Written just to understand how to chain the result from Jooq to a J8 stream. Actually does nothing
@@ -276,6 +272,7 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
      */
     @Override
     public boolean deleteMapping(String mappingName) throws SQLException {
+    	getConnection();
         int result;
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
             result = db.transactionResult( configuration -> {
@@ -309,6 +306,7 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
      */
     @Override
     public Mapping getMapping(String mappingName) throws SQLException {
+    	getConnection();
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
             Record mapping = db.select().from(Mappings.MAPPINGS)
                     .where(Mappings.MAPPINGS.NAME.equalIgnoreCase(mappingName))
@@ -331,6 +329,7 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
      */
     @Override
     public List getMappings() throws SQLException{
+    	getConnection();
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
             return db.select().from(Mappings.MAPPINGS)
                     .fetch()
@@ -354,9 +353,9 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
      * @return
      */
     @Override
-    public boolean saveMapping(String mapName,String sysPath, FormDataContentDisposition fileMetadata) throws SQLException{
+    public boolean saveMapping(String mapName,String sysPath, FormDataContentDisposition fileMetadata) throws SQLException {
+    	getConnection();
         int result;
-
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
              result = db.transactionResult( configuration -> {
                 int commits = DSL.using(configuration).insertInto(Mappings.MAPPINGS, Mappings.MAPPINGS.NAME,
@@ -393,6 +392,7 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
      */
     @Override
     public boolean removeRepoRoot(String profileName, String repositoryRoot) throws SQLException {
+    	getConnection();
         boolean deleted = false;
         try (DSLContext db = DSL.using(connection, SQLDialect.MYSQL)) {
             //Written just to understand how to chain the result from Jooq to a J8 stream. Actually does nothing
@@ -452,6 +452,32 @@ public class JDBCConnectionStrategy implements DatabaseConnectionStrategy {
         return tmp;
     }
 
+    /**
+     * Opens a new JDBC connection - use this be each DB operation method (the recommend way)
+     * @return the JDBC connection
+     * @throws SQLException
+     */
+    private Connection getConnection() throws SQLException {
+
+    	// Open new connection
+    	
+        try {
+			Class.forName("com.mysql.jdbc.Driver").newInstance();
+		} catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+			// This should never happen
+			e.printStackTrace();
+		}
+        
+        String host = propertiesHandler.getProperty("host");
+        String userName = propertiesHandler.getProperty("userName");
+        String password = propertiesHandler.getProperty("password");
+        
+        connection = DriverManager.getConnection(host, userName, password);
+        
+        return connection;
+    }
+    
+    
     private void close() throws SQLException {
         if (connection != null) {
             connection.close();

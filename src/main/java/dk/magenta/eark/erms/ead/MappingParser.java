@@ -5,6 +5,9 @@ import dk.magenta.eark.erms.exceptions.ErmsIOException;
 import dk.magenta.eark.erms.mappings.MapWorker;
 import dk.magenta.eark.erms.mappings.MapWorkerImpl;
 import dk.magenta.eark.erms.mappings.Mapping;
+import dk.magenta.eark.erms.xml.XmlHandler;
+import dk.magenta.eark.erms.xml.XmlHandlerImpl;
+
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.Namespace;
