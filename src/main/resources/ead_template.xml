@@ -10,23 +10,23 @@
 				<titleproper>title</titleproper>
 			</titlestmt>
 		</filedesc>
-		<maintenancestatus value="new">xyz</maintenancestatus>
+		<maintenancestatus value="new"/>
 		<maintenanceagency>
 			<agencyname>agency</agencyname>
 		</maintenanceagency>
 		<maintenancehistory>
 			<maintenanceevent>
-				<eventtype value="created">xyz</eventtype>
-				<eventdatetime>2016</eventdatetime>
-				<agenttype value="human">xyz</agenttype>
-				<agent>xyz</agent>
+				<eventtype value="created"/>
+				<eventdatetime>will-be-generated</eventdatetime>
+				<agenttype value="human"/>
+				<agent>ERMS Export Module</agent>
 			</maintenanceevent>
 		</maintenancehistory>
 	</control>
 	
-	<archdesc level="class">
+	<archdesc level="fonds">
 		<did>
-			<abstract>abstract</abstract>
+			<abstract>get-from-mapping</abstract>
 		</did>
 	</archdesc>
 </ead>

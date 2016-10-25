@@ -9,12 +9,17 @@
 	<element name="mapping" type="map:mapping_type" />
 	<complexType name="mapping_type">
 		<sequence>
+			<element ref="map:agencyname" />
+			<element ref="map:abstract" />
 			<element ref="map:objectTypes" />
 			<element ref="map:viewTypes" />
 			<element ref="map:eadTemplates" />
 		</sequence>
 	</complexType>
 
+	<element name="agencyname" type="string"/>
+	<element name="abstract" type="string"/>
+	
 	<element name="objectTypes" type="map:object_types" />
 	<complexType name="object_types">
 		<sequence>

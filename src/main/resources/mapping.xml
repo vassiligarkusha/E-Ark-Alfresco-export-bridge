@@ -2,6 +2,12 @@
 <mapping xmlns="http://www.magenta.dk/eark/erms/mapping/1.0"
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ead="http://ead3.archivists.org/schema/"
 	xsi:schemaLocation="http://www.magenta.dk/eark/erms/mapping/1.0 mapping.xsd">
+	
+	<!-- Agency name (used in the <control> section in the EAD) -->
+	<agencyname>eark.magenta.dk</agencyname>
+	
+	<!-- The abstract for the archdesc section in the EAD -->
+	<abstract>The abstract for the EAD control section goes here - this is a demo</abstract>
 
 	<!-- Corresponding to the CMIS property ID "cmis:objectTypeId" -->
 	<objectTypes>

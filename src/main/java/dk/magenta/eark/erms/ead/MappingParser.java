@@ -26,6 +26,8 @@ import java.util.*;
 public class MappingParser {
 
 	private String mappingId;
+	private String agencyname;
+	private String abstractStr;
 	private ObjectTypeMap objectTypeMap;
 	private Map<String, List<Hook>> hooks;
 	private Map<String, Element> CElements;
@@ -65,6 +67,30 @@ public class MappingParser {
 	public Document buildMappingDocument(InputStream in) {
 		mappingDocument = xmlHandler.readXml(in);
 		return mappingDocument;
+	}
+	
+	/**
+	 * Get the agencyname from the mapping XML file
+	 * @return The agency name
+	 */
+	public String getAgencyName() {
+		if (agencyname != null) {
+			return agencyname;
+		}
+		Element agencyname = MappingUtils.extractElements(mappingDocument, "agencyname", mappingNamespace).get(0);
+		return agencyname.getTextTrim();
+	}
+	
+	/**
+	 * Get the content of <abstract> from the mapping XML file 
+	 * @return The content of the <abstract> element
+	 */
+	public String getAbstract() {
+		if (abstractStr != null) {
+			return abstractStr;
+		}
+		Element abstractElement = MappingUtils.extractElements(mappingDocument, "abstract", mappingNamespace).get(0);
+		return abstractElement.getTextTrim();
 	}
 	
 	/**

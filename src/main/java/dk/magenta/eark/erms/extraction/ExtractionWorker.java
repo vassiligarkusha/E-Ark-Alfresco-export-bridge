@@ -56,11 +56,16 @@ public class ExtractionWorker implements Runnable {
 	private JsonObject response;
 	private Path exportPath;
 	private DatabaseConnectionStrategy dbConnectionStrategy;
-	private String pathToEadTemplate;
+
 	
-	public ExtractionWorker(JsonObject json, CmisSessionWorker cmisSessionWorker, String pathToEadTemplate) {
+	/**
+	 * Constructor to be used if the user should upload the EAD template
+	 * @param json The JSON sent from the front-end 
+	 * @param cmisSessionWorker used to get a CMIS session
+	 * @param pathToEadTemplate The path to the uploaded EAD template
+	 */
+	public ExtractionWorker(JsonObject json, CmisSessionWorker cmisSessionWorker) {
 		this.json = json;
-		this.pathToEadTemplate = pathToEadTemplate;
 		session = cmisSessionWorker.getSession();
 		metadataMapper = new MetadataMapper();
 		removeFirstDaoElement = true;
@@ -126,8 +131,8 @@ public class ExtractionWorker implements Runnable {
 		
 		// Create EadBuilder
 		try {
-			InputStream eadInputStream = new FileInputStream(new File(pathToEadTemplate));
-			eadBuilder = new EadBuilder(eadInputStream, xmlHandler);
+			InputStream eadInputStream = ExtractionWorker.class.getClassLoader().getResourceAsStream("ead_template.xml");
+			eadBuilder = new EadBuilder(eadInputStream, xmlHandler, mappingParser);
 			eadInputStream.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
