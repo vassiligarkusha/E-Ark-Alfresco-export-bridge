@@ -123,20 +123,20 @@ public class Cmis1Connector {
     public void listRepoCapabilities(RepositoryInfo repositoryInfo) {
         RepositoryCapabilities repoCapabilities = repositoryInfo.getCapabilities();
 
-        System.out.println("aclCapability = " + repoCapabilities.getAclCapability().name());
-        System.out.println("changesCapability = " + repoCapabilities.getChangesCapability().name());
-        System.out.println("contentStreamUpdatable = " + repoCapabilities.getContentStreamUpdatesCapability().name());
-        System.out.println("joinCapability = " + repoCapabilities.getJoinCapability().name());
-        System.out.println("queryCapability = " + repoCapabilities.getQueryCapability().name());
-        System.out.println("renditionCapability = " + repoCapabilities.getRenditionsCapability().name());
-        System.out.println("allVersionsSearchable? = " + repoCapabilities.isAllVersionsSearchableSupported());
-        System.out.println("getDescendantSupported? = " + repoCapabilities.isGetDescendantsSupported());
-        System.out.println("getFolderTreeSupported? = " + repoCapabilities.isGetFolderTreeSupported());
-        System.out.println("multiFilingSupported? = " + repoCapabilities.isMultifilingSupported());
-        System.out.println("privateWorkingCopySearchable? = " + repoCapabilities.isPwcSearchableSupported());
-        System.out.println("pwcUpdateable? = " + repoCapabilities.isPwcUpdatableSupported());
-        System.out.println("unfilingSupported? = " + repoCapabilities.isUnfilingSupported());
-        System.out.println("versionSpecificFilingSupported? = " + repoCapabilities.isVersionSpecificFilingSupported());
+        logger.info("aclCapability = " + repoCapabilities.getAclCapability().name());
+        logger.info("changesCapability = " + repoCapabilities.getChangesCapability().name());
+        logger.info("contentStreamUpdatable = " + repoCapabilities.getContentStreamUpdatesCapability().name());
+        logger.info("joinCapability = " + repoCapabilities.getJoinCapability().name());
+        logger.info("queryCapability = " + repoCapabilities.getQueryCapability().name());
+        logger.info("renditionCapability = " + repoCapabilities.getRenditionsCapability().name());
+        logger.info("allVersionsSearchable? = " + repoCapabilities.isAllVersionsSearchableSupported());
+        logger.info("getDescendantSupported? = " + repoCapabilities.isGetDescendantsSupported());
+        logger.info("getFolderTreeSupported? = " + repoCapabilities.isGetFolderTreeSupported());
+        logger.info("multiFilingSupported? = " + repoCapabilities.isMultifilingSupported());
+        logger.info("privateWorkingCopySearchable? = " + repoCapabilities.isPwcSearchableSupported());
+        logger.info("pwcUpdateable? = " + repoCapabilities.isPwcUpdatableSupported());
+        logger.info("unfilingSupported? = " + repoCapabilities.isUnfilingSupported());
+        logger.info("versionSpecificFilingSupported? = " + repoCapabilities.isVersionSpecificFilingSupported());
     }
 
     public void searchMetadataAndFTS(Session session) {
@@ -275,7 +275,7 @@ public class Cmis1Connector {
             if (servicesListURL.size() > 1)
                 return true;
         } catch (Exception ge) {
-            System.out.println("************ Error ***********\n\t\t\t" + ge.getMessage() + "\n\n=== Full stack trace ===\n");
+            logger.error("************ Error ***********\n\t\t\t" + ge.getMessage() + "\n\n=== Full stack trace ===\n");
             ge.printStackTrace();
         }
         return false;
@@ -299,7 +299,7 @@ public class Cmis1Connector {
             List<Element> servicesList = rootNode.getChildren("service", defaultNamespace);
             return servicesList.stream().map(this::extractEndpoints).collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
         } catch (Exception ge) {
-            System.out.println("************ Error ***********\n\t\t\t" + ge.getMessage() + "\n\n=== Full stack trace ===\n");
+            logger.error("************ Error ***********\n\t\t\t" + ge.getMessage() + "\n\n=== Full stack trace ===\n");
             ge.printStackTrace();
         }
         return Collections.<String, String>emptyMap();
@@ -346,10 +346,10 @@ public class Cmis1Connector {
             Session tstSess = tstConnector.getSession(profile);
             RepositoryInfo repoInfo = tstSess.getRepositoryInfo();
 
-            System.out.println("RepositoryId => " + repoInfo.getId());
-            System.out.println("Supported CMIS version => " + repoInfo.getCmisVersionSupported());
-            System.out.println("Root Folder ID - " + repoInfo.getRootFolderId());
-            System.out.println("Listing capabilities......\n");
+            logger.info("RepositoryId => " + repoInfo.getId());
+            logger.info("Supported CMIS version => " + repoInfo.getCmisVersionSupported());
+            logger.info("Root Folder ID - " + repoInfo.getRootFolderId());
+            logger.info("Listing capabilities......\n");
             listRepoCapabilities(repoInfo);
         } catch (Exception ge) {
             logger.warn("There was an exception testing the repository's CMIS capabilities: \n" + ge.getMessage());

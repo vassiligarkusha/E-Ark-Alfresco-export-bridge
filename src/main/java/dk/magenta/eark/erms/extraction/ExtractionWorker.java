@@ -1,31 +1,5 @@
 package dk.magenta.eark.erms.extraction;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.SQLException;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
-
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonObjectBuilder;
-
-import org.apache.chemistry.opencmis.client.api.CmisObject;
-import org.apache.chemistry.opencmis.client.api.FileableCmisObject;
-import org.apache.chemistry.opencmis.client.api.Folder;
-import org.apache.chemistry.opencmis.client.api.Session;
-import org.apache.chemistry.opencmis.client.api.Tree;
-import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
-import org.jdom2.Element;
-import org.jdom2.JDOMException;
-
 import dk.magenta.eark.erms.Constants;
 import dk.magenta.eark.erms.db.DatabaseConnectionStrategy;
 import dk.magenta.eark.erms.db.JDBCConnectionStrategy;
@@ -39,6 +13,22 @@ import dk.magenta.eark.erms.system.PropertiesHandler;
 import dk.magenta.eark.erms.system.PropertiesHandlerImpl;
 import dk.magenta.eark.erms.xml.XmlHandler;
 import dk.magenta.eark.erms.xml.XmlHandlerImpl;
+import org.apache.chemistry.opencmis.client.api.*;
+import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
+import org.jdom2.Element;
+import org.jdom2.JDOMException;
+
+import javax.json.Json;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
+import javax.json.JsonObjectBuilder;
+import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 // Let's not make this an interface for now
 public class ExtractionWorker implements Runnable {
@@ -81,13 +71,9 @@ public class ExtractionWorker implements Runnable {
 	/**
 	 * Performs the extraction process
 	 * 
-	 * @param json
-	 *            the request JSON
-	 * @param cmisSessionWorker
 	 * @return JSON object describing the result
 	 */
 	public void run() {
-
 		JsonObjectBuilder builder = Json.createObjectBuilder();
 
 		// Get the mapping
@@ -201,7 +187,6 @@ public class ExtractionWorker implements Runnable {
 		builder.add(Constants.STATUS, ExtractionResource.DONE);
 		builder.add("path", exportPath.toString());
 		response = builder.build();
-		return;
 	}
 	
 	public JsonObject getResponse() {
