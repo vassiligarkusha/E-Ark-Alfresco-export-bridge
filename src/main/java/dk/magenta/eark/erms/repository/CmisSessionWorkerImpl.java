@@ -233,6 +233,74 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
             Folder folder = (Folder) this.session.getObject(folderObjectId);
             List<CmisObject> children = new ArrayList<>();
 
+            //Thread d1 search for series
+            executorService.submit(() -> {
+                String threadName = Thread.currentThread().getName();
+                logger.info("Running thread for folders with name: " + threadName);
+                String queryStatement = "SELECT cmis:objectTypeId, cmis:objectId FROM cmis:series WHERE IN_FOLDER ('" + folderObjectId + "')";
+                ItemIterable<QueryResult> q = this.session.query(queryStatement, false);
+                //TODO refactor. This is an adapted copy of getFolder hacked to marshal the resulting query in children listqq
+                for (QueryResult qr : q) {
+                    String typeData = qr.getPropertyById("cmis:objectTypeId").getFirstValue().toString();
+                    if (viewTypes.contains(typeData)) {
+                        String objectId = qr.getPropertyById("cmis:objectId").getFirstValue().toString();
+                        CmisObject obj = this.session.getObject(this.session.createObjectId(objectId));
+                        children.add(obj);
+                    }
+                }
+            });
+            
+          //Thread d2 search for series
+            executorService.submit(() -> {
+                String threadName = Thread.currentThread().getName();
+                logger.info("Running thread for folders with name: " + threadName);
+                String queryStatement = "SELECT cmis:objectTypeId, cmis:objectId FROM cmis:volume WHERE IN_FOLDER ('" + folderObjectId + "')";
+                ItemIterable<QueryResult> q = this.session.query(queryStatement, false);
+                //TODO refactor. This is an adapted copy of getFolder hacked to marshal the resulting query in children listqq
+                for (QueryResult qr : q) {
+                    String typeData = qr.getPropertyById("cmis:objectTypeId").getFirstValue().toString();
+                    if (viewTypes.contains(typeData)) {
+                        String objectId = qr.getPropertyById("cmis:objectId").getFirstValue().toString();
+                        CmisObject obj = this.session.getObject(this.session.createObjectId(objectId));
+                        children.add(obj);
+                    }
+                }
+            });
+            
+          //Thread d3 search for series
+            executorService.submit(() -> {
+                String threadName = Thread.currentThread().getName();
+                logger.info("Running thread for folders with name: " + threadName);
+                String queryStatement = "SELECT cmis:objectTypeId, cmis:objectId FROM cmis:casefile WHERE IN_FOLDER ('" + folderObjectId + "')";
+                ItemIterable<QueryResult> q = this.session.query(queryStatement, false);
+                //TODO refactor. This is an adapted copy of getFolder hacked to marshal the resulting query in children listqq
+                for (QueryResult qr : q) {
+                    String typeData = qr.getPropertyById("cmis:objectTypeId").getFirstValue().toString();
+                    if (viewTypes.contains(typeData)) {
+                        String objectId = qr.getPropertyById("cmis:objectId").getFirstValue().toString();
+                        CmisObject obj = this.session.getObject(this.session.createObjectId(objectId));
+                        children.add(obj);
+                    }
+                }
+            });
+            
+          //Thread d4 search for series
+            executorService.submit(() -> {
+                String threadName = Thread.currentThread().getName();
+                logger.info("Running thread for folders with name: " + threadName);
+                String queryStatement = "SELECT cmis:objectTypeId, cmis:objectId FROM cmis:case WHERE IN_FOLDER ('" + folderObjectId + "')";
+                ItemIterable<QueryResult> q = this.session.query(queryStatement, false);
+                //TODO refactor. This is an adapted copy of getFolder hacked to marshal the resulting query in children listqq
+                for (QueryResult qr : q) {
+                    String typeData = qr.getPropertyById("cmis:objectTypeId").getFirstValue().toString();
+                    if (viewTypes.contains(typeData)) {
+                        String objectId = qr.getPropertyById("cmis:objectId").getFirstValue().toString();
+                        CmisObject obj = this.session.getObject(this.session.createObjectId(objectId));
+                        children.add(obj);
+                    }
+                }
+            });
+            
             //Thread 1 search for folders
             executorService.submit(() -> {
                 String threadName = Thread.currentThread().getName();
@@ -241,9 +309,9 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
                 ItemIterable<QueryResult> q = this.session.query(queryStatement, false);
                 //TODO refactor. This is an adapted copy of getFolder hacked to marshal the resulting query in children listqq
                 for (QueryResult qr : q) {
-                    String typeData = qr.getPropertyByQueryName("cmis:objectTypeId").getFirstValue().toString();
+                    String typeData = qr.getPropertyById("cmis:objectTypeId").getFirstValue().toString();
                     if (viewTypes.contains(typeData)) {
-                        String objectId = qr.getPropertyByQueryName("cmis:objectId").getFirstValue().toString();
+                        String objectId = qr.getPropertyById("cmis:objectId").getFirstValue().toString();
                         CmisObject obj = this.session.getObject(this.session.createObjectId(objectId));
                         children.add(obj);
                     }
@@ -258,9 +326,9 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
                 ItemIterable<QueryResult> q = this.session.query(queryStatement, false);
                 //TODO refactor. This is an adapted copy of getFolder hacked to marshal the resulting query in children listqq
                 for (QueryResult qr : q) {
-                    String typeData = qr.getPropertyByQueryName("cmis:objectTypeId").getFirstValue().toString();
+                    String typeData = qr.getPropertyById("cmis:objectTypeId").getFirstValue().toString();
                     if (viewTypes.contains(typeData)) {
-                        String objectId = qr.getPropertyByQueryName("cmis:objectId").getFirstValue().toString();
+                        String objectId = qr.getPropertyById("cmis:objectId").getFirstValue().toString();
                         CmisObject obj = this.session.getObject(this.session.createObjectId(objectId));
                         children.add(obj);
                     }
@@ -269,7 +337,7 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
 
             executorService.shutdown();
             //Wait a reasonable amount of time for thread to finish
-            executorService.awaitTermination(20, TimeUnit.SECONDS);
+            executorService.awaitTermination(60, TimeUnit.SECONDS);
 
             List<JsonObject> jsonRep = children.stream().map(this::extractUsefulProperties).collect(Collectors.toList());
             JsonArrayBuilder cb = Json.createArrayBuilder();
@@ -360,12 +428,43 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
                 jsonBuilder.add(ErmsBaseTypes.CONTENT_STREAM_MIMETYPE, doc.getContentStreamMimeType());
                 jsonBuilder.add(ErmsBaseTypes.CONTENT_STREAM_ID, doc.getContentStreamId());
                 jsonBuilder.add(ErmsBaseTypes.CONTENT_STREAM_FILENAME, doc.getContentStreamFileName());
-                jsonBuilder.add(ErmsBaseTypes.PATH, doc.getPaths().get(0));
+                //if (doc.getPaths() != null) {
+                //	jsonBuilder.add(ErmsBaseTypes.PATH, doc.getPaths().get(0));
+                //}
+                jsonBuilder.add(ErmsBaseTypes.NAME, cmisObject.getName());
+                jsonBuilder.add(ErmsBaseTypes.CREATION_DATE, Utils.convertToISO8601Date(cmisObject.getCreationDate()));
+                jsonBuilder.add(ErmsBaseTypes.CREATED_BY, cmisObject.getCreatedBy());
+                jsonBuilder.add(ErmsBaseTypes.LAST_MODIFIED, cmisObject.getLastModifiedBy());
                 break;
             case "cmis:folder":
                 Folder folder = (Folder) cmisObject;
                 jsonBuilder.add(ErmsBaseTypes.BASETYPE_ID, "folder");
                 jsonBuilder.add(ErmsBaseTypes.PATH, folder.getPath());
+                String deltaDocName = (cmisObject.getProperty("cmis:deltaDocName") != null)?cmisObject.getProperty("cmis:deltaDocName").getValueAsString():null;
+                jsonBuilder.add(ErmsBaseTypes.NAME, (deltaDocName != null)?deltaDocName:cmisObject.getName());
+                jsonBuilder.add(ErmsBaseTypes.CREATION_DATE, Utils.convertToISO8601Date(cmisObject.getCreationDate()));
+                jsonBuilder.add(ErmsBaseTypes.CREATED_BY, cmisObject.getCreatedBy());
+                jsonBuilder.add(ErmsBaseTypes.LAST_MODIFIED, cmisObject.getLastModifiedBy());
+                break;
+            case "cmis:function":
+            	jsonBuilder.add(ErmsBaseTypes.BASETYPE_ID, "folder");
+                jsonBuilder.add(ErmsBaseTypes.NAME, cmisObject.getProperty("cmis:functionTitle").getValueAsString());
+                break;
+            case "cmis:series":
+            	jsonBuilder.add(ErmsBaseTypes.BASETYPE_ID, "folder");
+                jsonBuilder.add(ErmsBaseTypes.NAME, cmisObject.getProperty("cmis:seriesTitle").getValueAsString());
+                break;
+            case "cmis:volume":
+            	jsonBuilder.add(ErmsBaseTypes.BASETYPE_ID, "folder");
+                jsonBuilder.add(ErmsBaseTypes.NAME, cmisObject.getProperty("cmis:volumeTitle").getValueAsString());
+                break;
+            case "cmis:casefile":
+            	jsonBuilder.add(ErmsBaseTypes.BASETYPE_ID, "folder");
+                jsonBuilder.add(ErmsBaseTypes.NAME, cmisObject.getProperty("cmis:caseFileTitle").getValueAsString());
+                break;
+            case "cmis:case":
+            	jsonBuilder.add(ErmsBaseTypes.BASETYPE_ID, "folder");
+                jsonBuilder.add(ErmsBaseTypes.NAME, cmisObject.getProperty("cmis:caseTitle").getValueAsString());
                 break;
             default:
                 Utils.getPropertyPostFixValue(cmisObject.getBaseTypeId().value());
@@ -374,10 +473,7 @@ public class CmisSessionWorkerImpl implements CmisSessionWorker {
         jsonBuilder.add("exportable", this.exportableTypes.contains(objTypeId));
         jsonBuilder.add(ErmsBaseTypes.OBJECT_ID, cmisObject.getId());
         jsonBuilder.add(ErmsBaseTypes.OBJECT_TYPE_ID, cmisObject.getType().getId());
-        jsonBuilder.add(ErmsBaseTypes.NAME, cmisObject.getName());
-        jsonBuilder.add(ErmsBaseTypes.CREATION_DATE, Utils.convertToISO8601Date(cmisObject.getCreationDate()));
-        jsonBuilder.add(ErmsBaseTypes.CREATED_BY, cmisObject.getCreatedBy());
-        jsonBuilder.add(ErmsBaseTypes.LAST_MODIFIED, cmisObject.getLastModifiedBy());
+        
 
         return jsonBuilder.build();
     }

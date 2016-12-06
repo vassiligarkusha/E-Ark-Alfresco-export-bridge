@@ -34,9 +34,11 @@ public class MetadataMapper {
 			if (!xpath.contains(DAO)) {
 				String cmisPropertyId = hook.getCmisPropertyId();
 				String value = cmisObj.getProperty(cmisPropertyId).getValueAsString();
-				value = escapeCmisValue(value, hook.getEscapes());
+				if (value != null) {
+					value = escapeCmisValue(value, hook.getEscapes());
 				
-				findXmlNodeAndInsertCmisData(xpath, value, clone);
+					findXmlNodeAndInsertCmisData(xpath, value, clone);
+				}
 			}
 		}
 		clone.setNamespace(ead);
